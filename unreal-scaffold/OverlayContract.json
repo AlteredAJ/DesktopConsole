@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "transport": "local named pipe (planned)",
+  "nativeOwner": "ps5-launcher",
+  "messages": {
+    "overlay.show": { "source": "native", "payload": { "context": "game|desktop" } },
+    "overlay.hide": { "source": "native", "payload": {} },
+    "scene.set": { "source": "native", "payload": { "scene": "home|game|idle", "accent": "#4d9cff", "theme": "blue|purple|green|amber|rose" } },
+    "presentation.set": { "source": "native", "payload": { "enabled": true, "quality": "light|premium" } },
+    "input.hint": { "source": "native", "payload": { "action": "navigate|select|back" } }
+  }
+}

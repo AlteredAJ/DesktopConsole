@@ -1,0 +1,267 @@
+/* Self-hosted Manrope (SIL Open Font License, google/fonts repo) â€” a tighter,
+   more geometric grotesque than Poppins; closer to the condensed-but-rounded
+   feel of PlayStation's UI typeface and Apple TV's SF Pro than Poppins' more
+   humanist/rounded letterforms were. Sony's/Apple's actual fonts are
+   proprietary and not freely distributable, so this is the closest
+   legitimate substitute rather than an exact match. Variable font (one file,
+   weight axis 200-800) instead of four static files. */
+@font-face {
+  font-family: "Manrope";
+  src: url("./assets/fonts/Manrope-Variable.ttf") format("truetype-variations");
+  font-weight: 200 800;
+  font-display: swap;
+}
+
+/* 10-foot UI baseline. Big targets, high contrast, dark by default. */
+:root {
+  --bg: #0b0d12;
+  --tile: #161a22;
+  --tile-focus: #2a3550;
+  --accent: #6ea8ff;
+  --text: #eef1f6;
+  --muted: #8a93a6;
+  font-family: "Manrope", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  overflow: hidden; /* fullscreen, never scroll the body */
+  user-select: none;
+  cursor: none; /* controller-first; touchpad cursor mode re-enables in Unit B */
+}
+
+/* The quick menu is a different native window. Its CSS must be truly
+   transparent so the game below remains visible; the window itself is also
+   click-through, so it never takes mouse or keyboard ownership. */
+html.overlay-document, html.overlay-document body, html.overlay-document #root {
+  background: transparent !important;
+}
+
+/* Slow ambient drift for the home screen's hero backdrop â€” the "living
+   background" feel Apple TV/PS5 dashboards use so the screen never looks static. */
+@keyframes drift {
+  0%   { transform: translate(-4%, -3%) scale(1); }
+  50%  { transform: translate(3%, 2%) scale(1.06); }
+  100% { transform: translate(-4%, -3%) scale(1); }
+}
+
+/* animation-fill-mode: forwards is set at each use site â€” without it, fast
+   navigation (re-triggering this via a changing `key`) could leave text
+   reverted to a low-opacity base state between remounts, reading as a
+   "fading font" glitch during quick swipes. Floor raised from 0 to 0.5 for
+   the same reason: even mid-animation, text should never read as
+   near-invisible. */
+@keyframes fadeSlideIn {
+  from { opacity: 0.5; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Hero backdrop watermark entrance â€” a touch of scale+rotate so a newly
+   focused app's logo feels like it swings into view, not just fades. */
+@keyframes heroIn {
+  from { opacity: 0; transform: scale(0.85) rotate(-4deg); }
+  to   { opacity: 0.4; transform: scale(1) rotate(0deg); }
+}
+
+@keyframes idleTwinkle {
+  0%, 100% { opacity: 0; transform: scale(0.6); }
+  50%      { opacity: 1; transform: scale(1); }
+}
+
+@keyframes idlePulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255,255,255,0.08); }
+  50%      { box-shadow: 0 0 0 14px rgba(255,255,255,0); }
+}
+
+/* Whole-app open/close feel â€” plays on first mount (fresh triple-click
+   spawn) AND replays on every restore (App.tsx listens for "window-restored"
+   and remounts this wrapper via a changing key). */
+@keyframes appOpen {
+  from { opacity: 0; transform: scale(0.97); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.app-enter {
+  animation: appOpen 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes appClosing {
+  from { opacity: 1; transform: scale(1); }
+  to   { opacity: 0; transform: scale(0.97); }
+}
+.app-exit {
+  animation: appClosing 160ms cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+.dualsense-hints { position: fixed; z-index: 1000; left: 50%; bottom: 1.8cqh; transform: translateX(-50%); display: flex; gap: .75cqw; }
+.dualsense-hint { display: flex; align-items: center; gap: .55cqw; padding: .65cqh 1cqw .65cqh .65cqw; border-radius: 1.15cqh; color: rgba(255,255,255,.78); font-size: 1.15cqh; background: linear-gradient(180deg,rgba(255,255,255,.13),rgba(255,255,255,.035)); border: 1px solid rgba(255,255,255,.14); backdrop-filter: blur(22px) saturate(170%); box-shadow: inset 0 1px rgba(255,255,255,.28),0 1cqh 2cqh rgba(0,0,0,.2); }
+.dualsense-hint i { width: 2.1cqh; height: 2.1cqh; display: grid; place-items: center; color: #fff; font-style: normal; }
+.dualsense-hint i svg { width: 100%; height: 100%; }.dualsense-hint i b { font-size: .9cqh; }
+/* Startup owns the first visible frame. It stays above the grid until the local
+   configuration is available, avoiding a half-rendered dashboard on launch. */
+@keyframes startupMark { from { opacity: 0; transform: scale(.82); } to { opacity: 1; transform: scale(1); } }
+@keyframes startupSweep { from { transform: translateX(-105%); } to { transform: translateX(210%); } }
+@keyframes startupPulse { 0%,100% { opacity: .42; transform: scale(.94); } 50% { opacity: 1; transform: scale(1.04); } }
+.startup-screen { position: fixed; z-index: 100; inset: 0; display: grid; place-items: center; overflow: hidden; background: radial-gradient(ellipse at 50% 45%, #172d4d 0%, #09111d 43%, #05080e 100%); color: #f8fbff; }
+.startup-screen__light { position: absolute; width: min(86vw, 1300px); aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, rgba(66,142,255,.34), transparent 63%); filter: blur(24px); opacity: .8; }
+.startup-screen__content { position: relative; display: grid; justify-items: center; gap: 17px; animation: startupMark 620ms cubic-bezier(.22,1,.36,1) both; }
+.startup-screen__mark { position: relative; width: 76px; height: 76px; animation: startupPulse 1.7s ease-in-out infinite; }
+.startup-screen__ring { position: absolute; inset: 3px; border: 4px solid rgba(229,243,255,.9); border-left-color: transparent; border-radius: 50%; transform: rotate(-36deg); box-shadow: 0 0 26px rgba(94,171,255,.62), inset 0 0 14px rgba(139,195,255,.2); }
+.startup-screen__ring--inner { inset: 21px; border-width: 3px; border-right-color: transparent; transform: rotate(40deg); opacity: .8; }
+.startup-screen__bar { position: absolute; left: 35px; top: -5px; width: 6px; height: 36px; border-radius: 99px; background: #f5fbff; box-shadow: 0 0 18px rgba(157,212,255,.95); }
+.startup-screen__word { font-size: 13px; font-weight: 800; letter-spacing: .42em; padding-left: .42em; }
+.startup-screen__progress { position: relative; width: 142px; height: 2px; overflow: hidden; border-radius: 999px; background: rgba(255,255,255,.18); }
+.startup-screen__progress i { position: absolute; inset: 0; width: 48%; border-radius: inherit; background: linear-gradient(90deg, transparent, #8fcdff, transparent); animation: startupSweep 1.25s ease-in-out infinite; }
+@keyframes idleMarkIn {
+  from { opacity: 0; transform: scale(.82); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes idleWordmarkIn {
+  from { opacity: 0; transform: scale(.9) translateY(7px); filter: blur(5px); }
+  to { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
+}
+@keyframes idlePrompt {
+  0%,100% { opacity: .48; transform: translateY(0); }
+  50% { opacity: 1; transform: translateY(-2px); }
+}
+@keyframes idleGateLight {
+  0%,100% { opacity: .38; transform: scale(.8); }
+  50% { opacity: 1; transform: scale(1.18); }
+}
+/* Entry transition: the idle constellation floats forward and dissolves,
+   revealing the already-rendered home screen underneath instead of cutting. */
+@keyframes startupFlyThrough {
+  0% { opacity: 1; transform: scale(1) translate3d(0,0,0); filter: blur(0); }
+  58% { opacity: .92; transform: scale(1.07) translate3d(0,-.5%,0); filter: blur(.5px); }
+  100% { opacity: 0; transform: scale(1.25) translate3d(0,-2%,0); filter: blur(3px); }
+}
+/* Never fade the first entry frame: the native window must reveal dark pixels, not WebView2's backing layer. */
+.app-shell { opacity: 1; background: #05060a; }
+
+/* ============================================================================
+   LIVING ATMOSPHERE (shared) — the single source of truth for the PS5/Apple-TV
+   "living dashboard" backdrop. Used by the home (CodexLauncher) AND every panel
+   (CodexPanelShell), replacing the old remote fluid.krackeddevs.com iframe.
+
+   Performance contract: this layer is COMPOSITOR-ONLY. Every animated element
+   moves via transform/opacity on its own promoted layer; the expensive blur is a
+   STATIC filter computed once per orb and then just translated — never recomputed
+   per frame. There is deliberately NO backdrop-filter here (that belongs to the
+   glass chrome stacked on top). `contain: layout paint` isolates the atmosphere's
+   repaints from the rest of the tree. Net cost at 1440p: a handful of cached
+   textures being moved on the GPU — effectively free.
+   ========================================================================== */
+.atmos {
+  position: absolute; inset: 0; z-index: -1;
+  overflow: hidden; pointer-events: none;
+  contain: layout paint;
+}
+.atmos-base {
+  position: absolute; inset: -12%;
+  background:
+    radial-gradient(75% 90% at 79% 45%, color-mix(in srgb, var(--focus-bloom, var(--accent)) 24%, transparent), transparent 61%),
+    radial-gradient(72% 90% at 15% 110%, #13192b 0%, transparent 70%),
+    linear-gradient(122deg, #07090e 5%, #10131b 48%, #080b10 92%);
+  /* App switches retint the base along with the orbs, so the whole room shifts
+     hue when a new tile is focused — not just the orb. */
+  transition: background 600ms ease;
+}
+.atmos-orb {
+  position: absolute; border-radius: 50%;
+  mix-blend-mode: screen;
+  will-change: transform, opacity;
+  transform: translateZ(0);
+}
+.atmos-orb-a {
+  width: 58cqw; height: 58cqw; left: 44cqw; top: 2cqh;
+  background: radial-gradient(circle at 42% 45%, var(--focus-bloom, var(--accent)), transparent 65%);
+  filter: blur(3cqh); opacity: .6;
+  animation: atmos-drift-a 26s ease-in-out infinite alternate;
+}
+.atmos-orb-b {
+  width: 40cqw; height: 40cqw; right: -6cqw; bottom: -20cqh;
+  background: radial-gradient(circle, #b51e2c 0%, transparent 67%);
+  filter: blur(3cqh); opacity: .3;
+  animation: atmos-drift-b 34s ease-in-out infinite alternate;
+}
+.atmos-orb-c {
+  width: 34cqw; height: 34cqw; left: 5cqw; top: 42cqh;
+  background: radial-gradient(circle, color-mix(in srgb, var(--focus-bloom, var(--accent)) 68%, #4b6cff), transparent 68%);
+  filter: blur(3.4cqh); opacity: .24;
+  animation: atmos-drift-c 30s ease-in-out infinite alternate;
+}
+.atmos-sheen {
+  position: absolute; width: 120cqw; height: 60cqh; left: 20cqw; top: -6cqh;
+  opacity: .3; filter: blur(1.4cqh);
+  background: linear-gradient(102deg, transparent 18%, color-mix(in srgb, var(--focus-bloom, var(--accent)) 32%, transparent) 44%, transparent 68%);
+  will-change: transform, opacity;
+  animation: atmos-sheen 22s ease-in-out infinite alternate;
+}
+.atmos-grain {
+  position: absolute; inset: 0; opacity: .14; mix-blend-mode: soft-light;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.35'/%3E%3C/svg%3E");
+}
+/* Panel variant: dashboards sit foreground text/cards on top, so dim the room a
+   touch and calm the motion. */
+.atmos-panel { opacity: .68; }
+.atmos-panel .atmos-orb-b { opacity: .2; }
+
+/* Independent, long, prime-ish periods so the drift never visibly loops in sync.
+   Pure translate/scale => stays on the compositor. */
+@keyframes atmos-drift-a {
+  0%   { transform: translate3d(-3cqw, -2cqh, 0) scale(1); }
+  100% { transform: translate3d(3cqw, 3cqh, 0) scale(1.08); }
+}
+@keyframes atmos-drift-b {
+  0%   { transform: translate3d(2cqw, 1cqh, 0) scale(1.04); }
+  100% { transform: translate3d(-3cqw, -3cqh, 0) scale(1); }
+}
+@keyframes atmos-drift-c {
+  0%   { transform: translate3d(-2cqw, 2cqh, 0) scale(.96); }
+  100% { transform: translate3d(3cqw, -2cqh, 0) scale(1.12); }
+}
+@keyframes atmos-sheen {
+  0%   { transform: rotate(-16deg) translate3d(-6cqw, 0, 0); opacity: .22; }
+  50%  { opacity: .34; }
+  100% { transform: rotate(-12deg) translate3d(6cqw, 2cqh, 0); opacity: .28; }
+}
+/* Motion safety: freeze the drift into a calm static wash (apple-design:
+   prefers-reduced-motion should avoid full-viewport oscillation). */
+@media (prefers-reduced-motion: reduce) {
+  .atmos-orb, .atmos-sheen { animation: none; }
+  /* Soften the whole-app scale entrance into a plain fade (drop the overshoot
+     easing / scale). The spring dock scroll already checks this query and jumps
+     instead of gliding. */
+  .app-enter { animation: appOpen 140ms linear both; }
+  .app-enter, .app-exit { transform: none !important; }
+}
+
+/* Reduced transparency: make the frosted chrome frostier/solid and drop
+   backdrop-filter entirely. Doubles as a performance escape hatch on weak GPUs —
+   backdrop-filter is the single most expensive thing we composite. `!important`
+   is required to beat the components' inline <style> rules (and the power panel's
+   inline backdropFilter). */
+@media (prefers-reduced-transparency: reduce) {
+  .codex-glass, .codex-power-panel, .codex-panel-card, .codex-panel-clock,
+  .dualsense-hint {
+    background: rgba(18, 22, 31, 0.94) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  .atmos { opacity: 0.4 !important; }
+}
+
+/* High contrast: near-solid surfaces with defined, contrasting borders. */
+@media (prefers-contrast: more) {
+  .codex-glass, .codex-power-panel, .codex-panel-card, .codex-panel-clock,
+  .dualsense-hint {
+    background: rgba(9, 11, 17, 0.97) !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  .atmos { opacity: 0.28 !important; }
+}

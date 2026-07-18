@@ -1,0 +1,26 @@
+[package]
+name    = "ps5-listener"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name       = "ps5_listener_lib"
+crate-type = ["lib", "cdylib", "staticlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri                  = { version = "2", features = ["tray-icon"] }
+tauri-plugin-autostart = "2"
+serde                  = { version = "1", features = ["derive"] }
+serde_json             = "1"
+dirs                   = "5"
+# Sends the one-time BT "wake" output report (see hid.rs::bt_wake()) that switches
+# the pad from its minimal 10-byte report into full 78-byte reporting. CONFIRMED
+# necessary on real hardware — without it every buf[] offset reads zero forever.
+crc32fast              = "1"
+
+# Windows/Linux use the default hidapi backend. (macOS not targeted here.)
+[target.'cfg(not(target_os = "macos"))'.dependencies]
+hidapi = { version = "2" }

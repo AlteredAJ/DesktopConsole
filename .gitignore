@@ -1,0 +1,42 @@
+# ---- Node / frontend ----
+node_modules/
+dist/
+dist-ssr/
+*.local
+# NOTE: listener/dist-noop/ is a committed source placeholder, not build output.
+
+# ---- Rust / Tauri ----
+# Workspace builds both exes into a shared root target/ (see Cargo.toml).
+/target/
+**/target/
+# Tauri-generated schemas/capabilities.
+**/src-tauri/gen/
+# Bundled WebView2 fixed runtime (large, fetched per machine).
+**/wv2runtime/
+
+# ---- Unreal (unreal-scaffold) ----
+Binaries/
+Intermediate/
+Saved/
+DerivedDataCache/
+*.VC.db
+*.opensdf
+*.sdf
+
+# ---- Native C++ POC (native-overlay-poc) ----
+[Oo]ut/
+*.obj
+*.pdb
+*.ilk
+*.exp
+*.lib
+
+# ---- Editor / OS ----
+.vs/
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.log
+Thumbs.db
+ehthumbs.db
+.DS_Store

@@ -1,0 +1,22 @@
+[workspace]
+resolver = "2"
+members = [
+    "listener/src-tauri",
+    "launcher/src-tauri",
+]
+
+# Both exes land in this shared target/ dir, so listener's sibling-exe lookup
+# (launch.rs::launcher_exe_path) finds ps5-launcher.exe next to ps5-listener.exe
+# under target/debug or target/release.
+
+# Both processes matter for startup feel: the listener boots on every login
+# (autostart) and the launcher spawns fresh on every triple-click — smaller,
+# tighter binaries mean less to page in from disk (and less for AV realtime
+# scan to chew through, a real contributor to "slow to open" on Windows) on
+# both of those. LTO + single codegen unit costs build time, not runtime.
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true
+panic = "unwind" # keep unwind: hid.rs/tray supervisors rely on catch_unwind to restart

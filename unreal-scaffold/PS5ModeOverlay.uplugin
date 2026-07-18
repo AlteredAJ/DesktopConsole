@@ -1,0 +1,9 @@
+{
+  "FileVersion": 3,
+  "Version": 1,
+  "VersionName": "0.1",
+  "FriendlyName": "PS5 Mode Presentation Bridge",
+  "Description": "Future Unreal presentation layer for PS5 Mode. Native Tauri keeps overlay ownership.",
+  "Category": "User Interface",
+  "Modules": [{ "Name": "PS5ModeOverlay", "Type": "Runtime", "LoadingPhase": "Default" }]
+}

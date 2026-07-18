@@ -1,0 +1,43 @@
+:root {
+  --ps-ground: #090b10;
+  --ps-bg: #0b0d12;
+  --ps-tile: #161a22;
+  --ps-text: #eef1f6;
+  --ps-muted: #8a93a6;
+  --ps-accent: #6ea8ff;
+  --ps-content-bloom: #e50914;
+  --ps-glass-top: rgba(255,255,255,.12);
+  --ps-glass-bottom: rgba(255,255,255,.025);
+  --ps-glass-edge: rgba(255,255,255,.14);
+  --ps-specular: rgba(255,255,255,.96);
+}
+
+.ps-glass {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(180deg, var(--ps-glass-top), var(--ps-glass-bottom));
+  border: 1px solid var(--ps-glass-edge);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  box-shadow: 0 24px 60px -22px rgba(0,0,0,.6), inset 0 1px rgba(255,255,255,.35);
+}
+.ps-glass::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  border-radius: inherit;
+  background: radial-gradient(120% 82% at 15% 0%, rgba(255,255,255,.20), transparent 56%);
+}
+.ps-glass--dock {
+  border-radius: 2.55cqh;
+  backdrop-filter: blur(32px) saturate(190%);
+  -webkit-backdrop-filter: blur(32px) saturate(190%);
+  box-shadow: 0 29px 63px -23px rgba(0,0,0,.76), inset 0 1px rgba(255,255,255,.38);
+}
+.ps-glass--chip {
+  border-radius: 1.1cqh;
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+}
+.ps-focus-light {
+  box-shadow: 0 0 0 .27cqh var(--ps-specular), 0 0 0 .52cqh rgba(255,255,255,.17),
+    0 1.5cqh 3.5cqh -1cqh var(--ps-content-bloom), 0 1.5cqh 3cqh -1cqh #000;
+}

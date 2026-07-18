@@ -1,0 +1,9 @@
+[package]
+name = "ps5-native-overlay-poc"
+version = "0.1.0"
+edition = "2021"
+
+[workspace]
+
+# Intentionally dependency-free. This keeps the proof small and makes the
+# native window behavior inspectable before the production renderer is chosen.
