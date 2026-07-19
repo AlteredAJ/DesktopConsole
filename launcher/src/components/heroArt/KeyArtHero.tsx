@@ -7,6 +7,7 @@
 // logo, like the reference banner, doesn't need it).
 
 import { useEffect, useRef, useState } from "react";
+import { nextFromBag } from "./shuffleBag";
 
 // How long each image in a rotating set holds before the slow crossfade.
 const ROTATE_MS = 9000;
@@ -39,21 +40,27 @@ export function KeyArtHero({
   }, [logo, cycle]);
 
   // Rotating hero art: A/B ping-pong crossfade with next-frame preloading so a
-  // not-yet-decoded image never flashes in. Honors prefers-reduced-motion by
-  // holding the first frame.
+  // not-yet-decoded image never flashes in.
+  //
+  // Order comes from a module-level shuffle bag (shuffleBag.ts) rather than a
+  // local cursor. Two consequences, both wanted:
+  //   * every image appears once before any repeats — no clustering;
+  //   * the bag outlives this component, so re-selecting an app shows the NEXT
+  //     piece instead of restarting at image 0 (this component remounts on
+  //     every focus change).
+  // Reduced motion still draws from the bag on mount — picking a different
+  // still image per visit isn't motion — it just doesn't run the timer.
   const pool = arts && arts.length ? arts : art ? [art] : [];
   const reduced = useRef(
     typeof window !== "undefined" &&
       window.matchMedia?.("(prefers-reduced-motion: reduce)").matches,
   ).current;
-  const [slots, setSlots] = useState<[string, string]>([pool[0] ?? "", pool[1 % Math.max(pool.length, 1)] ?? ""]);
+  const [slots, setSlots] = useState<[string, string]>(() => [pool[nextFromBag(pool)] ?? "", ""]);
   const [front, setFront] = useState(0);
-  const cursor = useRef(0);
   useEffect(() => {
     if (reduced || pool.length < 2) return;
     const timer = setInterval(() => {
-      cursor.current = (cursor.current + 1) % pool.length;
-      const next = pool[cursor.current];
+      const next = pool[nextFromBag(pool)];
       const pre = new Image();
       pre.onload = () => {
         setFront((f) => {
