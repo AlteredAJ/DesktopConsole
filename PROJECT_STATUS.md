@@ -135,6 +135,17 @@ For an at-a-glance board, open `BUILD_BOARD.html`.
 
 Format per entry: Intent · Changed · Files · Verified · Next/limits.
 
+### 2026-07-19 — tray Exit fix + cleanup
+- **Intent:** make the tray "Exit" actually quit; remove dead weight.
+- **Changed:** listener `ExitRequested` guard now only calls `prevent_exit()` for
+  implicit window-close requests (`code.is_none()`); an explicit `app.exit(n)` from
+  the tray Exit item passes through, so Exit terminates the process (no more manual
+  kill). Deleted 9 unreferenced non-4K `keyart/*.jpg` dupes (~1.5 MB).
+- **Files:** `listener/src-tauri/src/lib.rs`, `launcher/src/assets/logos/keyart/*`.
+- **Verified:** no src references/globs to the removed files; frontend build unaffected.
+  The Exit fix takes effect after a **listener rebuild** (`.\rebuild.ps1`).
+- **Next/limits:** controller tray icon + this fix both land on the next listener build.
+
 ### 2026-07-19 — feel + feature pass
 - **Intent:** make Home feel alive on entry and add a couch "jump back in" flow.
 - **Changed:** hero parallax on focus; boot chime + two-stage entry haptics; touchpad
