@@ -42,6 +42,22 @@ For an at-a-glance board, open `BUILD_BOARD.html`.
 - **Cross-app "Continue" tab** — new first tab (default view stays Apps) showing recent
   launches + running apps (`recents.ts`, localStorage). Touchpad momentum + Continue want
   a controller test.
+- **Keyboard overlay** (`docs/specs/KEYBOARD_OVERLAY_SPEC.md`) — `KeyboardOverlay.tsx`
+  floats `VirtualKeyboard`'s existing swipe-select core (new `bare` prop skips its
+  full-screen panel shell) in a dimmed glass panel over Home, summoned by a **double
+  press of Share/Create** (chosen with AJ 2026-07-19 — it's unbound elsewhere).
+  Home's own controller/touchpad handlers early-return while it's open, same pattern
+  as the Power panel. **Wants a controller test**, specifically:
+  - The Share/Create bit (`CodexLauncher.tsx`'s `SHARE_BUTTON = 0x10`) is assumed
+    from the standard DualSense shoulders-byte layout, **not independently verified
+    on hardware** the way `hid.rs`'s other confirmed bits are — if double-press
+    doesn't summon it, check this bit first.
+  - No consumer wired yet — `onDone` just closes the overlay (typed text is
+    discarded). First real use case (Wi-Fi password? rename?) still open — AJ
+    deferred that decision when the spec was scoped.
+  - Search's own separate inline keyboard (`Search.tsx`) was deliberately left
+    untouched per AJ ("leave low-risk for now") — folding it into this shared core
+    is a possibility for a future session, not started.
 
 ## Open threads
 

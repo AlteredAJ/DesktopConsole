@@ -1,6 +1,6 @@
 # Spec — Swipe-to-Select Keyboard Overlay
 
-**Status:** planned · **Owner:** next session · **Created:** 2026-07-19
+**Status:** built, pending hardware test · **Owner:** next session · **Created:** 2026-07-19 · **Built:** 2026-07-19
 **One-liner:** A summonable, controller-first keyboard **overlay** whose input
 model is **touchpad swipe-to-select** (drag the cursor across the key grid),
 modeled on the Search tab's keyboard. **No glide/"swipe-to-type", no predictive
@@ -75,15 +75,25 @@ launcher/src/components/
 
 ## Acceptance criteria
 
-- [ ] Keyboard can be summoned over Home and returns typed text to the caller.
-- [ ] Touchpad swipe moves the selection across keys (anchored on finger-down),
+- [x] Keyboard can be summoned over Home and returns typed text to the caller.
+      (Summon = double-press Share/Create, see Open questions §1 resolution below.
+      No consumer wired yet — `onDone` currently just closes, text is discarded.)
+- [x] Touchpad swipe moves the selection across keys (anchored on finger-down),
       matching Search's feel; sensitivity honors the existing setting.
-- [ ] D-pad + left-stick still navigate; Cross / touchpad-click commit; Square
-      deletes; Circle/Done dismiss.
-- [ ] While the keyboard is open, Home navigation receives no input (no
-      double-consumption).
-- [ ] `prefers-reduced-motion`: overlay appears without large motion.
-- [ ] `tsc && vite build` clean; no new remote/network deps.
+      (Unchanged — reused verbatim from `VirtualKeyboard`'s existing line-41 logic.)
+- [x] D-pad + left-stick still navigate; Cross / touchpad-click commit; Square
+      deletes; Circle/Done dismiss. (Circle was previously only handled by
+      `App.tsx`'s global panel-back effect, which the overlay isn't part of —
+      added a local `onCancel` prop + Circle handler to `VirtualKeyboard` for this.)
+- [x] While the keyboard is open, Home navigation receives no input (no
+      double-consumption). (Both `CodexLauncher`'s `useController` and
+      `useTouchpad` early-return while `keyboardOpen`, same pattern as the
+      Power panel.)
+- [x] `prefers-reduced-motion`: overlay appears without large motion.
+      (Opacity-only fade, disabled entirely under the media query.)
+- [x] `tsc && vite build` clean; no new remote/network deps.
+- [ ] **Not yet controller-tested on hardware** — see PROJECT_STATUS.md's note
+      on the unverified `SHARE_BUTTON` bit assumption.
 
 ## Constraints (project ground rules — do not violate)
 
@@ -92,12 +102,17 @@ launcher/src/components/
 - Compositor-only animation (transform/opacity); no per-frame re-blur.
 - Never route controller events to two consumers simultaneously.
 
-## Open questions (resolve with AJ first)
+## Open questions — resolved with AJ 2026-07-19
 
-1. **Summon gesture** — what opens the overlay on Home? (dedicated button? combo?)
-2. **Consolidate or not** — fold Search's inline keyboard into the shared core,
-   or leave Search untouched and only add the overlay? (Lower risk = leave it.)
-3. Where does the overlay get used first beyond Home (Wi-Fi password? rename?)?
+1. **Summon gesture** — double press of Share/Create ("as it's unbinded I think").
+   Implemented in `CodexLauncher.tsx` as `SHARE_BUTTON = 0x10` on the shoulders
+   byte — **this bit is assumed, not hardware-confirmed**; verify on first test.
+2. **Consolidate or not** — leave Search's inline keyboard untouched for now.
+   AJ: "later down the line I'll look into organizing" — flagged in
+   PROJECT_STATUS.md as a future-session possibility, not started.
+3. **First use case beyond Home** — none yet ("Just Home for now"). The overlay
+   is fully wired and functional but `onDone` has nowhere to send text today;
+   deciding the first real consumer (Wi-Fi password? rename?) is future work.
 
 ## Pointers
 
