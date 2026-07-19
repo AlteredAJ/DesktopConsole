@@ -59,6 +59,43 @@ For an at-a-glance board, open `BUILD_BOARD.html`.
     untouched per AJ ("leave low-risk for now") — folding it into this shared core
     is a possibility for a future session, not started.
 
+## ▶ NEXT EXECUTION BATCH — agreed with AJ 2026-07-19
+
+Run in this order. AJ chose **bugs → foundation → features**, and **"whole batch,
+then report"** (work straight through, verify each step, one consolidated report
++ one rebuild command at the end — don't stop per item).
+
+**Phase 1 — bugs (what feels broken)**
+1. **A+B `useEdges`** — `POST_REBUILD_FIXES_SPEC.md` §A+B. One input primitive;
+   migrate all six consumers. Fixes "first command closes the launcher" and
+   "Console Home needs two presses".
+2. **D shuffle bag** — §D. Per-set module-level bag; every image once before any
+   repeat, seam-guarded. Also fixes advance-on-reselection.
+3. **E art fills the screen** — §E. Remove the triple dimming (wrapper
+   `opacity:.72` + left-38% mask, `KeyArtHero`'s own vignette, live-backdrop
+   `inset:5%`). Then raise tab-slide travel/blur (~5–7cqw / 10–14px) and build
+   focus-traversal blur. **Cull the 14 sub-1440p files — AJ confirmed: cull the
+   10 Fortnite 1920×1080 key arts too.**
+
+**Phase 2 — foundation**
+4. **C5 `verify.ps1`** — `ARCHITECTURE_AND_CONSOLIDATION_SPEC.md` §C5. tsc + vite
+   + cargo check on both crates, one exit code. Do this early; it protects
+   everything after. **No commit without it green.**
+5. **C2 app-identity registry** — §C2. Collapse the 9 id-keyed registries into one
+   record per app, matched on a *stable normalised key* (not machine paths).
+   **Do not change `config.json` ids or `recents` keys.** Replace the blank-square
+   fallback with a branded placeholder — this likely resolves bug **C** outright.
+6. **C4 motion tokens** — §C4. One `motion.ts` + CSS custom properties.
+
+**Phase 3 — features** (`DESKTOP_MODE_AND_SETTINGS_SPEC.md`)
+7. **C3 shared keyboard core**, then the slim bottom-docked Desktop Mode keyboard.
+8. **Desktop Mode** proper (keyboard + search outside the launcher, `SendInput`).
+9. **Settings hub** — Performance tab (perf HUD) + the RGB rebuild on OpenRGB's
+   localhost SDK.
+
+**Standing rules for the batch:** behaviour-preserving refactors verified
+before/after; never two input consumers at once; commit locally only (no remote).
+
 ## Open threads
 
 - **Rebuilding:** run `.\rebuild.ps1` (puts cargo on PATH, stops the running exes,
