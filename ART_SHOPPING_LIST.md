@@ -1,57 +1,93 @@
-# 4K Hero-Art Shopping List
+# Hero Art — Shopping List
 
-Audit of every live tile (`%APPDATA%\ps5-mode\config.json`) against its hero-art
-routing in `launcher/src/components/heroArt/index.tsx`. Target display is **1440p**
-(native 2560×1440), so **2560×1440 minimum, 3840×2160 ideal** (future-proof + the
-existing `-4k.jpg` assets are already that tier). Full-bleed **16:9**, JPG q≈80.
+What still needs art, and the rules for what counts as usable. Updated 2026-07-19.
 
-## ✅ Already 4K — no action
-Netflix · Spotify · Prime Video · Hulu · Fortnite · Forza Horizon 6
-(wired to `keyart/*-4k.jpg` in `gameLogos.ts`)
+---
 
-## ✅ Vector brand heroes — no action (resolution-independent by design)
-YouTube · Discord · Steam · Epic Games · Battle.net
+## Sourcing rules (apply to everything below)
 
-## ❌ NEEDS ART — games falling back to the generic procedural `GameHero` (SVG)
+AJ sources these from **ArtStation**. For a piece to be usable as a hero backdrop:
 
-Best source is the game's **official key art / wallpaper**, not AI-generated
-(accuracy matters for real games). For the Steam titles, **SteamGridDB → "Heroes"**
-is the fastest source of high-res 16:9-croppable art + transparent logos.
+| Rule | Why |
+|---|---|
+| **Height ≥ 1440px** | AJ's rule — the panel is 1440p; anything shorter upscales and looks soft. Sub-1440 files get culled. |
+| **Wide** — 16:9 or wider (ratio ≥ 1.7) | It's a full-bleed backdrop. Portrait/square art can't fill the screen. |
+| **Atmospheric over character close-up** | UI text and tiles sit on top. Environments/cityscapes read well behind a dashboard; a face centred in frame fights it. |
+| **Busy-free left and bottom** | The title, tagline and dock sit bottom-left. Art with its subject on the right composes best. |
+| **Keep the original file** | No re-compression — they're already lossy. Drop them in as downloaded. |
 
-| Game | Tile id (exact — escape `\` as `\\` in TS) | Source |
+**How to add:** drop files into `launcher/src/assets/logos/keyart/<set>/`. The sets
+are **globbed**, so a new file joins the rotation automatically — no code change.
+Keep the artist-name filenames; they preserve attribution.
+
+---
+
+## Done ✅
+
+| Set | Count | Notes |
 |---|---|---|
-| Control | `exe:E:\Control\Control.exe` | SteamGridDB (Steam 870780) |
-| VALORANT | `exe:E:\Riot Games\VALORANT\live\VALORANT.exe` | Riot press kit / playvalorant.com |
-| Rocket League | `exe:E:\rocketleague\Binaries\Win64\RocketLeague.exe` | Epic press / official wallpaper |
-| The Alto Collection | `exe:E:\TheAltoCollection\The Alto Collection.exe` | SteamGridDB (Steam 1094930) |
-| F1 23 | `exe:E:\SteamLibrary\steamapps\common\F1 23\F1_23.exe` | SteamGridDB (Steam 2108330) |
-| Assetto Corsa | `exe:E:\SteamLibrary\steamapps\common\assettocorsa\AssettoCorsa.exe` | SteamGridDB (Steam 244210) |
-| BeamNG.drive | `exe:E:\SteamLibrary\steamapps\common\BeamNG.drive\BeamNG.drive.exe` | SteamGridDB (Steam 284160) |
-| Marvel Rivals | `exe:E:\SteamLibrary\steamapps\common\MarvelRivals\MarvelRivals_Launcher.exe` | SteamGridDB (Steam 2767030) |
+| `netflix/` | 10 | Arcane (Jinx, Piltover, Hextech) |
+| `disney/` | 12 | Disney / Marvel / Star Wars environments |
+| `epic/` | 32 | Fortnite key art + environments |
+| Forza Horizon 6, Sifu, LEGO Batman, Death Stranding 2 | 1 each | Existing single Steam hero assets |
 
-## ⚠️ NEEDS ART — streaming odd-one-out
-| Tile | id | Note |
+Also art-only by design (no action): YouTube · Discord · Steam · Epic · Battle.net
+(vector brand heroes) and Spotify / Prime Video / Hulu.
+
+**Fortnite ↔ Epic:** AJ — *"fortnite and epic are kinda shared bc I only picked
+fortnite stuff."* The earlier "keep strictly separate" rule is **dropped**:
+Fortnite and Epic share the `epic/` pool. If Epic ever ships non-Fortnite art,
+split them again then.
+
+---
+
+## Still needed — games 🎯
+
+These are in the live config with **no hero art** (they fall back to the generic
+procedural `GameHero` SVG). Listed for AJ to source.
+
+| # | Game | Suggested ArtStation search |
 |---|---|---|
-| Disney+ | `browser:https://www.disneyplus.com` | Only a logo-on-plate today (its Netflix/Hulu/Prime siblings all have real 4K heroes). Wants an official Disney+ promo hero (16:9, ≥2560×1440). |
+| 1 | **Marvel Rivals** | *Marvel Rivals key art / hero splash / map concept* |
+| 2 | **Control** | *Control Remedy, Oldest House, brutalist interior concept* |
+| 3 | **VALORANT** | *VALORANT map concept / splash — Riot environment art* |
+| 4 | **BeamNG.drive** | *BeamNG environment / open-road landscape* |
+| 5 | **Rocket League** | *Rocket League arena / stadium concept* |
+| 6 | **F1 23** | *F1 circuit / motorsport key art* |
+| 7 | **Assetto Corsa** | *racing sim environment, track concept* |
+| 8 | **The Alto Collection** | *Alto's Odyssey / Adventure — minimal dune landscapes* (stylised, will look great) |
 
-## ➖ Acceptable / low priority
-- **Browser** (`browser:https://www.google.com`) — generic Chrome hero, fine.
-- **Riot Client** (launcher) — procedural `GameHero`, fine; optional Riot art.
+Listed in priority order — most-used first, and roughly easiest-to-find first.
 
-## How to wire one in (per game, ~3 lines)
-1. Drop `control-4k.jpg` in `launcher/src/assets/logos/keyart/`.
-2. In `gameLogos.ts`: `import controlKeyArt from "./assets/logos/keyart/control-4k.jpg";`
-   then add to `KEY_ART`: `"exe:E:\\Control\\Control.exe": controlKeyArt,`
-3. (Optional) transparent logo PNG → `KEY_ART_LOGO_LOCKUP` for a title-card lockup;
-   an authentic bloom color → an `accentFor` entry (else it hash-picks one).
+**3–6 pieces each is plenty.** That's enough for the rotation to feel alive
+without bloating the build. (Epic's 32 is more than needed — fine, just not the
+target to match.)
 
-`KeyArtHero` defaults (left-aligned title-card, no cycle) suit all of these.
+**Alternative source:** for official key art rather than fan/concept work,
+**SteamGridDB → "Heroes"** has high-res 16:9 art plus transparent logo lockups.
 
-## Housekeeping notes (optional)
-- **Dead low-res dupes:** `keyart/` also holds non-`-4k` `.jpg`s (`netflix.jpg`,
-  `fortnite.jpg`, `forza.jpg`, `sifu.jpg`, `legobatman.jpg`, `hulu.jpg`,
-  `primevideo.jpg`, `spotify.jpg`, `deathstranding2.jpg`) — none are imported
-  (`gameLogos.ts` uses only `-4k`). ~1.5 MB of removable dead weight.
-- **Dormant art:** Sifu, LEGO Batman, and Death Stranding 2 have 4K art bundled
-  but **no tile in the live config** (not installed / removed). Art is ready if
-  those games return.
+---
+
+## Idle slideshow — games only
+
+AJ: *"we can do that w the idle slideshow but only game ones not media/app ones."*
+
+The idle screen must draw from **game pools only**. Today `IDLE_ART` is a
+hand-listed set that wrongly includes **Netflix, Prime Video and Hulu** — those
+come out. Fortnite/Epic counts as a game and stays.
+
+Rework `IDLE_ART` to derive from the game sets automatically (same glob approach)
+so it stays correct as art is added, instead of being a second list to maintain.
+
+---
+
+## Housekeeping
+
+- **Cull sub-1440p:** 14 files (~3.9 MB) measured below 1440 tall — exact list in
+  `docs/specs/POST_REBUILD_FIXES_SPEC.md` §E. Includes 10 official Fortnite
+  chapter key arts at 1920×1080 (**pending AJ's confirm** — they're the only
+  logo-bearing images in the Epic pool).
+- **Two Disney files are 7680px (8K)** — invisible past ~2560px at 1440p.
+  Downscaling to 4K is a free size win but needs an image tool installed.
+- **Hero art doesn't currently fill the screen** — that's a rendering bug (triple
+  dimming/masking), not an art problem. See `POST_REBUILD_FIXES_SPEC.md` §E.

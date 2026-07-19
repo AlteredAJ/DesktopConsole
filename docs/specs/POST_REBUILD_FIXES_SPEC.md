@@ -196,37 +196,37 @@ meaningful paint. That turns a "broken" flash into an intentional one.
 
 Reviewed against `PROJECT_STATUS.md`'s open threads. Ranked by value:
 
-**High — finish what's half-built**
-1. **Verify `SHARE_BUTTON = 0x10`.** The keyboard's summon gesture is an
-   *assumed* bit, never hardware-confirmed. If the double-tap doesn't work, this
-   is why. Cheap to verify, blocks the whole keyboard feature.
-2. **Give the keyboard a real consumer.** `onDone` currently discards its text —
-   the overlay works but does nothing. Obvious first use: **launch-by-search**
-   (already "designed but not built") or the Wi-Fi password field.
-3. **Fortnite hero pool.** Fortnite is still a single static image while
-   Netflix/Disney+/Epic rotate. Give it its own pool (kept separate from Epic,
-   per AJ).
+**Resolved by AJ 2026-07-19 — no longer open**
+- ~~Verify `SHARE_BUTTON = 0x10`~~ — **confirmed working on hardware.** The bit is
+  correct; drop the caveat from `KEYBOARD_OVERLAY_SPEC.md`.
+- ~~Fortnite hero pool~~ — **Fortnite and Epic share the `epic/` pool** ("I only
+  picked fortnite stuff"). The "keep separate" rule is dropped; revisit only if
+  Epic ships non-Fortnite art.
 
-**Medium — consistency across the library**
-4. **Hero art for the remaining 8 games** (Control, VALORANT, Rocket League, Alto,
-   F1 23, Assetto Corsa, BeamNG, Marvel Rivals) — `ART_SHOPPING_LIST.md`. Right
-   now the library is visually lopsided: streaming looks great, games don't.
-5. **Feed the new art pools into the idle slideshow.** `IDLE_ART` is still the old
-   hand-listed set; it should draw from the same pools so idle and home agree.
-6. **Per-game accent colors.** Still a hash fallback, so tile glow/bloom colors are
-   arbitrary rather than matching the art.
+**Now specced separately → `DESKTOP_MODE_AND_SETTINGS_SPEC.md`**
+- **Desktop Mode** (named concept; keyboard + search outside the launcher).
+- **Keyboard reshape** — slim, bottom-docked, translucent, for browser use.
+- **Settings as a system hub** — Performance tab (perf HUD toggle + motion/art
+  options) and a **proper RGB control rebuild** (today's `openrgb.rs` is 34 lines
+  of write-only CLI guesswork).
 
-**Lower — infrastructure**
-7. **Dev perf HUD.** Every motion change so far has been accepted on "looks fine"
-   — a frame-time overlay would let us actually verify "no dropped frames" claims
-   (and would have caught the residual-filter layer issue objectively).
-8. **Panel open/close motion** (Home ↔ Settings) — the last unbuilt item in
+**Still open — art & polish**
+1. **Hero art for the remaining 8 games** — now listed with sourcing rules and
+   priority order in `ART_SHOPPING_LIST.md` for AJ to shop on ArtStation. The
+   library is visually lopsided: streaming looks great, games fall back to the
+   generic procedural `GameHero`.
+2. **Idle slideshow = games only.** AJ: *"only game ones not media/app ones."*
+   `IDLE_ART` currently includes Netflix/Prime/Hulu — remove them, and derive the
+   set from the game pools by glob so it stays correct as art is added.
+3. **Per-game accent colors.** Still a hash fallback, so tile glow/bloom colors are
+   arbitrary rather than drawn from the art.
+4. **Panel open/close motion** (Home ↔ Settings) — the last unbuilt item in
    `HOME_MOTION_SPEC.md`.
-9. **Consolidate Search's inline keyboard** into the shared overlay core — AJ
-   deferred this ("later down the line"), but it's the same duplication pattern
-   the `useEdges` work is fixing for input.
-10. **8K Disney downscale.** Two files are 7680px; invisible past ~2560px at
-    1440p. Needs an image tool installed. Pure size win, zero visible loss.
+5. **Consolidate Search's inline keyboard** into the shared overlay core — AJ
+   deferred it, but it's the same duplication pattern `useEdges` is fixing for
+   input, and Desktop Mode gives it a second reason.
+6. **8K Disney downscale.** Two files are 7680px; invisible past ~2560px at
+   1440p. Needs an image tool installed. Pure size win, zero visible loss.
 
 **Standing**
 - Backend TODOs (`get_controller_state` snapshot, HID `buf[0]` offset),
