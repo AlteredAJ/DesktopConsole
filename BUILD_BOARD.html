@@ -111,9 +111,9 @@
       <p>A 10-foot, DualSense-driven TV launcher. <b>Two Tauri processes</b>: a tray-resident <b>listener</b> that watches for a triple-click, and the fullscreen <b>launcher</b> it spawns. This board organizes the parts and tracks where each stands.</p>
     </div>
     <div class="commits">
-      <span class="sha"><b>94bf11e</b> refine pass</span>
-      <span class="sha"><b>5d86d0f</b> art list</span>
-      <span class="sha">local-only · private</span>
+      <span class="sha"><b>285f665</b> docs + board</span>
+      <span class="sha">3 commits · local/private</span>
+      <span class="sha" style="color:var(--done);border-color:color-mix(in srgb,var(--done) 40%,var(--line))">● live on device</span>
     </div>
   </header>
 
@@ -176,16 +176,17 @@
     </div>
 
     <div class="col">
-      <div class="col-head"><i class="dot" style="color:var(--build)"></i> Needs your build <span class="n">2</span></div>
-      <div class="card" style="border-left-color:var(--build)"><div class="ct">Activate tray fix</div><div class="cd">Code committed; run <code style="font-size:11px">cargo/tauri build</code> on the listener to collapse to one icon.</div><span class="tag">Listener</span></div>
-      <div class="card" style="border-left-color:var(--build)"><div class="ct">Build launcher to view</div><div class="cd">See atmosphere + spring together on the real panel (can't screenshot localhost here).</div><span class="tag">Verify</span></div>
+      <div class="col-head"><i class="dot" style="color:var(--done)"></i> Now on device <span class="n">2</span></div>
+      <div class="card" style="border-left-color:var(--done)"><div class="ct">Single tray icon ✓</div><div class="cd">Listener rebuilt &amp; running — the double icon is gone.</div><span class="tag">Listener</span></div>
+      <div class="card" style="border-left-color:var(--done)"><div class="ct">Launcher live ✓</div><div class="cd">Atmosphere + spring dock running on the real 1440p panel.</div><span class="tag">Verify</span></div>
     </div>
 
     <div class="col">
-      <div class="col-head"><i class="dot" style="color:var(--next)"></i> Next up <span class="n">3</span></div>
+      <div class="col-head"><i class="dot" style="color:var(--next)"></i> Next up <span class="n">4</span></div>
       <div class="card" style="border-left-color:var(--next)"><div class="ct">Wire in hero art</div><div class="cd">8 games + Disney+ → drop 4K into keyart/, map in gameLogos.ts.</div><span class="tag">Art</span></div>
+      <div class="card" style="border-left-color:var(--next)"><div class="ct">Touchpad momentum (Opt. B)</div><div class="cd">True 1:1 drag + inertia + rubber-band; test with the pad in hand.</div><span class="tag">Motion</span></div>
+      <div class="card" style="border-left-color:var(--next)"><div class="ct">Hero parallax on focus</div><div class="cd">Atmosphere/art shifts subtly as you move tiles — cheap depth.</div><span class="tag">Motion</span></div>
       <div class="card" style="border-left-color:var(--next)"><div class="ct">Delete dead art dupes</div><div class="cd">~1.5 MB of unused non-4K keyart jpgs.</div><span class="tag">Art / Infra</span></div>
-      <div class="card" style="border-left-color:var(--next)"><div class="ct">Touchpad momentum (Opt. B)</div><div class="cd">True 1:1 drag + inertia + rubber-band; wants live controller testing.</div><span class="tag">Motion</span></div>
     </div>
 
     <div class="col">
@@ -199,9 +200,19 @@
 
   </div>
 
-  <footer class="next">
-    <h3><i class="dot"></i>The one blocker between you and seeing it all</h3>
-    <p>Everything shipped is committed and frontend-verified, but the <b>tray fix is Rust</b> and I can't compile it here. Run <code>cd listener &amp;&amp; npx tauri build</code> (then <code>cd ..\launcher &amp;&amp; npx tauri dev</code>) and the double tray collapses to one — after that we're clear to wire in art and tackle touchpad momentum.</p>
+  <h2 class="section">💡 Ideas on the table</h2>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(232px,1fr));gap:16px">
+    <div class="card" style="border-left-color:var(--rose)"><div class="ct">Cross-app “Continue” row</div><div class="cd">A top shelf that jumps back into the last game / video / app you were in. <code style="font-size:10.5px">active_apps.rs</code> already polls what's running — add a last-used timestamp. The real edge over Steam Big Picture.</div><span class="tag">Feature</span></div>
+    <div class="card" style="border-left-color:var(--rose)"><div class="ct">Swipe-to-type keyboard</div><div class="cd">Hold touchpad 2 s → trace-to-type overlay. Designed in the old handoff, never built; finishes the couch input model (esp. Wi-Fi / search).</div><span class="tag">Feature</span></div>
+    <div class="card" style="border-left-color:var(--rose)"><div class="ct">Signature boot chime + haptics</div><div class="cd">A short startup sound + a richer confirm rumble on entry. <code style="font-size:10.5px">sound.ts</code>/<code style="font-size:10.5px">feedback.ts</code> already exist — small change, big “console” payoff.</div><span class="tag">Polish</span></div>
+    <div class="card" style="border-left-color:var(--rose)"><div class="ct">Idle-screen art rotation</div><div class="cd">Let the rest/idle screen slowly cycle your hero art as an ambient screensaver instead of a static mark.</div><span class="tag">Polish</span></div>
+    <div class="card" style="border-left-color:var(--rose)"><div class="ct">Dev perf HUD</div><div class="cd">Toggleable FPS / frame-time overlay to confirm the compositor-only atmosphere really is free at 1440p — and catch regressions.</div><span class="tag">Tooling</span></div>
+    <div class="card" style="border-left-color:var(--rose)"><div class="ct">One-click <code style="font-size:11px">rebuild.ps1</code></div><div class="cd">Sets cargo on PATH, stops running instances, builds launcher via Tauri CLI + listener, restarts. Kills the friction we just hit.</div><span class="tag">Tooling</span></div>
+  </div>
+
+  <footer class="next" style="margin-top:34px;border-color:color-mix(in srgb,var(--done) 30%,var(--line));background:linear-gradient(180deg,color-mix(in srgb,var(--done) 8%,transparent),transparent)">
+    <h3><i class="dot" style="color:var(--done)"></i>Live on device — you're unblocked</h3>
+    <p>Tray fix active and the new console is running on your 1440p panel. Natural next moves: a <code>rebuild.ps1</code> so builds stop fighting the cargo PATH / locked-exe issues, then wire in 4K hero art (<code>ART_SHOPPING_LIST.md</code>) and tackle touchpad momentum with the pad in hand.</p>
   </footer>
 </div>
 </body>

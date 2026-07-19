@@ -29,7 +29,7 @@ For an at-a-glance board, open `BUILD_BOARD.html`.
   native `scrollTo({behavior:smooth})` — interruptible, glide-y navigation.
 - **Listener single tray icon** — removed the duplicate declarative `trayIcon`
   from `listener/src-tauri/tauri.conf.json`; kept the programmatic `tray.rs`
-  builder (has the Exit menu). ⚠️ **Needs a `cargo`/`tauri` build to take effect.**
+  builder (has the Exit menu). ✓ **Built & live on device (2026-07-19).**
 - apple-design polish — glass-on-glass modal scrim fix; `prefers-reduced-motion
   / -transparency / -contrast` queries.
 - Removed dead UI (`Launcher.tsx`, `Tile.tsx`, `entries/CodexHome.tsx`).
@@ -37,8 +37,10 @@ For an at-a-glance board, open `BUILD_BOARD.html`.
 
 ## Open threads
 
-- **Needs AJ's build:** run `cd listener && npx tauri build` to activate the tray
-  fix, then `cd ..\launcher && npx tauri dev` to see atmosphere + spring together.
+- **Rebuilding:** run `.\rebuild.ps1` (puts cargo on PATH, stops the running exes,
+  builds the launcher via the Tauri CLI + the listener, restarts the listener).
+  The **launcher must be built with `tauri build`** — a plain `cargo build` points
+  its window at the dev server (`localhost`) and shows a connection-refused page.
 - **Next up:** wire per-game 4K hero art (see `ART_SHOPPING_LIST.md` — 8 games +
   Disney+); delete ~1.5 MB of unused non-4K `keyart/*.jpg` dupes; touchpad
   momentum / true 1:1 drag (Option B — wants live controller testing).
@@ -113,6 +115,8 @@ For an at-a-glance board, open `BUILD_BOARD.html`.
 - **`OVERLAY_ARCHITECTURE.md`** — Quick Menu (two-window) overlay design.
 - **`LIVE_APP_BACKDROP_SPEC.md`** — live app-backdrop state machine (Stage 1 implemented).
 - **`ART_SHOPPING_LIST.md`** — 4K hero-art audit + per-game wiring recipe.
+- **`rebuild.ps1`** — one-shot rebuild (cargo on PATH, stop exes, build launcher via
+  Tauri CLI + listener, restart the listener).
 - **`docs/archive/`** — superseded scaffold-era handoffs, kept for history
   (`HANDOFF.md`, `AI_CURRENT_STATE.md`, `AI_CONTINUATION_PROTOCOL.md`,
   `README_FIRST_FOR_CLAUDE.md`, `GEMINI_RESEARCH_REQUEST.md`).
@@ -122,6 +126,17 @@ For an at-a-glance board, open `BUILD_BOARD.html`.
 ## Change log
 
 Format per entry: Intent · Changed · Files · Verified · Next/limits.
+
+### 2026-07-19 — first on-device build of the refine pass
+- **Intent:** get the session's changes running on the real panel and remove build friction.
+- **Changed:** built the launcher via the Tauri CLI (embeds the frontend — a plain
+  `cargo build` had pointed the window at the dev server → localhost error); rebuilt
+  and restarted the listener (single tray icon confirmed). Added `rebuild.ps1`;
+  refreshed `BUILD_BOARD.html`.
+- **Verified:** launcher opens to the living atmosphere + spring dock on the 1440p
+  panel; one tray icon.
+- **Next/limits:** two harmless Rust warnings remain (unused `tauri::Manager` import
+  in `listener/src-tauri/src/lib.rs`; dead `toggle_minimize` in `commands.rs`) — cosmetic.
 
 ### 2026-07-18 — refine/optimize pass + doc consolidation
 - **Intent:** make the launcher feel alive and cheaper, fix the double tray, and
