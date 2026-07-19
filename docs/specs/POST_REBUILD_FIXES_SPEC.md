@@ -1,134 +1,163 @@
-# Spec — Post-Rebuild Fixes (input edges, load flash, art rotation, sub-1440p cull)
+# Spec — Post-Rebuild Fixes & System Refinement
 
-**Status:** planned, not started · **Created:** 2026-07-19
-**Source:** AJ's on-device findings from the first full rebuild.
+**Status:** planned, not started · **Created:** 2026-07-19 · **Revised:** 2026-07-19
+**Source:** AJ's on-device findings from the first full rebuild, plus his direction
+to *"lean into refining our different systems and making sure they're
+interconnected properly."*
 
-Five items. **A and B share one root cause** and should be fixed together.
+Order of work: **A+B → D → E → C**, then the roadmap at the end.
 
 ---
 
-## A. First command after opening closes the launcher
+## A+B. Input edge system — one shared, correct implementation
 
-> "Some cmds like close app for the first time close the launcher."
+**Approved.** Both bugs are the same defect, and it has now appeared three times,
+so the fix is a *system*, not three patches.
 
-**Root cause — found, high confidence.** `CodexLauncher.tsx:151`:
+### The bug
 
+`CodexLauncher.tsx:151`:
 ```js
 useController((pad) => { …battery/charging…; if (!inputEnabled) return;
 ```
+Returns **before updating any `prev*` refs** (`prevCross`, `prevSquare`,
+`prevHat`, `prevStick`, `prevShoulders`). While input is disabled (entry
+animation) those refs go stale as the user presses buttons. When `inputEnabled`
+flips true, an *already-held* button reads as a fresh rising edge
+(`pad.cross && !prevCross.current`) → `launch(activeTile)` → `setClosing(true)` →
+the launcher hides. Exactly matches "first time" + "closes the launcher".
 
-The handler returns on `!inputEnabled` **before updating any `prev*` refs**
-(`prevCross`, `prevSquare`, `prevHat`, `prevStick`, `prevShoulders`). During the
-entry animation input is disabled, so those refs stay stale at their initial
-values while the user is actually pressing buttons. The moment `inputEnabled`
-flips true, a button that is *already held* reads as a fresh rising edge
-(`pad.cross && !prevCross.current`) and immediately fires `launch(activeTile)` →
-`setClosing(true)` → the launcher hides. That exactly matches "first time" (it
-can only happen during the entry window) and "closes the launcher".
+Same class, other sites:
+- `confirmClose` (152), `powerConfirm` (153), `powerOpen` (154) each return early
+  updating only `prevCross`/`prevCircle` — `prevSquare`/`prevHat`/`prevStick`/
+  `prevShoulders` leak stale across every mode change.
+- `QuickOverlay.tsx:53-55` seeds `previousHat = useRef(8)`,
+  `previousCross/Circle = useRef(false)` — i.e. *assumes nothing is pressed* at
+  mount. But it's summoned by a double-PS with a hand on the pad, so the first
+  press is eaten establishing the baseline and the second one works. That is the
+  "press Console Home twice" bug.
 
-**Same defect class, other sites:** the modal branches return early too —
-`confirmClose` (line 152), `powerConfirm` (153), `powerOpen` (154) each update
-only `prevCross`/`prevCircle`, leaving `prevSquare`, `prevHat`, `prevStick`,
-`prevShoulders` stale. So edges leak across every mode change, not just entry.
+### The fix — a shared `useEdges` hook
 
-**Fix:** always sample the pad into the `prev*` refs, on *every* frame, before
-any early return. Cleanest: hoist a single `syncPrev(pad)` call to the top of the
-handler (and to the top of each early-return branch), so "what was pressed last
-frame" is always truthful regardless of which mode owns input. Edge tests then
-stay correct across enable/disable and mode switches.
+Build one primitive that every controller consumer uses:
 
-**Acceptance:** open the launcher while mashing Cross/Square — no action fires
-until a genuine press *after* input is enabled. Entering/leaving Power and the
-close-confirm never fires a stray action from a held button.
+```
+launcher/src/hooks/useEdges.ts   // NEW
+  useEdges(): {
+    sync(pad): void          // called every frame, unconditionally
+    rising(btn): boolean     // true only on a genuine false->true transition
+    hat(): number | null     // d-pad edge
+    armed: boolean           // false until the first pad frame is observed
+  }
+```
 
----
+Two invariants it must guarantee — these are the whole fix:
+1. **Always sample.** `prev*` updates on *every* frame, before any early return
+   or mode branch. "What was pressed last frame" is always truthful.
+2. **Seed from reality, not from zero.** On the first observed frame, adopt the
+   pad's actual state and fire nothing. A button already held when a component
+   mounts is never mistaken for a new press.
 
-## B. Quick Menu needs "Console Home" twice
+Then migrate `CodexLauncher`, `QuickOverlay`, `VirtualKeyboard`,
+`KeyboardOverlay`, `SettingsMenu`, `Search` onto it and delete their bespoke
+`prev*` refs. That is the "interconnected properly" part — one input contract,
+not six hand-rolled copies that each drift.
 
-> "the quick menu has to click return to console home twice"
-
-**Root cause — same family.** `QuickOverlay.tsx:53-55` initialises
-`previousHat = useRef(8)`, `previousCross = useRef(false)`,
-`previousCircle = useRef(false)` — i.e. it *assumes nothing is pressed* at mount.
-The overlay is summoned by a double-PS while the user's hand is on the pad, so a
-button already down at mount is misread: the first press is consumed
-establishing the baseline instead of acting, and the second one works.
-
-**Fix:** initialise the edge baseline from the *first observed pad frame* rather
-than from a hardcoded "nothing pressed" default. Practical shape: an `armed` ref
-that is false until the first frame arrives; on that frame, seed all `prev*` from
-the actual pad and take no action. Same treatment for any component that mounts
-mid-input (`VirtualKeyboard`, `KeyboardOverlay`, `SettingsMenu`, `Search`).
-
-**Worth doing once, properly:** this is now the third instance of the same bug.
-Consider a small shared helper (e.g. `useEdges(pad)`) that owns baseline seeding
-and exposes `rising("cross")`, so no future component re-implements it wrong.
-
-**Acceptance:** one press of "Console Home" returns to the dashboard, every time,
-including immediately after the overlay appears.
-
----
-
-## C. "Block logo" on reopen until it loads / 3 presses
-
-> "when reopened I see that block logo and I have to wait for it to load in or
-> press 3 times… also happened when I changed the color theme once."
-
-**Not yet diagnosed — needs one detail from AJ before coding.** Candidate causes,
-in order of suspicion:
-
-1. **ServiceIcon's final fallback is a literally blank block.**
-   `icons.tsx` ends with `return <div style={wrap("var(--tile)")} />` — an empty
-   tile. Any id matching *nothing* renders as a blank square. The new `lnk:` ids
-   are the newest ids in the system; if a `REAL_LOGOS` lookup misses (path
-   mismatch, escaping), they fall straight through to this blank block.
-   *But:* a mapping miss would be permanent, and AJ's is transient — so this is
-   more likely a **render-order** issue than a mapping one.
-2. **Render before assets/config resolve.** The window is shown on restore before
-   React has painted real icons, so fallbacks flash. The theme-change case fits:
-   `subscribeTheme` bumps `themeRevision`, remounting icons and briefly
-   re-showing fallbacks.
-3. **`useExtractedIcon` async gap** — `exe:` tiles invoke `extract_tile_icon` and
-   render a fallback until it resolves; the in-memory cache is per-session, so a
-   fresh window pays it again.
-
-**Next step:** AJ to confirm *which* tile shows the block (or send a photo), and
-whether it's the tile icon or the hero backdrop. Then: hold the window hidden
-until first meaningful paint, and/or give the fallback a branded placeholder
-instead of an empty square so a slow load never reads as "broken".
-
-**Acceptance:** reopening never shows an empty block; worst case shows a
-deliberate placeholder that resolves without extra button presses.
+### Acceptance
+- [ ] Mash Cross/Square while the launcher opens → nothing fires until a real
+      press *after* input is enabled.
+- [ ] One press of "Console Home" returns to the dashboard, every time.
+- [ ] Entering/leaving Power and the close-confirm never fires a stray action.
+- [ ] Still no double-consumption: exactly one consumer owns input at a time.
 
 ---
 
-## D. Hero art should advance on re-selection
+## D. Hero art order — shuffle bag (no frequent repeats)
 
-> "the hero arts should rotate on reselection as well"
+**AJ:** *"can it be made random with a memory of what's not been cycled to not
+cause frequent repeats?"*
 
-**Cause:** `KeyArtHero` is remounted per focused tile, and its rotation cursor
-(`cursor = useRef(0)`) is component-local — so every time you focus an app it
-restarts at image 0. Only sitting on a tile for 9s+ advances it.
+**Yes, and it costs essentially nothing** — no optimization concern at all. The
+standard answer is a **shuffle bag**: shuffle the set once, hand out images in
+that order, and only reshuffle when the bag is empty. Memory is a single array of
+indices (≤32 numbers per app); work is one O(n) shuffle per full cycle. That is
+strictly cheaper than the timers already running.
 
-**Fix:** persist the cursor **per art set**, outside the component — a
-module-level `Map<string, number>` in `KeyArtHero.tsx` (or `gameLogos.ts`) keyed
-by app id. On mount: read the stored index, **advance it by one**, show that
-image, write it back. Re-selecting an app then shows the next piece, and the slow
-in-place rotation keeps working while focused.
+It gives what pure random can't: **every image appears once before any repeats**,
+so no clustering and no "why is it always that one".
 
-**Acceptance:** focus Netflix → art A; move away and back → art B, not A. Order
-stays stable and deterministic.
+**Shape:**
+```
+// module-level, per art set — survives remounts (that's also the D fix)
+bag: Map<setKey, number[]>     // remaining shuffled indices
+last: Map<setKey, number>      // guard the reshuffle seam
+next(setKey): number           // pop; refill+reshuffle when empty
+```
+One detail: when the bag refills, if the first pick equals the previous image,
+swap it with another slot — otherwise you can still see a back-to-back repeat
+across the seam.
+
+**Also fixes the original D complaint:** because the cursor now lives outside the
+component, re-selecting an app advances to a *new* image instead of restarting at
+image 0 (the current bug — `KeyArtHero`'s cursor is component-local and it
+remounts on every focus change).
+
+### Acceptance
+- [ ] Focus an app, leave, come back → different art, not the same one.
+- [ ] Across a full cycle every image appears exactly once before any repeats.
+- [ ] No repeat across the reshuffle seam.
 
 ---
 
-## E. Cull everything below 1440p
+## E. Make hero art actually fill the screen (+ cull, + more motion blur)
 
-> "anything below 1440p needs to go"
+**AJ:** *"a lot of the hero art throughout doesn't fill screen. I wanted full
+screen arts to fill the screen on top of animation."*
 
-Measured every file (JPEG SOF + WebP headers). **14 files, ~3.9 MB**, all with
-height < 1440:
+### Root cause — found. The art is being dimmed/masked three times over.
 
-| Set | File | Size |
+1. **The wrapper erases the left third and dims everything:**
+   ```css
+   .codex-hero-art{ inset:-10%; opacity:.72;
+     mask-image:linear-gradient(90deg, transparent 0%, #000 38%, #000 100%); }
+   ```
+   `opacity:.72` = 28% dimmed globally, and the mask fades the **left 38%** of the
+   image to fully transparent. That alone is why it reads as "not filling".
+2. **`KeyArtHero` then paints its *own* vignette on top** — the left variant is
+   `rgba(6,7,10,0.92)` at the left edge → transparent only by 62%, plus a
+   top-to-bottom darkening to 0.92. So the left side is darkened twice.
+3. **The live backdrop isn't full-bleed either:** `.codex-live-backdrop{inset:5%}`
+   insets it 5% on every side.
+
+### Plan
+- Drop the wrapper's `mask-image` and raise `opacity` toward 1.0; let **one**
+  layer own the legibility scrim instead of three stacked ones.
+- Rebalance `KeyArtHero`'s vignette so it only darkens as much as the bottom-left
+  title text actually needs — a tighter, lower gradient rather than a half-screen
+  wash.
+- Set `.codex-live-backdrop` to `inset:0` so it's genuinely full-bleed (keep the
+  `scale(1.035)` overscan for its transform).
+- Keep `objectFit:cover` + the `inset:-10%` overscan (that overscan is what gives
+  the parallax room to move — don't remove it).
+- Re-check text contrast afterward; the title/tagline must still read cleanly.
+  If it doesn't, the answer is a *tighter* scrim under the text, not re-dimming
+  the whole image.
+
+### Side-to-side motion blur — "didn't see much"
+Correct, it's currently very subtle: the shelf travels **`2.6cqw`** (~67px at
+2560 wide) with `blur(5px)` over 260ms. Plan: raise travel and blur (roughly
+`5–7cqw` / `10–14px`), and lengthen slightly so the streak is perceptible. This
+is the "blur intensity" open question from `HOME_MOTION_SPEC.md` — now answered
+by AJ: **more.** Tune on the panel, keep it compositor-only and time-boxed.
+
+Also still unbuilt from that spec: **focus-traversal blur** (blur proportional to
+how fast you flick across tiles) — given AJ wants more side-to-side motion, this
+is now worth building, not deferring.
+
+### Cull — measured, ready to execute
+14 files, ~3.9 MB, all height < 1440:
+
+| Set | File(s) | Size |
 |---|---|---|
 | netflix | `bo-chen-arcane-jinx-final-2k.jpg` | 2000×1180 |
 | netflix | `thibaut-granet-08.jpg` | 1920×811 |
@@ -136,29 +165,78 @@ height < 1440:
 | epic | `muhammx-marri-x5anjzh0rehf1.jpg` | 1920×1080 |
 | epic | `vitaliy-naymushin-*` (10 files) | 1920×1080 (one 1919×1079) |
 
-**⚠️ Flag before deleting:** the 10 `vitaliy-naymushin-*` files are the
-*official Fortnite chapter/season key art* — the most on-brand, logo-bearing
-images in the Epic pool. Culling them leaves Epic as environment concept art
-only. AJ should confirm; the rule is unambiguous but the outcome may not be
-intended.
-
-**Fix:** delete the files, `git rm`, rebuild. No code change needed — the sets are
-globbed, so the rotation adjusts automatically.
-
-**Acceptance:** every remaining image is ≥1440 tall; build clean; ~3.9 MB smaller.
+**⚠️ Still needs AJ's call:** the 10 `vitaliy-naymushin-*` files are the *official
+Fortnite chapter/season key art* — the only logo-bearing, on-brand images in the
+Epic pool. Culling them leaves Epic as environment concept art only. Note they're
+16:9, so they'd *fill* a 1440p screen fine; they'd just be upscaled from 1080p.
+No code change needed either way — the sets are globbed.
 
 ---
 
-## Suggested order
+## C. "Block logo" on reopen — still needs a repro detail
 
-1. **A + B together** (one shared edge-baseline fix + optional `useEdges` helper)
-   — these are correctness bugs that make the console feel broken.
-2. **D** (small, self-contained, visible win).
-3. **E** (delete + rebuild, pending AJ's call on the Fortnite key art).
-4. **C** last — needs AJ's repro detail first.
+Plan accepted; **blocked on one answer from AJ:** *which* tile shows the block,
+and is it the small tile icon or the big hero backdrop? (A photo settles it.)
+
+Leading hypotheses, unchanged:
+1. `icons.tsx`'s final fallback is a literally blank tile
+   (`<div style={wrap("var(--tile)")} />`) — anything matching no rule renders as
+   an empty square. Transient behaviour argues against a pure mapping miss.
+2. Window shown before first meaningful paint, so fallbacks flash (fits the
+   theme-change case: `subscribeTheme` remounts icons).
+3. `useExtractedIcon`'s async `extract_tile_icon` gap for `exe:` tiles.
+
+**Fix direction regardless of cause:** never render an empty square — give the
+fallback a deliberate branded placeholder, and hold the window hidden until first
+meaningful paint. That turns a "broken" flash into an intentional one.
+
+---
+
+## Roadmap — what else is worth planning
+
+Reviewed against `PROJECT_STATUS.md`'s open threads. Ranked by value:
+
+**High — finish what's half-built**
+1. **Verify `SHARE_BUTTON = 0x10`.** The keyboard's summon gesture is an
+   *assumed* bit, never hardware-confirmed. If the double-tap doesn't work, this
+   is why. Cheap to verify, blocks the whole keyboard feature.
+2. **Give the keyboard a real consumer.** `onDone` currently discards its text —
+   the overlay works but does nothing. Obvious first use: **launch-by-search**
+   (already "designed but not built") or the Wi-Fi password field.
+3. **Fortnite hero pool.** Fortnite is still a single static image while
+   Netflix/Disney+/Epic rotate. Give it its own pool (kept separate from Epic,
+   per AJ).
+
+**Medium — consistency across the library**
+4. **Hero art for the remaining 8 games** (Control, VALORANT, Rocket League, Alto,
+   F1 23, Assetto Corsa, BeamNG, Marvel Rivals) — `ART_SHOPPING_LIST.md`. Right
+   now the library is visually lopsided: streaming looks great, games don't.
+5. **Feed the new art pools into the idle slideshow.** `IDLE_ART` is still the old
+   hand-listed set; it should draw from the same pools so idle and home agree.
+6. **Per-game accent colors.** Still a hash fallback, so tile glow/bloom colors are
+   arbitrary rather than matching the art.
+
+**Lower — infrastructure**
+7. **Dev perf HUD.** Every motion change so far has been accepted on "looks fine"
+   — a frame-time overlay would let us actually verify "no dropped frames" claims
+   (and would have caught the residual-filter layer issue objectively).
+8. **Panel open/close motion** (Home ↔ Settings) — the last unbuilt item in
+   `HOME_MOTION_SPEC.md`.
+9. **Consolidate Search's inline keyboard** into the shared overlay core — AJ
+   deferred this ("later down the line"), but it's the same duplication pattern
+   the `useEdges` work is fixing for input.
+10. **8K Disney downscale.** Two files are 7680px; invisible past ~2560px at
+    1440p. Needs an image tool installed. Pure size win, zero visible loss.
+
+**Standing**
+- Backend TODOs (`get_controller_state` snapshot, HID `buf[0]` offset),
+  `native-overlay-poc` graduation gate, `unreal-scaffold` role decision.
+
+---
 
 ## Constraints
 
 - Work only in `ps5-mode-codex-rebuild`; never edit the original `…\ps5-mode`.
 - Never route controller events to two consumers at once.
+- Compositor-only steady state; blur time-boxed to transitions.
 - Verify with `tsc && vite build`; rebuild via `.\rebuild.ps1`.
