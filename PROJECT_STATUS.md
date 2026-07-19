@@ -141,6 +141,24 @@ For an at-a-glance board, open `BUILD_BOARD.html`.
 
 Format per entry: Intent · Changed · Files · Verified · Next/limits.
 
+### 2026-07-19 — rotating per-app hero art (Netflix / Disney+ / Epic)
+- **Intent:** use AJ's ArtStation collections as living per-app backdrops.
+- **Changed:** `KEY_ART_SET` in `gameLogos.ts`, globbed from
+  `assets/logos/keyart/{netflix,disney,epic}/` — **drop more art into a folder and
+  the rotation picks it up automatically**. `KeyArtHero` gained an `arts` prop:
+  A/B crossfade (9s hold / 1.2s fade) that preloads the next frame before
+  flipping, mounting only two `<img>` layers regardless of set size;
+  reduced-motion holds frame one. Disney+ dropped its logo-on-plate PosterHero and
+  Epic dropped the hand-drawn EpicHero — both have real wide art now.
+- **Quality call:** originals embedded as-is; no re-compression (already lossy
+  JPEG/WebP — re-encoding would only cost quality). Epic and Fortnite are kept as
+  **separate pools** per AJ (Epic ships its own art over time).
+- **Counts:** netflix 10 (Arcane), disney 12, epic 32 → `dist` ≈ 74 MB.
+- **Verified:** tsc + vite build clean; 63 art files bundled.
+- **Next/limits:** exe grows with the art — prune or downscale (the two Disney
+  files are 8K; invisible past ~2560px at 1440p) if size ever matters. Fortnite
+  still uses its single `fortnite-4k.jpg`; give it a pool if wanted.
+
 ### 2026-07-19 — app tiles + lnk launch + touchpad deadzone
 - **Intent:** wire AJ's streaming apps as clean PWA windows; fix touchpad clicks.
 - **Changed:** new `lnk:<path>` launch target (ShellExecute a Windows shortcut) so
