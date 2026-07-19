@@ -44,9 +44,14 @@ pub fn run() {
         .build(tauri::generate_context!())
         .expect("error while building PS5 listener")
         .run(|_app, event| {
-            if let tauri::RunEvent::ExitRequested { api, .. } = event {
-                // Don't exit when the (nonexistent) last window closes.
-                api.prevent_exit();
+            if let tauri::RunEvent::ExitRequested { api, code, .. } = event {
+                // `code` is None for an implicit "last window closed" request —
+                // keep the tray process alive in that case. An explicit
+                // `app.exit(n)` from the tray's Exit item carries Some(n); let
+                // that one through so Exit actually quits.
+                if code.is_none() {
+                    api.prevent_exit();
+                }
             }
         });
 }
