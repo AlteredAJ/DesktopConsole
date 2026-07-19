@@ -131,6 +131,12 @@ html.overlay-document, html.overlay-document body, html.overlay-document #root {
   0%,100% { opacity: .38; transform: scale(.8); }
   50% { opacity: 1; transform: scale(1.18); }
 }
+/* Slow ken-burns drift for the ambient idle-art slideshow. Transform-only so it
+   stays on the compositor; each hero gets a fresh, gently-panning frame. */
+@keyframes idleKenBurns {
+  from { transform: scale(1.06) translate3d(-1.2%, 0.6%, 0); }
+  to { transform: scale(1.13) translate3d(1.2%, -0.6%, 0); }
+}
 /* Entry transition: the idle constellation floats forward and dissolves,
    revealing the already-rendered home screen underneath instead of cutting. */
 @keyframes startupFlyThrough {

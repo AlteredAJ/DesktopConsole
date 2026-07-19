@@ -18,7 +18,6 @@ mod bt_wake;
 mod cursor_mode;
 mod rumble;
 
-use tauri::Manager;
 use tauri_plugin_autostart::MacosLauncher;
 
 pub fn run() {

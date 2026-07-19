@@ -1,9 +1,69 @@
 // Shared PS5 Mode idle/start visual. The sparse wordmark, cool-black field,
 // and small constellation are the established design language for this state.
 
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { IDLE_ART } from "../gameLogos";
 
 const PARTICLE_COUNT = 64;
+
+// How long each hero holds before the slow crossfade to the next one.
+const SLIDE_MS = 9000;
+const FADE_MS = 1600;
+
+// Ambient PS5-style idle slideshow: real hero key-art drifts (ken-burns) behind
+// the wordmark and slowly crossfades. Compositor-only (opacity + transform), so
+// it costs almost nothing. Honors prefers-reduced-motion by holding one static,
+// dimmed frame with no drift or crossfade.
+function IdleArt() {
+  const reduced = useRef(
+    typeof window !== "undefined" &&
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches,
+  ).current;
+  const [active, setActive] = useState(0);
+
+  useEffect(() => {
+    if (reduced || IDLE_ART.length < 2) return;
+    const id = window.setInterval(
+      () => setActive((i) => (i + 1) % IDLE_ART.length),
+      SLIDE_MS,
+    );
+    return () => window.clearInterval(id);
+  }, [reduced]);
+
+  return (
+    <div style={{ position: "absolute", inset: 0, overflow: "hidden", zIndex: 0 }}>
+      {IDLE_ART.map((src, index) => {
+        const on = reduced ? index === 0 : index === active;
+        return (
+          <div
+            key={src}
+            aria-hidden
+            style={{
+              position: "absolute",
+              inset: "-4%",
+              backgroundImage: `url(${src})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              opacity: on ? 0.32 : 0,
+              transition: `opacity ${FADE_MS}ms ease-in-out`,
+              animation: on && !reduced ? `idleKenBurns ${SLIDE_MS + FADE_MS}ms ease-out both` : undefined,
+              willChange: "opacity, transform",
+            }}
+          />
+        );
+      })}
+      {/* Scrim so the wordmark and prompt always read over the art. */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background:
+            "radial-gradient(ellipse 74% 60% at 50% 46%, rgba(9,13,21,0.55) 0%, rgba(9,13,21,0.82) 52%, #05060a 88%)",
+        }}
+      />
+    </div>
+  );
+}
 
 function Particles() {
   const particles = useRef(
@@ -55,6 +115,7 @@ export function IdleScreen({ message = "Press the PS button to wake", startup = 
         animation: leaving ? "startupFlyThrough 760ms cubic-bezier(.22,1,.36,1) both" : undefined,
       }}
     >
+      {!startup && <IdleArt />}
       <Particles />
       <div
         style={{

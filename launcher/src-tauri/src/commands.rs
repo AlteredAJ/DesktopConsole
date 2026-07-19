@@ -189,6 +189,8 @@ pub fn restore_focus(app: &AppHandle) {
 /// Triple-click while the launcher has foreground focus: manually minimize it
 /// (same posture as yield_focus, just not triggered by an external launch).
 /// Lets triple-click act as a full open/minimize/restore toggle end to end.
+/// Not yet wired to a trigger — kept as the intended toggle entry point.
+#[allow(dead_code)]
 pub fn toggle_minimize(app: &AppHandle) {
     if YIELDED.load(Ordering::Relaxed) {
         restore_focus(app);

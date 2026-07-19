@@ -50,6 +50,20 @@ export const KEY_ART: Record<string, string> = {
   "browser:https://www.primevideo.com": primeVideoKeyArt,
   "browser:https://www.hulu.com": huluKeyArt,
 };
+// Wide, atmospheric hero rasters used for the ambient idle-screen slideshow
+// (PS5-style rotating art behind the wordmark). Ordered for visual variety;
+// the poster-shaped Death Stranding art is intentionally excluded (it's not a
+// full-bleed hero).
+export const IDLE_ART: string[] = [
+  forzaKeyArt,
+  fortniteKeyArt,
+  sifuKeyArt,
+  netflixKeyArt,
+  legoBatmanKeyArt,
+  primeVideoKeyArt,
+  huluKeyArt,
+];
+
 export const KEY_ART_LOGO_LOCKUP: Record<string, string> = {
   "exe:E:\\Games\\Fortnite\\FortniteGame\\Binaries\\Win64\\FortniteClient-Win64-Shipping.exe": fortniteLockup,
   "exe:E:\\Fortnite\\FortniteGame\\Binaries\\Win64\\FortniteClient-Win64-Shipping.exe": fortniteLockup,
