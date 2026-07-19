@@ -314,6 +314,24 @@ pub fn close_tile_app(tile_id: String) -> bool {
     crate::active_apps::kill_tile(&tile_id)
 }
 
+/// Launch a game tile's configured trainer (its `AppTile.trainer` path), if
+/// any. Separate from `launch_app` since it's a second, optional target on
+/// the same tile rather than the tile's primary launch id.
+#[tauri::command]
+pub fn launch_trainer(tile_id: String) -> Result<(), String> {
+    let config = crate::config::AppConfig::load();
+    let tile = config
+        .apps
+        .iter()
+        .find(|tile| tile.id == tile_id)
+        .ok_or_else(|| format!("unknown tile: {tile_id}"))?;
+    let trainer = tile
+        .trainer
+        .as_deref()
+        .ok_or_else(|| format!("{tile_id} has no trainer configured"))?;
+    app_launch::launch(trainer).map_err(|e| e.to_string())
+}
+
 /// Unit D Ã¢â‚¬â€ list the monitor's actually-supported resolution/refresh modes.
 #[tauri::command]
 pub fn list_display_modes() -> Vec<DisplayMode> {
@@ -369,6 +387,7 @@ pub fn sync_game_library(roots: Vec<String>) -> Result<crate::config::AppConfig,
             icon: None,
             category: "launchers".to_string(),
             needs_cursor: true,
+            trainer: None,
         });
     }
     for game in index.games {
@@ -381,6 +400,7 @@ pub fn sync_game_library(roots: Vec<String>) -> Result<crate::config::AppConfig,
             icon: None,
             category: "games".to_string(),
             needs_cursor: false,
+            trainer: None,
         });
     }
     config.save().map_err(|error| error.to_string())?;

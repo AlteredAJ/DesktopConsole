@@ -39,6 +39,11 @@ pub struct AppTile {
     pub category: String, // "apps" | "games" | "launchers"
     #[serde(default)]
     pub needs_cursor: bool, // touchpad drives real OS cursor while this tile's app has focus
+    /// Game tiles only. Same "exe:<path>" scheme as `id` — a trainer binary
+    /// launched independently of the game itself. None = no Trainer option
+    /// shown for this tile (most games won't have one).
+    #[serde(default)]
+    pub trainer: Option<String>,
 }
 
 fn default_category() -> String {
@@ -78,6 +83,7 @@ impl AppConfig {
             icon: None,
             category: category.into(),
             needs_cursor,
+            trainer: None,
         };
         AppConfig {
             default_display: None,

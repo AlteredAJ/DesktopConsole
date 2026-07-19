@@ -101,6 +101,7 @@ pub fn run() {
             commands::sleep_machine,
             commands::shutdown_machine,
             commands::close_tile_app,
+            commands::launch_trainer,
             commands::scan_game_library,
             commands::sync_game_library,
             commands::get_game_index,
