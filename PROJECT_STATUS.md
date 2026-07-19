@@ -57,8 +57,6 @@ For an at-a-glance board, open `BUILD_BOARD.html`.
   perf/DPR check on the real panel; `native-overlay-poc` graduation gate;
   `unreal-scaffold` role decision.
 - **Specced, not built** (self-contained handoffs in `docs/specs/`):
-  - `docs/specs/KEYBOARD_OVERLAY_SPEC.md` — summonable **swipe-to-select** keyboard
-    overlay (reuse the existing mechanic; **no** glide-type / predictive).
   - `docs/specs/HOME_MOTION_SPEC.md` — "alive when switching" motion pass: tab
     slide + tasteful **motion-blur** streak, compositor-safe.
 - **Designed but not built** (full detail in `docs/archive/HANDOFF.md`):
