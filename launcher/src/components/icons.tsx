@@ -5,7 +5,8 @@
 
 import { useEffect, useState, type CSSProperties } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { realLogoFor } from "../gameLogos";
+import { realLogoFor, logoSurfaceFor } from "../gameLogos";
+import { identityFor } from "../appRegistry";
 
 const wrap = (bg: string): CSSProperties => ({
   width: "100%",
@@ -294,16 +295,6 @@ function useExtractedIcon(id: string, eligible: boolean): string | null {
   return uri;
 }
 
-function logoSurfaceFor(id: string): string {
-  if (id === "browser:https://www.primevideo.com") return "#071a32";
-  if (id.includes("disneyplus") || id.includes("Disney+")) return "#07184a";
-  if (id.includes("hulu") || id.includes("Hulu")) return "#0b2918";
-  if (id.includes("FMHY")) return "#0a0b12";
-  if (id.includes("Fortnite")) return "#172a67";
-  if (id.includes("Forza Horizon")) return "#08272e";
-  return "var(--tile)";
-}
-
 function ExtractedIcon({ uri, background = "var(--tile)" }: { uri: string; background?: string }) {
   return (
     <div style={wrap(background)}>
@@ -326,11 +317,14 @@ export function ServiceIcon({ id }: { id: string }) {
   if (extracted) return <ExtractedIcon uri={extracted} />;
 
   if (id in PATHS) return <BrandIcon id={id} />;
-  if (id === "browser:https://www.netflix.com/browse") return <BrandIcon id="netflix" />;
-  if (id === "browser:https://www.disneyplus.com") return <BrowserIcon tint="#113ccf" />;
-  if (id === "browser:https://www.hulu.com") return <BrowserIcon tint="#0b3d2e" />;
-  if (id === "browser:https://www.primevideo.com") return <BrowserIcon tint="#00a8e1" />;
-  if (id.startsWith("browser:")) return <BrowserIcon />;
+  // A registry app with no curated logo asset (e.g. Netflix, whose mark is a
+  // native vector) still resolves by its stable key rather than a literal id.
+  const key = identityFor(id)?.key;
+  if (key && key in PATHS) return <BrandIcon id={key} />;
+  if (id.startsWith("browser:") || id.startsWith("lnk:")) return <BrowserIcon tint={identityFor(id)?.surface} />;
   if (id.startsWith("exe:")) return <GameIcon seed={id} />;
-  return <div style={wrap("var(--tile)")} />;
+  // Deliberate placeholder, never a blank square. An unmatched tile used to
+  // render as an empty block that read as "broken/still loading"; this is
+  // visibly intentional and keeps the tile grid uniform.
+  return <GameIcon seed={id} />;
 }

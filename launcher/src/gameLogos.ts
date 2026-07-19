@@ -1,120 +1,59 @@
-// Real, official logo assets â€” downloaded from the actual publishers'/
-// Wikimedia's own files (see src/assets/logos/), not hand-drawn
-// approximations or low-res Windows .exe icon extraction. Personal,
-// non-distributed use, so accuracy over "safe" abstraction is fine here.
-// Keyed by EXACT tile id (config.rs's seeded defaults) since exe: paths are
-// per-install and there's no other stable key to match on.
+// Compatibility views over the app identity registry.
+//
+// These used to be six hand-maintained, id-keyed Records — the ones that had to
+// be edited in lockstep every time a tile was added, where missing one failed
+// silently as a blank tile. They are now thin lookups into appRegistry.ts, which
+// holds one entry per app and matches on a stable id fragment rather than a
+// machine-specific absolute path.
+//
+// TO ADD OR CHANGE AN APP'S ART/LOGO: edit `ENTRIES` in appRegistry.ts. Nothing
+// here needs touching.
+//
+// Real, official assets — downloaded from the publishers'/Wikimedia's own files
+// (see src/assets/logos/), not hand-drawn approximations or low-res .exe icon
+// extraction. Personal, non-distributed use, so accuracy over "safe" abstraction.
 
-import deathStranding2 from "./assets/logos/deathstranding2.svg";
-import fortnite from "./assets/logos/fortnite.png";
-import forza from "./assets/logos/forza.svg";
-import sifu from "./assets/logos/sifu.png";
-import legoBatman from "./assets/logos/legobatman.png";
-import primeVideo from "./assets/logos/primevideo.svg";
-import disneyPlus from "./assets/logos/disneyplus.png";
-import hulu from "./assets/logos/hulu.svg";
-import fmhy from "./assets/logos/fmhy.svg";
+import { identityFor } from "./appRegistry";
 
-// Real official Steam library-hero key art (same assets Steam's own Big
-// Picture mode shows) â€” see heroArt/index.tsx for how these pair with the
-// logos above.
-import forzaKeyArt from "./assets/logos/keyart/forza-4k.jpg";
-import sifuKeyArt from "./assets/logos/keyart/sifu-4k.jpg";
-import legoBatmanKeyArt from "./assets/logos/keyart/legobatman-4k.jpg";
-import deathStranding2Poster from "./assets/logos/keyart/deathstranding2-4k.jpg";
-// Fortnite: Epic's own official CDN (fortnite.com) â€” a season's promo
-// gameplay art + the transparent logo lockup, same pairing as the reference
-// banner. Not pinned to a specific season/chapter (that rotates constantly),
-// just whatever was live when this was pulled.
-import fortniteKeyArt from "./assets/logos/keyart/fortnite-4k.jpg";
-import fortniteLockup from "./assets/logos/fortnite_logo.png";
-// Streaming apps: real official marketing/product imagery, not stock-photo
-// wallpapers â€” Netflix's own homepage poster-wall hero, Hulu's own press-kit
-// "Living Room Hero" TV UI screenshot, a cropped (nav-bar removed) real Prime
-// Video show page, and a mosaic of real Spotify album-cover art (Spotify's
-// own marketing pages don't expose a hotlinkable hero the way the others do,
-// so this is composited locally from real i.scdn.co cover art instead).
-import netflixKeyArt from "./assets/logos/keyart/netflix-4k.jpg";
-import primeVideoKeyArt from "./assets/logos/keyart/primevideo-4k.jpg";
-import huluKeyArt from "./assets/logos/keyart/hulu-4k.jpg";
-import spotifyKeyArt from "./assets/logos/keyart/spotify-4k.jpg";
+export { IDLE_ART } from "./appRegistry";
 
-export const KEY_ART: Record<string, string> = {
-  "exe:E:\\Games\\Forza Horizon 6\\Content\\forzahorizon6.exe": forzaKeyArt,
-  "exe:E:\\Xbox Games\\Forza Horizon 6\\Content\\forzahorizon6.exe": forzaKeyArt,
-  "exe:E:\\Sifu\\Sifu.exe": sifuKeyArt,
-  "exe:E:\\Games\\LEGO Batman Legacy of the Dark Knight\\LEGOBatmanLotDK.exe": legoBatmanKeyArt,
-  "exe:E:\\Games\\Fortnite\\FortniteGame\\Binaries\\Win64\\FortniteClient-Win64-Shipping.exe": fortniteKeyArt,
-  "exe:E:\\Fortnite\\FortniteGame\\Binaries\\Win64\\FortniteClient-Win64-Shipping.exe": fortniteKeyArt,
-  netflix: netflixKeyArt,
-  "browser:https://www.netflix.com/browse": netflixKeyArt,
-  spotify: spotifyKeyArt,
-  "browser:https://www.primevideo.com": primeVideoKeyArt,
-  "browser:https://www.hulu.com": huluKeyArt,
-  "lnk:C:\\Users\\Altered\\Desktop\\Apps\\Hulu.lnk": huluKeyArt,
-};
-// Wide, atmospheric hero rasters used for the ambient idle-screen slideshow
-// (PS5-style rotating art behind the wordmark). Ordered for visual variety;
-// the poster-shaped Death Stranding art is intentionally excluded (it's not a
-// full-bleed hero).
-export const IDLE_ART: string[] = [
-  forzaKeyArt,
-  fortniteKeyArt,
-  sifuKeyArt,
-  netflixKeyArt,
-  legoBatmanKeyArt,
-  primeVideoKeyArt,
-  huluKeyArt,
-];
-
-export const KEY_ART_LOGO_LOCKUP: Record<string, string> = {
-  "exe:E:\\Games\\Fortnite\\FortniteGame\\Binaries\\Win64\\FortniteClient-Win64-Shipping.exe": fortniteLockup,
-  "exe:E:\\Fortnite\\FortniteGame\\Binaries\\Win64\\FortniteClient-Win64-Shipping.exe": fortniteLockup,
-};
-// Death Stranding 2's official asset is a compact poster (not a wide hero
-// banner), so it gets the bounded PosterHero treatment instead of full-bleed
-// â€” see heroArt/index.tsx.
-export const POSTER_ART: Record<string, string> = {
-  "exe:E:\\Games\\Death Stranding 2 On the Beach\\DS2.exe": deathStranding2Poster,
-};
-
-export const REAL_LOGOS: Record<string, string> = {
-  "exe:E:\\Games\\Death Stranding 2 On the Beach\\DS2.exe": deathStranding2,
-  "exe:E:\\Games\\Fortnite\\FortniteGame\\Binaries\\Win64\\FortniteClient-Win64-Shipping.exe": fortnite,
-  "exe:E:\\Fortnite\\FortniteGame\\Binaries\\Win64\\FortniteClient-Win64-Shipping.exe": fortnite,
-  "exe:E:\\Games\\Forza Horizon 6\\Content\\forzahorizon6.exe": forza,
-  "exe:E:\\Xbox Games\\Forza Horizon 6\\Content\\forzahorizon6.exe": forza,
-  "exe:E:\\Sifu\\Sifu.exe": sifu,
-  "exe:E:\\Games\\LEGO Batman Legacy of the Dark Knight\\LEGOBatmanLotDK.exe": legoBatman,
-  "browser:https://www.primevideo.com": primeVideo,
-  "browser:https://www.disneyplus.com": disneyPlus,
-  "browser:https://www.hulu.com": hulu,
-  // PWA-shortcut (.lnk) tiles reuse the same curated brand logos.
-  "lnk:C:\\Users\\Altered\\Desktop\\Apps\\Hulu.lnk": hulu,
-  "lnk:C:\\Users\\Altered\\Desktop\\Apps\\Disney+.lnk": disneyPlus,
-  "lnk:C:\\Users\\Altered\\Desktop\\Apps\\FMHY - freemediaheckyeah.lnk": fmhy,
-};
-
+/** Curated brand logo for a tile, if one exists. */
 export function realLogoFor(id: string): string | undefined {
-  return REAL_LOGOS[id];
+  return identityFor(id)?.logo;
 }
 
-// Per-app rotating hero-art sets (ArtStation collections, kept at full quality).
-// Globbed so dropping more files into a folder auto-extends the rotation — no
-// code change needed. Sorted by filename for a stable, deterministic order.
-function artSet(glob: Record<string, unknown>): string[] {
-  return Object.keys(glob).sort().map((k) => glob[k] as string);
+/** Single wide hero image (see keyArtSetFor for rotating sets). */
+export function keyArtFor(id: string): string | undefined {
+  return identityFor(id)?.art;
 }
-const netflixSet = artSet(import.meta.glob("./assets/logos/keyart/netflix/*.{jpg,jpeg,png,webp}", { eager: true, import: "default" }));
-const disneySet = artSet(import.meta.glob("./assets/logos/keyart/disney/*.{jpg,jpeg,png,webp}", { eager: true, import: "default" }));
-const epicSet = artSet(import.meta.glob("./assets/logos/keyart/epic/*.{jpg,jpeg,png,webp}", { eager: true, import: "default" }));
 
-// Epic and Fortnite are intentionally kept as separate pools (Epic ships its own
-// art over time), even though the Epic set is Fortnite-themed.
-export const KEY_ART_SET: Record<string, string[]> = {
-  netflix: netflixSet,
-  "browser:https://www.netflix.com/browse": netflixSet,
-  "browser:https://www.disneyplus.com": disneySet,
-  "lnk:C:\\Users\\Altered\\Desktop\\Apps\\Disney+.lnk": disneySet,
-  epic: epicSet,
-};
+/** Rotating hero set; supersedes keyArtFor when present. */
+export function keyArtSetFor(id: string): string[] | undefined {
+  const set = identityFor(id)?.artSet;
+  return set && set.length ? set : undefined;
+}
+
+/** Full title-treatment lockup drawn over the hero art. */
+export function lockupFor(id: string): string | undefined {
+  return identityFor(id)?.lockup;
+}
+
+/** Poster-shaped art — bounded PosterHero treatment, not full-bleed. */
+export function posterArtFor(id: string): string | undefined {
+  return identityFor(id)?.poster;
+}
+
+/** Tile background behind the logo. */
+export function logoSurfaceFor(id: string): string {
+  return identityFor(id)?.surface ?? "var(--tile)";
+}
+
+/** Streaming apps read centre-right; games use a left title card. */
+export function logoPositionFor(id: string): "left" | "right" {
+  return identityFor(id)?.logoPosition ?? "left";
+}
+
+/** Whether the hero logo should slowly fade in/out. */
+export function cycleLogoFor(id: string): boolean {
+  return !!identityFor(id)?.cycleLogo;
+}
