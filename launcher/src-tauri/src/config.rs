@@ -83,12 +83,19 @@ impl AppConfig {
             default_display: None,
             apps: vec![
                 tile("youtube", "YouTube", "apps", false),
-                tile("netflix", "Netflix", "apps", false),
+                // Netflix via the browser (not the app scheme): WebView2 can't
+                // play it (no Widevine VMP), and the browser gives the highest
+                // quality with content protection intact.
+                tile("browser:https://www.netflix.com/browse", "Netflix", "apps", true),
                 tile("spotify", "Spotify", "apps", false),
                 tile("discord", "Discord", "apps", false),
                 tile("browser:https://www.primevideo.com", "Prime Video", "apps", true),
-                tile("browser:https://www.disneyplus.com", "Disney+", "apps", true),
-                tile("browser:https://www.hulu.com", "Hulu", "apps", true),
+                // Streaming apps installed as Chrome PWAs (chromeless app windows);
+                // launched via their Desktop\Apps shortcuts. See app_launch.rs "lnk:".
+                tile("lnk:C:\\Users\\Altered\\Desktop\\Apps\\Disney+.lnk", "Disney+", "apps", true),
+                tile("lnk:C:\\Users\\Altered\\Desktop\\Apps\\Hulu.lnk", "Hulu", "apps", true),
+                tile("lnk:C:\\Users\\Altered\\Desktop\\Apps\\FMHY - freemediaheckyeah.lnk", "FMHY", "apps", true),
+                tile("browser:https://cinebolt.org/", "Cinebolt", "apps", true),
                 tile("browser:https://www.google.com", "Browser", "apps", true),
                 // Seeded from a game_scan.rs scan of this machine's E:\ on
                 // 2026-07-14 — the previous hardcoded set pointed at an

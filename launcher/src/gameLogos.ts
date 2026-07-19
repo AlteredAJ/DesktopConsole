@@ -13,6 +13,7 @@ import legoBatman from "./assets/logos/legobatman.png";
 import primeVideo from "./assets/logos/primevideo.svg";
 import disneyPlus from "./assets/logos/disneyplus.png";
 import hulu from "./assets/logos/hulu.svg";
+import fmhy from "./assets/logos/fmhy.svg";
 
 // Real official Steam library-hero key art (same assets Steam's own Big
 // Picture mode shows) â€” see heroArt/index.tsx for how these pair with the
@@ -46,9 +47,11 @@ export const KEY_ART: Record<string, string> = {
   "exe:E:\\Games\\Fortnite\\FortniteGame\\Binaries\\Win64\\FortniteClient-Win64-Shipping.exe": fortniteKeyArt,
   "exe:E:\\Fortnite\\FortniteGame\\Binaries\\Win64\\FortniteClient-Win64-Shipping.exe": fortniteKeyArt,
   netflix: netflixKeyArt,
+  "browser:https://www.netflix.com/browse": netflixKeyArt,
   spotify: spotifyKeyArt,
   "browser:https://www.primevideo.com": primeVideoKeyArt,
   "browser:https://www.hulu.com": huluKeyArt,
+  "lnk:C:\\Users\\Altered\\Desktop\\Apps\\Hulu.lnk": huluKeyArt,
 };
 // Wide, atmospheric hero rasters used for the ambient idle-screen slideshow
 // (PS5-style rotating art behind the wordmark). Ordered for visual variety;
@@ -86,6 +89,10 @@ export const REAL_LOGOS: Record<string, string> = {
   "browser:https://www.primevideo.com": primeVideo,
   "browser:https://www.disneyplus.com": disneyPlus,
   "browser:https://www.hulu.com": hulu,
+  // PWA-shortcut (.lnk) tiles reuse the same curated brand logos.
+  "lnk:C:\\Users\\Altered\\Desktop\\Apps\\Hulu.lnk": hulu,
+  "lnk:C:\\Users\\Altered\\Desktop\\Apps\\Disney+.lnk": disneyPlus,
+  "lnk:C:\\Users\\Altered\\Desktop\\Apps\\FMHY - freemediaheckyeah.lnk": fmhy,
 };
 
 export function realLogoFor(id: string): string | undefined {

@@ -1,0 +1,18 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- FMHY (freemediaheckyeah) — white play triangle with a magenta/purple/teal
+       neon glow, matching the app art. Original stylized mark. -->
+  <defs>
+    <linearGradient id="fmhyGlow" x1="15%" y1="90%" x2="90%" y2="12%">
+      <stop offset="0%" stop-color="#17b6c9"/>
+      <stop offset="45%" stop-color="#7a4bd6"/>
+      <stop offset="100%" stop-color="#e14bd0"/>
+    </linearGradient>
+    <filter id="fmhyBlur" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="4.2"/>
+    </filter>
+  </defs>
+  <!-- glow halo (blurred gradient-filled triangle, slightly enlarged) -->
+  <polygon points="30,16 30,84 86,50" fill="url(#fmhyGlow)" filter="url(#fmhyBlur)"/>
+  <!-- crisp white play triangle -->
+  <polygon points="32,20 32,80 82,50" fill="#ffffff"/>
+</svg>

@@ -9,11 +9,19 @@ use std::process::Command;
 
 /// Launch a tile by its config id. Ids: "youtube" (external browser fallback),
 /// "netflix", "discord", "steam", "spotify", "epic", "battlenet",
-/// "browser:<url>", or "exe:<path>" for a standalone local game.
+/// "browser:<url>", "exe:<path>" for a standalone local game, or "lnk:<path>"
+/// for a Windows shortcut (e.g. an installed Chrome/Edge PWA app window).
 pub fn launch(target: &str) -> std::io::Result<()> {
     if let Some(path) = target.strip_prefix("exe:") {
         Command::new(path).spawn()?;
         return Ok(());
+    }
+
+    // A Windows shortcut (.lnk) — e.g. a Chrome/Edge PWA "installed app" that
+    // opens in its own chromeless app window. CreateProcess can't run a .lnk
+    // directly, so hand it to the shell (ShellExecute via `start`), same as a URI.
+    if let Some(path) = target.strip_prefix("lnk:") {
+        return open_external(path);
     }
 
     let uri = match target {

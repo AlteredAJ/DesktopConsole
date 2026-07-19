@@ -296,8 +296,9 @@ function useExtractedIcon(id: string, eligible: boolean): string | null {
 
 function logoSurfaceFor(id: string): string {
   if (id === "browser:https://www.primevideo.com") return "#071a32";
-  if (id === "browser:https://www.disneyplus.com") return "#07184a";
-  if (id === "browser:https://www.hulu.com") return "#0b2918";
+  if (id.includes("disneyplus") || id.includes("Disney+")) return "#07184a";
+  if (id.includes("hulu") || id.includes("Hulu")) return "#0b2918";
+  if (id.includes("FMHY")) return "#0a0b12";
   if (id.includes("Fortnite")) return "#172a67";
   if (id.includes("Forza Horizon")) return "#08272e";
   return "var(--tile)";
@@ -325,6 +326,7 @@ export function ServiceIcon({ id }: { id: string }) {
   if (extracted) return <ExtractedIcon uri={extracted} />;
 
   if (id in PATHS) return <BrandIcon id={id} />;
+  if (id === "browser:https://www.netflix.com/browse") return <BrandIcon id="netflix" />;
   if (id === "browser:https://www.disneyplus.com") return <BrowserIcon tint="#113ccf" />;
   if (id === "browser:https://www.hulu.com") return <BrowserIcon tint="#0b3d2e" />;
   if (id === "browser:https://www.primevideo.com") return <BrowserIcon tint="#00a8e1" />;
