@@ -98,17 +98,20 @@ export function KeyArtHero({
           style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
         />
       )}
-      {/* Vignette for the logo/title to sit on, plus the usual bottom floor
-          for the grid's own title/tagline text below it. Direction flips
-          with logoPosition so the dark side is always under the logo. */}
+      {/* Legibility scrim. This is now the ONLY layer dimming the art — the
+          wrapper used to also drop it to 72% opacity and mask away the left
+          38%, which is why hero art never looked like it filled the screen.
+          So this is deliberately tight: bottom-weighted for the grid's own
+          title/tagline, with a narrow left wash under the logo, leaving the
+          upper and right two-thirds of the image untouched. */}
       <div
         style={{
           position: "absolute",
           inset: 0,
           background:
             logoPosition === "left"
-              ? "linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(6,7,10,0.35) 55%, rgba(6,7,10,0.92) 100%), linear-gradient(90deg, rgba(6,7,10,0.92) 0%, rgba(6,7,10,0.55) 32%, transparent 62%)"
-              : "linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(6,7,10,0.35) 55%, rgba(6,7,10,0.92) 100%), radial-gradient(ellipse 60% 55% at 68% 42%, rgba(6,7,10,0.75), transparent 70%)",
+              ? "linear-gradient(180deg, transparent 42%, rgba(6,7,10,0.5) 74%, rgba(6,7,10,0.93) 100%), linear-gradient(90deg, rgba(6,7,10,0.82) 0%, rgba(6,7,10,0.4) 22%, transparent 46%)"
+              : "linear-gradient(180deg, transparent 42%, rgba(6,7,10,0.5) 74%, rgba(6,7,10,0.93) 100%), radial-gradient(ellipse 46% 42% at 68% 44%, rgba(6,7,10,0.62), transparent 72%)",
         }}
       />
       {logo && (
