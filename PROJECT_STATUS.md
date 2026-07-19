@@ -35,6 +35,14 @@ For an at-a-glance board, open `BUILD_BOARD.html`.
 - Removed dead UI (`Launcher.tsx`, `Tile.tsx`, `entries/CodexHome.tsx`).
 - Repo now under git (local-only, private); `.gitignore` added.
 
+**Built 2026-07-19, pending your rebuild + on-device test** (`tsc && vite build` pass):
+- **Hero parallax on focus** — hero art + atmosphere pan at different depths (`--px`).
+- **Boot chime + entry haptics** — WebAudio arpeggio + two-stage rumble on entering Home.
+- **Touchpad momentum** — velocity-projected flick that spring-snaps to the landing tile.
+- **Cross-app "Continue" tab** — new first tab (default view stays Apps) showing recent
+  launches + running apps (`recents.ts`, localStorage). Touchpad momentum + Continue want
+  a controller test.
+
 ## Open threads
 
 - **Rebuilding:** run `.\rebuild.ps1` (puts cargo on PATH, stops the running exes,
@@ -126,6 +134,14 @@ For an at-a-glance board, open `BUILD_BOARD.html`.
 ## Change log
 
 Format per entry: Intent · Changed · Files · Verified · Next/limits.
+
+### 2026-07-19 — feel + feature pass
+- **Intent:** make Home feel alive on entry and add a couch "jump back in" flow.
+- **Changed:** hero parallax on focus; boot chime + two-stage entry haptics; touchpad
+  momentum (velocity projection + spring snap); cross-app Continue tab.
+- **Files:** `CodexLauncher.tsx`, `sound.ts`, `feedback.ts`, `App.tsx`, `recents.ts`, `styles.css`.
+- **Verified:** `tsc && vite build` pass.
+- **Next/limits:** touchpad momentum + the Continue tab need a live controller test.
 
 ### 2026-07-19 — first on-device build of the refine pass
 - **Intent:** get the session's changes running on the real panel and remove build friction.

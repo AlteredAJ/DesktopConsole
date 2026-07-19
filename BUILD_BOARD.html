@@ -111,8 +111,8 @@
       <p>A 10-foot, DualSense-driven TV launcher. <b>Two Tauri processes</b>: a tray-resident <b>listener</b> that watches for a triple-click, and the fullscreen <b>launcher</b> it spawns. This board organizes the parts and tracks where each stands.</p>
     </div>
     <div class="commits">
-      <span class="sha"><b>285f665</b> docs + board</span>
-      <span class="sha">3 commits · local/private</span>
+      <span class="sha"><b>5c5bfee</b> parallax·chime·momentum·continue</span>
+      <span class="sha">5 commits · local/private</span>
       <span class="sha" style="color:var(--done);border-color:color-mix(in srgb,var(--done) 40%,var(--line))">● live on device</span>
     </div>
   </header>
@@ -163,7 +163,7 @@
   <div class="board">
 
     <div class="col">
-      <div class="col-head"><i class="dot" style="color:var(--done)"></i> Shipped <span class="n">9</span></div>
+      <div class="col-head"><i class="dot" style="color:var(--done)"></i> Shipped <span class="n">14</span></div>
       <div class="card" style="border-left-color:var(--done)"><div class="ct">Living atmosphere</div><div class="cd">Compositor-only drift/breathe; shared component.</div><span class="tag">Launcher UI</span></div>
       <div class="card" style="border-left-color:var(--done)"><div class="ct">Spring dock scroll</div><div class="cd">Critically-damped, interruptible glide.</div><span class="tag">Motion</span></div>
       <div class="card" style="border-left-color:var(--done)"><div class="ct">Local panel backgrounds</div><div class="cd">Killed the remote fluid iframe — works offline.</div><span class="tag">Launcher UI</span></div>
@@ -173,6 +173,11 @@
       <div class="card" style="border-left-color:var(--done)"><div class="ct">4K art shopping list</div><div class="cd">Every tile audited &amp; classified.</div><span class="tag">Art</span></div>
       <div class="card" style="border-left-color:var(--done)"><div class="ct">WebView2 decision</div><div class="cd">Staying — no alternative earns the migration.</div><span class="tag">Architecture</span></div>
       <div class="card" style="border-left-color:var(--done)"><div class="ct">Frontend build verified</div><div class="cd"><code style="font-size:11px">tsc &amp;&amp; vite build</code> pass.</div><span class="tag">Infra</span></div>
+      <div class="card" style="border-left-color:var(--done)"><div class="ct">Hero parallax on focus</div><div class="cd">Art + atmosphere pan at different depths. <b>Rebuild to see.</b></div><span class="tag">Motion</span></div>
+      <div class="card" style="border-left-color:var(--done)"><div class="ct">Boot chime + entry haptics</div><div class="cd">Arpeggio + two-stage rumble on entering Home. <b>Rebuild to hear.</b></div><span class="tag">Polish</span></div>
+      <div class="card" style="border-left-color:var(--done)"><div class="ct">Touchpad momentum</div><div class="cd">Flick + spring snap. <b>Test with the pad.</b></div><span class="tag">Motion</span></div>
+      <div class="card" style="border-left-color:var(--done)"><div class="ct">Cross-app “Continue” tab</div><div class="cd">Recents + running, first tab. <b>Test with the pad.</b></div><span class="tag">Feature</span></div>
+      <div class="card" style="border-left-color:var(--done)"><div class="ct">rebuild.ps1</div><div class="cd">One-command rebuild (cargo PATH, stop exes, Tauri build, restart).</div><span class="tag">Tooling</span></div>
     </div>
 
     <div class="col">
@@ -182,10 +187,9 @@
     </div>
 
     <div class="col">
-      <div class="col-head"><i class="dot" style="color:var(--next)"></i> Next up <span class="n">4</span></div>
+      <div class="col-head"><i class="dot" style="color:var(--next)"></i> Next up <span class="n">3</span></div>
+      <div class="card" style="border-left-color:var(--next)"><div class="ct">Rebuild &amp; test on device</div><div class="cd">Run <code style="font-size:10.5px">.\rebuild.ps1</code>, then check parallax + chime (automatic) and touchpad momentum + the Continue tab (with the pad).</div><span class="tag">Verify</span></div>
       <div class="card" style="border-left-color:var(--next)"><div class="ct">Wire in hero art</div><div class="cd">8 games + Disney+ → drop 4K into keyart/, map in gameLogos.ts.</div><span class="tag">Art</span></div>
-      <div class="card" style="border-left-color:var(--next)"><div class="ct">Touchpad momentum (Opt. B)</div><div class="cd">True 1:1 drag + inertia + rubber-band; test with the pad in hand.</div><span class="tag">Motion</span></div>
-      <div class="card" style="border-left-color:var(--next)"><div class="ct">Hero parallax on focus</div><div class="cd">Atmosphere/art shifts subtly as you move tiles — cheap depth.</div><span class="tag">Motion</span></div>
       <div class="card" style="border-left-color:var(--next)"><div class="ct">Delete dead art dupes</div><div class="cd">~1.5 MB of unused non-4K keyart jpgs.</div><span class="tag">Art / Infra</span></div>
     </div>
 
@@ -202,17 +206,14 @@
 
   <h2 class="section">💡 Ideas on the table</h2>
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(232px,1fr));gap:16px">
-    <div class="card" style="border-left-color:var(--rose)"><div class="ct">Cross-app “Continue” row</div><div class="cd">A top shelf that jumps back into the last game / video / app you were in. <code style="font-size:10.5px">active_apps.rs</code> already polls what's running — add a last-used timestamp. The real edge over Steam Big Picture.</div><span class="tag">Feature</span></div>
     <div class="card" style="border-left-color:var(--rose)"><div class="ct">Swipe-to-type keyboard</div><div class="cd">Hold touchpad 2 s → trace-to-type overlay. Designed in the old handoff, never built; finishes the couch input model (esp. Wi-Fi / search).</div><span class="tag">Feature</span></div>
-    <div class="card" style="border-left-color:var(--rose)"><div class="ct">Signature boot chime + haptics</div><div class="cd">A short startup sound + a richer confirm rumble on entry. <code style="font-size:10.5px">sound.ts</code>/<code style="font-size:10.5px">feedback.ts</code> already exist — small change, big “console” payoff.</div><span class="tag">Polish</span></div>
     <div class="card" style="border-left-color:var(--rose)"><div class="ct">Idle-screen art rotation</div><div class="cd">Let the rest/idle screen slowly cycle your hero art as an ambient screensaver instead of a static mark.</div><span class="tag">Polish</span></div>
     <div class="card" style="border-left-color:var(--rose)"><div class="ct">Dev perf HUD</div><div class="cd">Toggleable FPS / frame-time overlay to confirm the compositor-only atmosphere really is free at 1440p — and catch regressions.</div><span class="tag">Tooling</span></div>
-    <div class="card" style="border-left-color:var(--rose)"><div class="ct">One-click <code style="font-size:11px">rebuild.ps1</code></div><div class="cd">Sets cargo on PATH, stops running instances, builds launcher via Tauri CLI + listener, restarts. Kills the friction we just hit.</div><span class="tag">Tooling</span></div>
   </div>
 
   <footer class="next" style="margin-top:34px;border-color:color-mix(in srgb,var(--done) 30%,var(--line));background:linear-gradient(180deg,color-mix(in srgb,var(--done) 8%,transparent),transparent)">
     <h3><i class="dot" style="color:var(--done)"></i>Live on device — you're unblocked</h3>
-    <p>Tray fix active and the new console is running on your 1440p panel. Natural next moves: a <code>rebuild.ps1</code> so builds stop fighting the cargo PATH / locked-exe issues, then wire in 4K hero art (<code>ART_SHOPPING_LIST.md</code>) and tackle touchpad momentum with the pad in hand.</p>
+    <p>Four new adds just landed in code (parallax, boot chime, touchpad momentum, Continue tab) and pass the build. Run <code>.\rebuild.ps1</code> to see/hear them — parallax + chime are automatic; give touchpad momentum and the Continue tab a spin with the pad. Then: 4K hero art (<code>ART_SHOPPING_LIST.md</code>).</p>
   </footer>
 </div>
 </body>
