@@ -169,7 +169,8 @@ controller can confirm.
 - **`docs/specs/`** — self-contained build specs for planned features
   (`KEYBOARD_OVERLAY_SPEC.md`, `HOME_MOTION_SPEC.md`,
   `POST_REBUILD_FIXES_SPEC.md`, `DESKTOP_MODE_AND_SETTINGS_SPEC.md`,
-  `ARCHITECTURE_AND_CONSOLIDATION_SPEC.md` — the system map + failure signatures).
+  `ARCHITECTURE_AND_CONSOLIDATION_SPEC.md` — the system map + failure signatures;
+  `PRIOR_ART_AND_SOUND_SPEC.md` — GitHub survey + audio design).
 - **`verify.ps1`** — the single correctness gate (tsc + vite + cargo check on both
   crates, one exit code; puts cargo on PATH itself). **No commit without it green.**
   `-Frontend` for a fast UI-only loop.
