@@ -47,13 +47,17 @@ launcher using the regular windows. so like browser apps and those chrome apps."
   mode usage."* Summon the same search surface over the desktop; selecting a
   result launches it and returns to Desktop Mode.
 
-### Open questions
-1. Summon gesture for the keyboard **in Desktop Mode** — reuse double-Share, or
-   keep double-Share for Home and give Desktop Mode its own?
-2. Does the overlay need to become *focusable* to type (it's currently
-   `set_ignore_cursor_events(true)` and non-focusable)? If it takes focus, the
-   target app loses it and keystrokes go nowhere. Likely answer: keep the overlay
-   unfocusable and inject to whatever holds focus underneath.
+### Resolved / open
+1. **Summon gesture — resolved (AJ):** *"use double share anywhere."* One gesture,
+   every context: Home, Desktop Mode, in-app. Don't invent a second one.
+   (`SHARE_BUTTON = 0x10` is now hardware-confirmed working.)
+2. **Open — needs on-device iteration.** Does the overlay need to become
+   *focusable* to type? It's currently `set_ignore_cursor_events(true)` and
+   non-focusable. If it takes focus, the target app loses it and keystrokes go
+   nowhere. Intended approach: keep the overlay unfocusable and inject to whatever
+   holds focus underneath. **AJ has accepted this will need test iteration**
+   (*"we can do testing till we land it"*) — treat it as the one item expected to
+   need several on-device rounds, not a clean first landing.
 
 ---
 
@@ -95,9 +99,9 @@ forms all sit mid-screen.
 **AJ:** *"settings will be a mini system hub."* Today `SettingsMenu.tsx` is a flat
 list. Give it real sections; the PS5 settings model is the reference.
 
-Proposed tabs: **System · Display · Audio · Network · Controller · Lighting ·
-Performance · About**. (Exact split to confirm — several already exist as rows and
-just need grouping.)
+Tabs — **confirmed by AJ**: **System · Display · Audio · Network · Controller ·
+Lighting · Performance · About**. Several already exist as rows and just need
+grouping.
 
 ### 3a. Performance tab — new
 Home for the **perf HUD toggle** (roadmap item 6) plus related switches:
@@ -112,6 +116,33 @@ Home for the **perf HUD toggle** (roadmap item 6) plus related switches:
 - Possibly: background-blur quality / atmosphere density for lower-power runs.
 
 Settings persist via the existing `settings.ts` + `config.json` pattern.
+
+### 3a-ii. About tab — new
+
+**AJ:** *"about being pc specs. launcher about so like whatever a good app would
+also have in its about tab."* So it's two halves:
+
+**System / PC specs** (this is the "console spec sheet" half — reads like a
+console's System Information page):
+- CPU, GPU (+ driver), RAM, motherboard.
+- OS build, storage (free/total on the game drives).
+- Display: resolution, refresh, HDR state — some of this already exists in
+  `display.rs`.
+- Connected controller: model, firmware if exposed, battery.
+
+**App about** (the standard half):
+- PS5 Mode version + build date + git commit (stamp at build time).
+- Tauri / WebView2 runtime versions — genuinely useful, since WebView2 is the
+  renderer and a version mismatch is a real failure mode.
+- Config path (`%APPDATA%\ps5-mode\config.json`) with a "reveal in Explorer".
+- **Credits & attribution** — the hero art is real ArtStation work by named
+  artists (the filenames preserve who made each piece). List them. Same for
+  Manrope (SIL OFL) and any other third-party assets. This is the right thing to
+  do and it costs one screen.
+- Licenses / open-source notices (incl. OpenRGB).
+
+Most of this is read-only system info; prefer existing Windows APIs already used
+by `display.rs` / `power.rs` over adding new dependencies.
 
 ### 3b. RGB controls — rebuild properly
 **AJ:** *"ur rgb controls suck also btw. u should js add a way for headed controls
@@ -145,8 +176,25 @@ mode and per-LED color, apply.
   control, not instead of it.
 - Match the accent theme so lighting presets can follow the UI accent.
 
-**Staging:** (1) Rust SDK client + enumerate/read, (2) set color/mode, (3) the UI,
-(4) presets on top. Step 1 alone already beats today's write-only guesswork.
+**⚠️ OpenRGB isn't running at boot (AJ: *"installed js doesn't open on start"*).**
+The SDK server only exists while OpenRGB is running, so the RGB page would find
+nothing on a fresh boot. Handle it in the bridge, not by asking AJ to change his
+setup:
+- On first RGB use, try to connect to `127.0.0.1:6742`.
+- If refused, **spawn OpenRGB ourselves in server mode** — it supports
+  `--server --startminimized` — then retry the connection with a short backoff.
+  `openrgb.rs` already locates `OpenRGB.exe` in the standard install paths, so
+  reuse that.
+- If it's genuinely absent, keep today's fail-safe: a clear message, no crash.
+- Don't force it to autostart with Windows; only start it when lighting is used.
+
+**Staging:** (1) Rust SDK client + enumerate/read (incl. the on-demand server
+launch above), (2) set color/mode, (3) the UI, (4) presets on top. Step 1 alone
+already beats today's write-only guesswork.
+
+**Device coverage:** deliberately not hardcoded — the whole point of the SDK is
+that it reports whatever controllers exist (GPU, RAM, board, peripherals). Build
+the UI from what's enumerated at runtime.
 
 ### Acceptance
 - [ ] Settings is grouped into tabs, not one flat list.
