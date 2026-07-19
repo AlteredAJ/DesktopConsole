@@ -5,17 +5,17 @@
 import { YouTubeHero } from "./YouTubeHero";
 import { DiscordHero } from "./DiscordHero";
 import { SteamHero } from "./SteamHero";
-import { EpicHero } from "./EpicHero";
 import { BattlenetHero } from "./BattlenetHero";
 import { KeyArtHero } from "./KeyArtHero";
 import { PosterHero } from "./PosterHero";
 import { BrowserHero } from "./BrowserHero";
 import { GameHero } from "./GameHero";
-import { REAL_LOGOS, KEY_ART, KEY_ART_LOGO_LOCKUP, POSTER_ART } from "../../gameLogos";
+import { REAL_LOGOS, KEY_ART, KEY_ART_SET, KEY_ART_LOGO_LOCKUP, POSTER_ART } from "../../gameLogos";
 import forzaLogo from "../../assets/logos/forza.svg";
 import sifuLogo from "../../assets/logos/sifu.png";
 import netflixLogo from "../../assets/logos/netflix_wordmark.svg";
 import primeVideoLogo from "../../assets/logos/primevideo.svg";
+import disneyPlusLogo from "../../assets/logos/disneyplus.png";
 
 // Small logo badge to fade in/out (games) or sit static (streaming apps)
 // over each tile's key art. Hulu's real press screenshot already has the
@@ -28,6 +28,9 @@ const KEY_ART_LOGO: Record<string, string> = {
   "exe:E:\\Xbox Games\\Forza Horizon 6\\Content\\forzahorizon6.exe": forzaLogo,
   "exe:E:\\Sifu\\Sifu.exe": sifuLogo,
   netflix: netflixLogo,
+  "browser:https://www.netflix.com/browse": netflixLogo,
+  "browser:https://www.disneyplus.com": disneyPlusLogo,
+  "lnk:C:\\Users\\Altered\\Desktop\\Apps\\Disney+.lnk": disneyPlusLogo,
   "browser:https://www.primevideo.com": primeVideoLogo,
   ...KEY_ART_LOGO_LOCKUP,
 };
@@ -44,23 +47,36 @@ const CYCLING_IDS = new Set([
 // Streaming hero pages use a centered-right logo placement (per reference:
 // the app's own real marketing pages read this way) instead of Fortnite's
 // left title-card layout.
-const RIGHT_LOGO_IDS = new Set(["netflix", "browser:https://www.primevideo.com"]);
+const RIGHT_LOGO_IDS = new Set([
+  "netflix",
+  "browser:https://www.netflix.com/browse",
+  "browser:https://www.primevideo.com",
+  "browser:https://www.disneyplus.com",
+  "lnk:C:\\Users\\Altered\\Desktop\\Apps\\Disney+.lnk",
+]);
 
 const HERO_ART: Record<string, () => JSX.Element> = {
   youtube: YouTubeHero,
   discord: DiscordHero,
   steam: SteamHero,
-  epic: EpicHero,
   battlenet: BattlenetHero,
-  // Disney+'s real logo has near-white/transparent art that needs a dark
-  // plate to read (see PosterHero) Ã¢â‚¬â€ no equivalent official wide key art was
-  // pulled for it (unlike Netflix/Prime/Hulu above).
-  "browser:https://www.disneyplus.com": () => (
-    <PosterHero src={REAL_LOGOS["browser:https://www.disneyplus.com"]} plate="#0a1247" sceneGlow="#1a3fd655" badge="chrome" />
-  ),
+  // Disney+ and Epic used to live here (a logo-on-plate PosterHero and a
+  // hand-drawn EpicHero) because no wide key art existed for them. Both now
+  // have real rotating art sets, handled by KEY_ART_SET in heroArtFor below.
 };
 
 export function heroArtFor(id: string): (() => JSX.Element) | undefined {
+  // Rotating per-app art sets (Netflix / Disney+ / Epic) take precedence — a
+  // slow crossfade through that app's whole collection while it's focused.
+  if (id in KEY_ART_SET) {
+    return () => (
+      <KeyArtHero
+        arts={KEY_ART_SET[id]}
+        logo={KEY_ART_LOGO[id]}
+        logoPosition={RIGHT_LOGO_IDS.has(id) ? "right" : "left"}
+      />
+    );
+  }
   if (id in HERO_ART) return HERO_ART[id];
   if (id in KEY_ART) {
     return () => (

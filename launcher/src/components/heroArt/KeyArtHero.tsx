@@ -6,16 +6,23 @@
 // alternates between pure atmosphere and branded — off by default (a static
 // logo, like the reference banner, doesn't need it).
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+
+// How long each image in a rotating set holds before the slow crossfade.
+const ROTATE_MS = 9000;
 
 export function KeyArtHero({
   art,
+  arts,
   logo,
   logoWidth = "26%",
   cycle = false,
   logoPosition = "left",
 }: {
-  art: string;
+  art?: string;
+  /** Optional set of hero images to slowly rotate through (crossfade). When
+   * given (length > 1) it supersedes `art`; a single-element set is static. */
+  arts?: string[];
   logo?: string;
   logoWidth?: string;
   cycle?: boolean;
@@ -31,13 +38,59 @@ export function KeyArtHero({
     return () => clearInterval(id);
   }, [logo, cycle]);
 
+  // Rotating hero art: A/B ping-pong crossfade with next-frame preloading so a
+  // not-yet-decoded image never flashes in. Honors prefers-reduced-motion by
+  // holding the first frame.
+  const pool = arts && arts.length ? arts : art ? [art] : [];
+  const reduced = useRef(
+    typeof window !== "undefined" &&
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches,
+  ).current;
+  const [slots, setSlots] = useState<[string, string]>([pool[0] ?? "", pool[1 % Math.max(pool.length, 1)] ?? ""]);
+  const [front, setFront] = useState(0);
+  const cursor = useRef(0);
+  useEffect(() => {
+    if (reduced || pool.length < 2) return;
+    const timer = setInterval(() => {
+      cursor.current = (cursor.current + 1) % pool.length;
+      const next = pool[cursor.current];
+      const pre = new Image();
+      pre.onload = () => {
+        setFront((f) => {
+          const back = f === 0 ? 1 : 0;
+          setSlots((s) => (back === 0 ? [next, s[1]] : [s[0], next]));
+          return back;
+        });
+      };
+      pre.src = next;
+    }, ROTATE_MS);
+    return () => clearInterval(timer);
+    // pool identity is stable per hero (module-level array); guard on its length.
+  }, [reduced, pool.length]);
+
+  const layer: React.CSSProperties = {
+    position: "absolute",
+    inset: 0,
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+    transition: "opacity 1200ms ease-in-out",
+  };
+
   return (
     <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
-      <img
-        src={art}
-        alt=""
-        style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
-      />
+      {pool.length > 1 ? (
+        <>
+          <img src={slots[0]} alt="" style={{ ...layer, opacity: front === 0 ? 1 : 0 }} />
+          <img src={slots[1]} alt="" style={{ ...layer, opacity: front === 1 ? 1 : 0 }} />
+        </>
+      ) : (
+        <img
+          src={pool[0] ?? art}
+          alt=""
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+        />
+      )}
       {/* Vignette for the logo/title to sit on, plus the usual bottom floor
           for the grid's own title/tagline text below it. Direction flips
           with logoPosition so the dark side is always under the logo. */}

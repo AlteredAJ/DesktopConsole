@@ -245,6 +245,11 @@ html.overlay-document, html.overlay-document body, html.overlay-document #root {
   .app-enter, .app-exit { transform: none !important; }
   /* Freeze the focus parallax pan. */
   .codex-backdrop, .codex-launcher .atmos { transform: none !important; }
+  /* Tab-switch motion pass: drop the directional slide + blur streak down to a
+     plain, quick opacity fade (HOME_MOTION_SPEC.md acceptance criteria). The
+     exit ghost layer is pure slide, so it just goes away entirely. */
+  .codex-shelf-in, .codex-copy { animation-duration: 120ms !important; transform: none !important; filter: none !important; }
+  .codex-shelf-ghost { display: none !important; }
 }
 
 /* Reduced transparency: make the frosted chrome frostier/solid and drop

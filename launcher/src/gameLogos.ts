@@ -98,3 +98,23 @@ export const REAL_LOGOS: Record<string, string> = {
 export function realLogoFor(id: string): string | undefined {
   return REAL_LOGOS[id];
 }
+
+// Per-app rotating hero-art sets (ArtStation collections, kept at full quality).
+// Globbed so dropping more files into a folder auto-extends the rotation — no
+// code change needed. Sorted by filename for a stable, deterministic order.
+function artSet(glob: Record<string, unknown>): string[] {
+  return Object.keys(glob).sort().map((k) => glob[k] as string);
+}
+const netflixSet = artSet(import.meta.glob("./assets/logos/keyart/netflix/*.{jpg,jpeg,png,webp}", { eager: true, import: "default" }));
+const disneySet = artSet(import.meta.glob("./assets/logos/keyart/disney/*.{jpg,jpeg,png,webp}", { eager: true, import: "default" }));
+const epicSet = artSet(import.meta.glob("./assets/logos/keyart/epic/*.{jpg,jpeg,png,webp}", { eager: true, import: "default" }));
+
+// Epic and Fortnite are intentionally kept as separate pools (Epic ships its own
+// art over time), even though the Epic set is Fortnite-themed.
+export const KEY_ART_SET: Record<string, string[]> = {
+  netflix: netflixSet,
+  "browser:https://www.netflix.com/browse": netflixSet,
+  "browser:https://www.disneyplus.com": disneySet,
+  "lnk:C:\\Users\\Altered\\Desktop\\Apps\\Disney+.lnk": disneySet,
+  epic: epicSet,
+};
