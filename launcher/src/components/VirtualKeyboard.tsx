@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { useController } from "../hooks/useController";
+import { useEdges } from "../hooks/useEdges";
 import { useTouchpad } from "../hooks/useTouchpad";
 import { ButtonHints } from "./ButtonHints";
 import { CodexPanelShell } from "./CodexPanelShell";
@@ -25,7 +26,9 @@ interface VirtualKeyboardProps { onDone: (text: string) => void; onCancel?: () =
  */
 export function VirtualKeyboard({ onDone, onCancel, title = "Keyboard", subtitle = "D-pad, left stick, or touchpad to choose a key.", placeholder = "Type something...", secret = false, bare = false }: VirtualKeyboardProps) {
   const [text, setText] = useState(""); const [row, setRow] = useState(0); const [col, setCol] = useState(0); const [layout, setLayout] = useState<Layout>("lower");
-  const prevHat = useRef(8); const prevStick = useRef<"up" | "down" | "left" | "right" | null>(null); const prevCross = useRef(false); const prevTouchpadButton = useRef(false); const prevSquare = useRef(false); const prevCircle = useRef(false); const dragStart = useRef<{ row: number; col: number } | null>(null);
+  // Edges via the shared tracker — the keyboard is summoned mid-press
+  // (double-Share), so its baseline must come from the first real pad frame.
+  const edges = useEdges(); const prevStick = useRef<"up" | "down" | "left" | "right" | null>(null); const dragStart = useRef<{ row: number; col: number } | null>(null);
   const rowLength = (r: number) => r === 3 ? ACTIONS.length : LAYOUTS[layout][r as 0 | 1 | 2].length;
   function move(direction: number) {
     if (direction === HAT_LEFT) setCol((value) => Math.max(0, value - 1));
@@ -41,7 +44,7 @@ export function VirtualKeyboard({ onDone, onCancel, title = "Keyboard", subtitle
     else if (action === "Delete") setText((value) => value.slice(0, -1));
     else onDone(text);
   }
-  useController((pad) => { if (pad.dpad !== prevHat.current) { prevHat.current = pad.dpad; move(pad.dpad); } const stick = Math.abs(pad.lx - 128) > 52 ? (pad.lx > 128 ? "right" : "left") : Math.abs(pad.ly - 128) > 52 ? (pad.ly > 128 ? "down" : "up") : null; if (stick !== prevStick.current) { prevStick.current = stick; if (stick === "left") move(HAT_LEFT); if (stick === "right") move(HAT_RIGHT); if (stick === "up") move(HAT_UP); if (stick === "down") move(HAT_DOWN); } if ((pad.cross && !prevCross.current) || (pad.touchpad_btn && !prevTouchpadButton.current)) { selectFeedback(); commit(); } if (pad.square && !prevSquare.current) setText((value) => value.slice(0, -1)); if (pad.circle && !prevCircle.current) onCancel?.(); prevCross.current = pad.cross; prevTouchpadButton.current = pad.touchpad_btn; prevSquare.current = pad.square; prevCircle.current = pad.circle; });
+  useController((pad) => { const edge = edges.sync(pad); const hat = edge.hat(); if (hat !== null) move(hat); const stick = Math.abs(pad.lx - 128) > 52 ? (pad.lx > 128 ? "right" : "left") : Math.abs(pad.ly - 128) > 52 ? (pad.ly > 128 ? "down" : "up") : null; if (stick !== prevStick.current) { prevStick.current = stick; if (stick === "left") move(HAT_LEFT); if (stick === "right") move(HAT_RIGHT); if (stick === "up") move(HAT_UP); if (stick === "down") move(HAT_DOWN); } if (edge.rising("cross") || edge.rising("touchpad_btn")) { selectFeedback(); commit(); } if (edge.rising("square")) setText((value) => value.slice(0, -1)); if (edge.rising("circle")) onCancel?.(); });
   useTouchpad((drag) => { if (!drag.active) { dragStart.current = null; return; } if (!dragStart.current) dragStart.current = { row, col }; const start = dragStart.current; const sensitivity = getControllerSettings().keyboardSwipeSensitivity; const nextRow = Math.max(0, Math.min(3, start.row + Math.round(drag.dy / (KEYBOARD_SWIPE_ROW_DISTANCE / sensitivity)))); const nextCol = Math.max(0, Math.min(rowLength(nextRow) - 1, start.col + Math.round(drag.dx / (KEYBOARD_SWIPE_COLUMN_DISTANCE / sensitivity)))); setRow(nextRow); setCol(nextCol); });
   const key = (value: string, r: number, c: number) => <button key={`${r}-${c}-${value}`} className={r === row && c === col ? "is-selected" : ""} style={{ minWidth: r === 3 ? (value === "Space" ? "13rem" : "7rem") : "3.7rem" }} onClick={() => { setRow(r); setCol(c); }}><span>{value}</span></button>;
   const visibleText = secret && text ? "•".repeat(text.length) : text;

@@ -5,6 +5,7 @@ import { heroArtFor } from "./heroArt";
 import { Clock } from "./Clock";
 import { Atmosphere } from "./Atmosphere";
 import { useController } from "../hooks/useController";
+import { useEdges } from "../hooks/useEdges";
 import { useGridNav } from "../hooks/useGridNav";
 import { useTouchpad, type DragState } from "../hooks/useTouchpad";
 import { useSpringScroll } from "../hooks/useSpringScroll";
@@ -73,7 +74,10 @@ export function CodexLauncher({ onOpen, onReady, onRest, inputEnabled }: { onOpe
   // Snapshot once: reduced-motion users get a plain fade (see the shelf/copy
   // CSS override in styles.css), so skip building the exit-slide ghost layer.
   const reduceMotion = useRef(typeof window !== "undefined" && !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches);
-  const prevHat = useRef(8); const prevStick = useRef<Direction | null>(null); const prevCross = useRef(false); const prevCircle = useRef(false); const prevSquare = useRef(false); const prevShoulders = useRef(0); const dragStartFocus = useRef(0); const dragging = useRef(false); const dragLastDx = useRef(0); const dragLastT = useRef(0); const dragVel = useRef(0); const shareTap = useRef<number | null>(null);
+  // Button/d-pad/shoulder edges come from the shared useEdges tracker; only the
+  // analog stick still needs a local previous-direction ref (it's derived from
+  // axis thresholds, not a button state).
+  const edges = useEdges(); const prevStick = useRef<Direction | null>(null); const dragStartFocus = useRef(0); const dragging = useRef(false); const dragLastDx = useRef(0); const dragLastT = useRef(0); const dragVel = useRef(0); const shareTap = useRef<number | null>(null);
   useEffect(() => {
     let cancelled = false;
     const applyConfig = (config: RawAppConfig | null | undefined) => {
@@ -168,32 +172,42 @@ export function CodexLauncher({ onOpen, onReady, onRest, inputEnabled }: { onOpe
   }
   function commitPower() { const action = POWER_ACTIONS[powerIndex]; selectFeedback(); if (action.command === "rest_mode") { setPowerConfirm(false); setPowerOpen(false); onRest(); return; } void invoke(action.command); }
   function navigate(direction: Direction) { if (direction === "up") { if (topFocus === "none") { setTopFocus("wifi"); navFeedback(); } return; } if (direction === "down") { if (topFocus !== "none") { setTopFocus("none"); navFeedback(); } return; } if (topFocus !== "none") { const index = TOP_ITEMS.indexOf(topFocus); const step = direction === "right" ? 1 : -1; setTopFocus(TOP_ITEMS[(index + step + TOP_ITEMS.length) % TOP_ITEMS.length]); navFeedback(); return; } move(direction); }
-  useController((pad) => { if (typeof pad.battery_percent === "number") setBattery(pad.battery_percent); if (typeof pad.charging === "boolean") setCharging(pad.charging); if (!inputEnabled) return;
-    if (confirmClose) { if (pad.cross && !prevCross.current) { const id = confirmClose.id; selectFeedback(); void invoke("close_tile_app", { tileId: id }).then(() => { setConfirmClose(null); setRunningIds((current) => { const next = new Set(current); next.delete(id); return next; }); }); } else if (pad.circle && !prevCircle.current) setConfirmClose(null); prevCross.current = pad.cross; prevCircle.current = pad.circle; return; }
+  useController((pad) => {
+    // Sample edges FIRST, unconditionally. Every `return` below is now safe:
+    // the baseline stays truthful even while input is disabled or a modal owns
+    // it, so a button still held when input re-enables is never mistaken for a
+    // fresh press (that bug closed the launcher on the first command).
+    const edge = edges.sync(pad);
+    const hat = edge.hat();
+    const stickAt = (axis: number) => (Math.abs(axis - 128) > 52 ? (axis > 128 ? 1 : -1) : 0);
+    if (typeof pad.battery_percent === "number") setBattery(pad.battery_percent);
+    if (typeof pad.charging === "boolean") setCharging(pad.charging);
+    if (!inputEnabled) return;
+    if (confirmClose) { if (edge.rising("cross")) { const id = confirmClose.id; selectFeedback(); void invoke("close_tile_app", { tileId: id }).then(() => { setConfirmClose(null); setRunningIds((current) => { const next = new Set(current); next.delete(id); return next; }); }); } else if (edge.rising("circle")) setConfirmClose(null); return; }
     if (expandedTile) {
-      if (pad.dpad !== prevHat.current) { prevHat.current = pad.dpad; if (pad.dpad === 0) moveGameAction(-1); if (pad.dpad === 4) moveGameAction(1); }
-      const menuStick = Math.abs(pad.ly - 128) > 52 ? (pad.ly > 128 ? "down" : "up") : null;
+      if (hat === 0) moveGameAction(-1); if (hat === 4) moveGameAction(1);
+      const menuStick = stickAt(pad.ly) === 1 ? "down" : stickAt(pad.ly) === -1 ? "up" : null;
       if (menuStick !== prevStick.current) { prevStick.current = menuStick; if (menuStick === "up") moveGameAction(-1); if (menuStick === "down") moveGameAction(1); }
-      if (pad.cross && !prevCross.current) runGameAction(expandedActions[actionIndex]);
-      else if (pad.circle && !prevCircle.current) setExpandedTile(null);
-      prevCross.current = pad.cross; prevCircle.current = pad.circle; return;
+      if (edge.rising("cross")) runGameAction(expandedActions[actionIndex]);
+      else if (edge.rising("circle")) setExpandedTile(null);
+      return;
     }
-    if (powerConfirm) { if (pad.cross && !prevCross.current) commitPower(); else if (pad.circle && !prevCircle.current) setPowerConfirm(false); prevCross.current = pad.cross; prevCircle.current = pad.circle; return; }
-    if (powerOpen) { if (pad.dpad !== prevHat.current) { prevHat.current = pad.dpad; if (pad.dpad === 0) movePower(-1); if (pad.dpad === 4) movePower(1); } const menuStick = Math.abs(pad.ly - 128) > 52 ? (pad.ly > 128 ? "down" : "up") : null; if (menuStick !== prevStick.current) { prevStick.current = menuStick; if (menuStick === "up") movePower(-1); if (menuStick === "down") movePower(1); } if (pad.cross && !prevCross.current) setPowerConfirm(true); else if (pad.circle && !prevCircle.current) setPowerOpen(false); prevCross.current = pad.cross; prevCircle.current = pad.circle; return; }
-    const shoulders = (pad.buttons >> 8) & 0xff;
+    if (powerConfirm) { if (edge.rising("cross")) commitPower(); else if (edge.rising("circle")) setPowerConfirm(false); return; }
+    if (powerOpen) { if (hat === 0) movePower(-1); if (hat === 4) movePower(1); const menuStick = stickAt(pad.ly) === 1 ? "down" : stickAt(pad.ly) === -1 ? "up" : null; if (menuStick !== prevStick.current) { prevStick.current = menuStick; if (menuStick === "up") movePower(-1); if (menuStick === "down") movePower(1); } if (edge.rising("cross")) setPowerConfirm(true); else if (edge.rising("circle")) setPowerOpen(false); return; }
+    const shoulderEdge = edge.shoulderEdge();
     // Double-press Share/Create summons the keyboard overlay from anywhere on Home.
-    if (!keyboardOpen && (shoulders & ~prevShoulders.current & SHARE_BUTTON)) {
+    if (!keyboardOpen && (shoulderEdge & SHARE_BUTTON)) {
       const now = performance.now();
       if (shareTap.current !== null && now - shareTap.current <= SHARE_DOUBLE_TAP_MS) { shareTap.current = null; selectFeedback(); setKeyboardOpen(true); }
       else shareTap.current = now;
     }
-    if (keyboardOpen) { prevShoulders.current = shoulders; return; } // overlay owns input while open
-    if (pad.dpad !== prevHat.current) { prevHat.current = pad.dpad; const direction: Direction | null = pad.dpad === 0 ? "up" : pad.dpad === 2 ? "right" : pad.dpad === 4 ? "down" : pad.dpad === 6 ? "left" : null; if (direction) navigate(direction); }
-    const stick: Direction | null = Math.abs(pad.lx - 128) > 52 ? (pad.lx > 128 ? "right" : "left") : Math.abs(pad.ly - 128) > 52 ? (pad.ly > 128 ? "down" : "up") : null;
+    if (keyboardOpen) return; // overlay owns input while open
+    if (hat !== null) { const direction: Direction | null = hat === 0 ? "up" : hat === 2 ? "right" : hat === 4 ? "down" : hat === 6 ? "left" : null; if (direction) navigate(direction); }
+    const stick: Direction | null = stickAt(pad.lx) !== 0 ? (stickAt(pad.lx) === 1 ? "right" : "left") : stickAt(pad.ly) !== 0 ? (stickAt(pad.ly) === 1 ? "down" : "up") : null;
     if (stick !== prevStick.current) { prevStick.current = stick; if (stick) navigate(stick); }
-    if (pad.cross && !prevCross.current) { if (topFocus === "wifi") { selectFeedback(); onOpen("settings"); } else if (topFocus === "search") { selectFeedback(); onOpen("search"); } else if (topFocus === "settings") { selectFeedback(); onOpen("settings"); } else if (topFocus === "power") { selectFeedback(); setPowerOpen(true); } else if (activeTile?.category === "games") { selectFeedback(); setActionIndex(0); setExpandedTile(activeTile); } else launch(activeTile); }
-    if (pad.square && !prevSquare.current && activeTile && runningIds.has(activeTile.id)) setConfirmClose(activeTile);
-    prevCross.current = pad.cross; prevSquare.current = pad.square; const edge = shoulders & ~prevShoulders.current; prevShoulders.current = shoulders; if (edge & L1) setTab(tabIndex - 1); if (edge & R1) setTab(tabIndex + 1);
+    if (edge.rising("cross")) { if (topFocus === "wifi") { selectFeedback(); onOpen("settings"); } else if (topFocus === "search") { selectFeedback(); onOpen("search"); } else if (topFocus === "settings") { selectFeedback(); onOpen("settings"); } else if (topFocus === "power") { selectFeedback(); setPowerOpen(true); } else if (activeTile?.category === "games") { selectFeedback(); setActionIndex(0); setExpandedTile(activeTile); } else launch(activeTile); }
+    if (edge.rising("square") && activeTile && runningIds.has(activeTile.id)) setConfirmClose(activeTile);
+    if (shoulderEdge & L1) setTab(tabIndex - 1); if (shoulderEdge & R1) setTab(tabIndex + 1);
   });
   useTouchpad((drag: DragState) => {
     if (!inputEnabled || keyboardOpen) return;

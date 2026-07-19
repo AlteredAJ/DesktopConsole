@@ -1,6 +1,7 @@
 import { type CSSProperties, useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useController } from "../hooks/useController";
+import { useEdges } from "../hooks/useEdges";
 import { navFeedback, selectFeedback } from "../feedback";
 import { ACCENT_SWATCHES, getTheme, subscribeTheme } from "../theme";
 
@@ -50,9 +51,10 @@ export function QuickOverlay() {
   const [time, setTime] = useState(() => new Date());
   const [, setThemeRevision] = useState(0);
   const [rgbScene, setRgbScene] = useState<(typeof RGB_SCENES)[number]>("ice");
-  const previousHat = useRef(8);
-  const previousCross = useRef(false);
-  const previousCircle = useRef(false);
+  // Edge baseline is adopted from the first real pad frame (useEdges), not
+  // assumed to be "nothing pressed" — the overlay is summoned by a double-PS
+  // with a hand on the pad, and the old assumption ate the first press.
+  const edges = useEdges();
   const previousStick = useRef<"left" | "right" | null>(null);
 
   const items = context.startsWith("game:") ? GAME_ITEMS : APP_ITEMS;
@@ -77,16 +79,17 @@ export function QuickOverlay() {
   };
 
   useController((pad) => {
+    const edge = edges.sync(pad); // always sample first — never behind a return
     if (typeof pad.battery_percent === "number") setBattery(pad.battery_percent);
     if (typeof pad.charging === "boolean") setCharging(pad.charging);
-    if (pad.dpad !== previousHat.current) {
-      previousHat.current = pad.dpad;
-      if (items[selected]?.id === "audio" && (pad.dpad === 0 || pad.dpad === 4)) {
-        const next = Math.max(0, Math.min(1, volume + (pad.dpad === 0 ? 0.05 : -0.05)));
+    const hat = edge.hat();
+    if (hat !== null) {
+      if (items[selected]?.id === "audio" && (hat === 0 || hat === 4)) {
+        const next = Math.max(0, Math.min(1, volume + (hat === 0 ? 0.05 : -0.05)));
         setVolume(next); void invoke("set_master_volume", { level: next }); setNotice(`Volume ${Math.round(next * 100)}%`); return;
       }
-      if (pad.dpad === 6) move(-1);
-      if (pad.dpad === 2) move(1);
+      if (hat === 6) move(-1);
+      if (hat === 2) move(1);
     }
     const stick = Math.abs(pad.lx - 128) > 56 ? (pad.lx > 128 ? "right" : "left") : null;
     if (stick !== previousStick.current) {
@@ -94,10 +97,8 @@ export function QuickOverlay() {
       if (stick === "left") move(-1);
       if (stick === "right") move(1);
     }
-    if (pad.cross && !previousCross.current) activate(items[selected]);
-    if (pad.circle && !previousCircle.current) void invoke("hide_quick_overlay_command");
-    previousCross.current = pad.cross;
-    previousCircle.current = pad.circle;
+    if (edge.rising("cross")) activate(items[selected]);
+    if (edge.rising("circle")) void invoke("hide_quick_overlay_command");
   });
 
   useEffect(() => {

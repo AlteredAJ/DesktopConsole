@@ -6,6 +6,7 @@
 import { useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useController } from "../hooks/useController";
+import { useEdges } from "../hooks/useEdges";
 import { useTouchpad } from "../hooks/useTouchpad";
 import { ButtonHints } from "./ButtonHints";
 import { CodexPanelShell } from "./CodexPanelShell";
@@ -219,9 +220,8 @@ function IconKeyboard() {
 export function SettingsMenu({ initialTab = "Appearance", networkNotice, onRequestWifiPassword }: { initialTab?: Tab; networkNotice?: string; onRequestWifiPassword?: (network: WifiNetwork) => void }) {
   const [tabIndex, setTabIndex] = useState(() => Math.max(0, TABS.indexOf(initialTab as (typeof TABS)[number])));
   const [focus, setFocus] = useState(0);
-  const prevHat = useRef(8);
-  const prevCross = useRef(false);
-  const prevShoulders = useRef(0);
+  // Shared edge tracker — baseline seeded from the first real pad frame.
+  const edges = useEdges();
   const prevStick = useRef<"up" | "down" | "left" | "right" | null>(null);
   const touchStart = useRef<{ tabIndex: number; focus: number } | null>(null);
   const [, forceUpdate] = useState(0);
@@ -313,36 +313,35 @@ export function SettingsMenu({ initialTab = "Appearance", networkNotice, onReque
   }
 
   useController((pad) => {
-    const shoulders = (pad.buttons >> 8) & 0xff;
-    const edge = shoulders & ~prevShoulders.current;
-    prevShoulders.current = shoulders;
+    const padEdge = edges.sync(pad);
+    const edge = padEdge.shoulderEdge();
     if (edge & L1) setTabIndex((i) => Math.max(0, i - 1));
     if (edge & R1) setTabIndex((i) => Math.min(TABS.length - 1, i + 1));
 
     const rowCount = rowCountFor(tab);
-    if (pad.dpad !== prevHat.current) {
-      prevHat.current = pad.dpad;
-      if (pad.dpad === HAT_DOWN)
+    const hat = padEdge.hat();
+    if (hat !== null) {
+      if (hat === HAT_DOWN)
         setFocus((f) => {
           const next = Math.min(f + 1, rowCount - 1);
           if (next !== f) navFeedback();
           return next;
         });
-      else if (pad.dpad === HAT_UP)
+      else if (hat === HAT_UP)
         setFocus((f) => {
           const next = Math.max(f - 1, 0);
           if (next !== f) navFeedback();
           return next;
         });
-      else if (tab === "Audio" && focus === 0 && (pad.dpad === HAT_LEFT || pad.dpad === HAT_RIGHT)) {
-        const delta = pad.dpad === HAT_RIGHT ? 0.05 : -0.05;
+      else if (tab === "Audio" && focus === 0 && (hat === HAT_LEFT || hat === HAT_RIGHT)) {
+        const delta = hat === HAT_RIGHT ? 0.05 : -0.05;
         setVolume((v) => {
           const next = Math.max(0, Math.min(1, v + delta));
           void invoke("set_master_volume", { level: next });
           return next;
         });
-      } else if (tab === "Audio" && focus >= 3 && (pad.dpad === HAT_LEFT || pad.dpad === HAT_RIGHT)) {
-        const delta = pad.dpad === HAT_RIGHT ? 0.05 : -0.05;
+      } else if (tab === "Audio" && focus >= 3 && (hat === HAT_LEFT || hat === HAT_RIGHT)) {
+        const delta = hat === HAT_RIGHT ? 0.05 : -0.05;
         const session = sessions[focus - 3];
         if (session) {
           setSessions((list) =>
@@ -355,8 +354,8 @@ export function SettingsMenu({ initialTab = "Appearance", networkNotice, onReque
             level: Math.max(0, Math.min(1, session.volume + delta)),
           });
         }
-      } else if (tab === "Controller" && (pad.dpad === HAT_LEFT || pad.dpad === HAT_RIGHT)) {
-        const delta = pad.dpad === HAT_RIGHT ? 0.1 : -0.1;
+      } else if (tab === "Controller" && (hat === HAT_LEFT || hat === HAT_RIGHT)) {
+        const delta = hat === HAT_RIGHT ? 0.1 : -0.1;
         if (focus === 0) setSensitivity((s) => { const next = Math.max(0.2, Math.min(5, +(s + delta).toFixed(1))); void invoke("set_cursor_sensitivity", { value: next }); return next; });
         if (focus === 1) setHomeSwipeSensitivity((s) => { const next = Math.max(0.5, Math.min(1.8, +(s + delta).toFixed(1))); setControllerSettings({ homeSwipeSensitivity: next }); return next; });
         if (focus === 2) setKeyboardSwipeSensitivity((s) => { const next = Math.max(0.35, Math.min(1.2, +(s + delta).toFixed(2))); setControllerSettings({ keyboardSwipeSensitivity: next }); return next; });
@@ -377,7 +376,7 @@ export function SettingsMenu({ initialTab = "Appearance", networkNotice, onReque
         else if (tab === "Audio" && focus >= 3) { const session = sessions[focus - 3]; if (session) { const next = Math.max(0, Math.min(1, session.volume + delta)); setSessions((list) => list.map((item, index) => index === focus - 3 ? { ...item, volume: next } : item)); void invoke("set_session_volume", { processId: session.process_id, level: next }); } }
       }
     }
-    if (pad.cross && !prevCross.current) {
+    if (padEdge.rising("cross")) {
       selectFeedback();
       if (tab === "Appearance") {
         if (focus === 0) setTheme({ mode: getTheme().mode === "dark" ? "light" : "dark" });
@@ -437,7 +436,6 @@ export function SettingsMenu({ initialTab = "Appearance", networkNotice, onReque
         });
       }
     }
-    prevCross.current = pad.cross;
   });
 
   useTouchpad((drag) => {

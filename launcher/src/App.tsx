@@ -5,6 +5,7 @@ import { CodexLauncher } from "./components/CodexLauncher";
 import { IdleScreen } from "./components/IdleScreen";
 import { StartupScreen } from "./components/StartupScreen";
 import { useController, PadState } from "./hooks/useController";
+import { useEdges } from "./hooks/useEdges";
 import { startupFeedback } from "./feedback";
 
 // Code-split everything that ISN'T the grid ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â the grid is what's on screen
@@ -43,10 +44,10 @@ export function App() {
   const [wifiRequest, setWifiRequest] = useState<WifiRequest | null>(null);
   const [networkNotice, setNetworkNotice] = useState<string | undefined>();
   const [idle, setIdle] = useState(false);
-  const prevOptions = useRef(false);
-  const prevCircle = useRef(false);
-  const prevStartupPs = useRef(false);
-  const prevIdlePs = useRef(false);
+  // One shared edge tracker for the whole app-level handler. Its baseline is
+  // sampled every frame regardless of which branch returns, so the startup and
+  // idle gates below can no longer leave stale state behind.
+  const edges = useEdges();
   const startupTimer = useRef<number | undefined>(undefined);
   const lastActivity = useRef(Date.now());
   const idleRef = useRef(false);
@@ -82,8 +83,12 @@ export function App() {
   // No on-screen "Menu"/"Exit" buttons anymore ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â there's no cursor most of the
   // time, so those were dead UI; this is the real, controller-reachable path.
   useController((pad) => {
+    // Sample first, unconditionally — every return below is now safe.
+    const edge = edges.sync(pad);
     if (!entered && panel === "grid") {
-      if (homeReady && !startupLeaving && pad.ps && !prevStartupPs.current) {
+      // A genuine press only: the PS button is usually still held from the
+      // triple-click that spawned us, and that must not auto-skip the gate.
+      if (homeReady && !startupLeaving && edge.rising("ps")) {
         setStartupLeaving(true);
         startupFeedback();
         startupTimer.current = window.setTimeout(() => {
@@ -91,29 +96,22 @@ export function App() {
           setStartupLeaving(false);
         }, 760);
       }
-      prevStartupPs.current = pad.ps;
       return;
     }
-    prevStartupPs.current = pad.ps;
     if (idleRef.current) {
       // Rest/idle uses PS as its deliberate wake control, so a bumped stick
       // never accidentally drops the user back into the dashboard.
-      if (pad.ps && !prevIdlePs.current) {
+      if (edge.rising("ps")) {
         setIdle(false);
         void invoke("exit_idle_power_save");
       }
-      prevIdlePs.current = pad.ps;
       return;
     }
-    prevIdlePs.current = false;
     if (isMeaningfulInput(pad)) lastActivity.current = Date.now();
-    if (pad.circle && !prevCircle.current && panel !== "grid") {
+    if (edge.rising("circle") && panel !== "grid") {
       setPanel(panel === "wifi-password" ? "settings" : "grid");
     }
-    if (pad.options && !prevOptions.current && panel !== "settings") setPanel("settings");
-    prevOptions.current = pad.options;
-    prevCircle.current = pad.circle;
-
+    if (edge.rising("options") && panel !== "settings") setPanel("settings");
   });
 
   // Idle detection: analog stick jitter alone must never keep this armed

@@ -8,6 +8,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useController } from "../hooks/useController";
+import { useEdges } from "../hooks/useEdges";
 import { useTouchpad } from "../hooks/useTouchpad";
 import { ButtonHints } from "./ButtonHints";
 import { CodexPanelShell } from "./CodexPanelShell";
@@ -50,11 +51,9 @@ export function Search({ onOpen }: { onOpen: (p: Panel) => void }) {
   const [row, setRow] = useState(0);
   const [col, setCol] = useState(0);
   const [resultIndex, setResultIndex] = useState(0);
-  const prevHat = useRef(8);
-  const prevCross = useRef(false);
-  const prevTouchpadButton = useRef(false);
-  const prevShoulders = useRef(0);
-  const prevTriangle = useRef(false);
+  // Button/d-pad/shoulder edges come from the shared tracker (baseline seeded
+  // from the first real pad frame); only the analog stick keeps a local ref.
+  const edges = useEdges();
   const prevStick = useRef<"up" | "down" | "left" | "right" | null>(null);
   const dragStart = useRef<{ row: number; col: number } | null>(null);
 
@@ -95,28 +94,24 @@ export function Search({ onOpen }: { onOpen: (p: Panel) => void }) {
   }
 
   useController((pad) => {
-    if (pad.dpad !== prevHat.current) { prevHat.current = pad.dpad; moveDirection(pad.dpad); }
+    const padEdge = edges.sync(pad);
+    const hat = padEdge.hat();
+    if (hat !== null) moveDirection(hat);
     const stick = Math.abs(pad.lx - 128) > 52 ? (pad.lx > 128 ? "right" : "left") : Math.abs(pad.ly - 128) > 52 ? (pad.ly > 128 ? "down" : "up") : null;
     if (stick !== prevStick.current) { prevStick.current = stick; if (stick === "left") moveDirection(HAT_LEFT); if (stick === "right") moveDirection(HAT_RIGHT); if (stick === "up") moveDirection(HAT_UP); if (stick === "down") moveDirection(HAT_DOWN); }
 
-    const selectPressed = (pad.cross && !prevCross.current) || (pad.touchpad_btn && !prevTouchpadButton.current);
-    if (selectPressed) { selectFeedback(); commitKey(); }
-    prevCross.current = pad.cross;
-    prevTouchpadButton.current = pad.touchpad_btn;
+    if (padEdge.rising("cross") || padEdge.rising("touchpad_btn")) { selectFeedback(); commitKey(); }
 
     // Shoulders cycle the highlighted result instead of switching tabs here
     // (that's the Launcher grid's meaning for L1/R1 Ã¢â‚¬â€ Search repurposes them
     // since there's no tab row in this panel).
-    const shoulders = (pad.buttons >> 8) & 0xff;
-    const edge = shoulders & ~prevShoulders.current;
-    prevShoulders.current = shoulders;
+    const edge = padEdge.shoulderEdge();
     if (results.length > 0) {
       if (edge & 0x01) setResultIndex((i) => (navFeedback(), Math.max(0, i - 1)));
       if (edge & 0x02) setResultIndex((i) => (navFeedback(), Math.min(results.length - 1, i + 1)));
     }
 
-    if (pad.triangle && !prevTriangle.current) launch(results[resultIndex]);
-    prevTriangle.current = pad.triangle;
+    if (padEdge.rising("triangle")) launch(results[resultIndex]);
   });
 
   useTouchpad((drag) => {
