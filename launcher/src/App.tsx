@@ -5,6 +5,7 @@ import { CodexLauncher } from "./components/CodexLauncher";
 import { IdleScreen } from "./components/IdleScreen";
 import { StartupScreen } from "./components/StartupScreen";
 import { useController, PadState } from "./hooks/useController";
+import { startupFeedback } from "./feedback";
 
 // Code-split everything that ISN'T the grid ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â the grid is what's on screen
 // on every single launch (triple-click PS spawns straight into it), so it
@@ -84,7 +85,7 @@ export function App() {
     if (!entered && panel === "grid") {
       if (homeReady && !startupLeaving && pad.ps && !prevStartupPs.current) {
         setStartupLeaving(true);
-        void invoke("haptic_select");
+        startupFeedback();
         startupTimer.current = window.setTimeout(() => {
           setEntered(true);
           setStartupLeaving(false);

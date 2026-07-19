@@ -5,7 +5,7 @@
 
 import { invoke } from "@tauri-apps/api/core";
 import { getFeedbackSettings } from "./settings";
-import { playNavTick, playSelect } from "./sound";
+import { playNavTick, playSelect, playStartupChime } from "./sound";
 
 export function navFeedback() {
   const { soundEnabled, hapticsEnabled } = getFeedbackSettings();
@@ -17,4 +17,16 @@ export function selectFeedback() {
   const { soundEnabled, hapticsEnabled } = getFeedbackSettings();
   if (hapticsEnabled) void invoke("haptic_select");
   if (soundEnabled) playSelect();
+}
+
+/** Entering Home — the console "power-on" moment. A two-stage haptic (a firm
+ * select followed by a softer confirm) plus the boot chime. Respects the same
+ * independent sound/haptics toggles as the other feedback. */
+export function startupFeedback() {
+  const { soundEnabled, hapticsEnabled } = getFeedbackSettings();
+  if (hapticsEnabled) {
+    void invoke("haptic_select");
+    setTimeout(() => void invoke("haptic_confirm"), 150);
+  }
+  if (soundEnabled) playStartupChime();
 }

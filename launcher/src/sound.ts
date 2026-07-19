@@ -37,3 +37,18 @@ export function playSelect() {
   tone(480, 90, 0.07);
   setTimeout(() => tone(640, 70, 0.06), 40);
 }
+
+/** Boot chime — a warm ascending G-major arpeggio over a soft low pad. Plays
+ * once when Home opens (fits inside the ~760 ms entry animation). Bell-like
+ * because `tone` decays exponentially, so it reads as a console power-on
+ * flourish, not four flat beeps. */
+export function playStartupChime() {
+  const notes: Array<[number, number]> = [
+    [392.0, 0],    // G4
+    [523.25, 95],  // C5
+    [659.25, 190], // E5
+    [783.99, 285], // G5
+  ];
+  for (const [freq, delay] of notes) setTimeout(() => tone(freq, 460, 0.06), delay);
+  tone(196.0, 620, 0.04); // G3 fundamental underneath for body
+}

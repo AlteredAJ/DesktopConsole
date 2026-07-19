@@ -237,6 +237,8 @@ html.overlay-document, html.overlay-document body, html.overlay-document #root {
      instead of gliding. */
   .app-enter { animation: appOpen 140ms linear both; }
   .app-enter, .app-exit { transform: none !important; }
+  /* Freeze the focus parallax pan. */
+  .codex-backdrop, .codex-launcher .atmos { transform: none !important; }
 }
 
 /* Reduced transparency: make the frosted chrome frostier/solid and drop
