@@ -141,6 +141,24 @@ For an at-a-glance board, open `BUILD_BOARD.html`.
 
 Format per entry: Intent · Changed · Files · Verified · Next/limits.
 
+### 2026-07-19 — app tiles + lnk launch + touchpad deadzone
+- **Intent:** wire AJ's streaming apps as clean PWA windows; fix touchpad clicks.
+- **Changed:** new `lnk:<path>` launch target (ShellExecute a Windows shortcut) so
+  Chrome/Edge PWA app windows launch chromeless. Tiles: Netflix →
+  `browser:.../browse` (WebView2 can't play it; browser = best quality), Disney+ /
+  Hulu → `lnk:` PWA shortcuts in `Desktop\Apps`, **new** FMHY (`lnk:`, custom neon
+  play-triangle `fmhy.svg`) + Cinebolt (`browser:`). Re-keyed `gameLogos.ts` /
+  `icons.tsx` so new ids keep logos/hero/surfaces. `useTouchpad.ts` gained a
+  14-unit tap/drag deadzone (re-anchor on cross) — laying a finger to click no
+  longer nudges the selection.
+- **On-device (outside repo):** moved the 3 `.lnk`s into `Desktop\Apps`; updated
+  live `%APPDATA%\ps5-mode\config.json` to match.
+- **Files:** `app_launch.rs`, `config.rs`, `gameLogos.ts`, `icons.tsx`,
+  `hooks/useTouchpad.ts`, `assets/logos/fmhy.svg`.
+- **Verified:** tsc+vite + cargo check clean; config.json parses (25 tiles).
+- **Next/limits:** eyeball the FMHY neon icon + touchpad feel on device; Cinebolt
+  uses the generic browser icon (no art supplied); Disney+ still has no hero art.
+
 ### 2026-07-19 — warnings cleared + ambient idle art
 - **Intent:** zero-warning backend; make the idle state feel alive.
 - **Changed:** removed unused `tauri::Manager` imports (listener `lib.rs`, `tray.rs`);
