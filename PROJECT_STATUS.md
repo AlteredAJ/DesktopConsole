@@ -143,7 +143,8 @@ For an at-a-glance board, open `BUILD_BOARD.html`.
 - **`ART_SHOPPING_LIST.md`** — 4K hero-art audit + per-game wiring recipe.
 - **`docs/specs/`** — self-contained build specs for planned features
   (`KEYBOARD_OVERLAY_SPEC.md`, `HOME_MOTION_SPEC.md`,
-  `POST_REBUILD_FIXES_SPEC.md`, `DESKTOP_MODE_AND_SETTINGS_SPEC.md`).
+  `POST_REBUILD_FIXES_SPEC.md`, `DESKTOP_MODE_AND_SETTINGS_SPEC.md`,
+  `ARCHITECTURE_AND_CONSOLIDATION_SPEC.md` — the system map + failure signatures).
 - **`rebuild.ps1`** — one-shot rebuild (cargo on PATH, stop exes, build launcher via
   Tauri CLI + listener, restart the listener).
 - **`docs/archive/`** — superseded scaffold-era handoffs, kept for history
