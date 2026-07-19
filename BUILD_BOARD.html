@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PS5 Mode — Build Board</title>
+<style>
+  /* Deliberately single-theme: this board is the companion dashboard to a
+     dark-committed console launcher, styled like its own UI (atmosphere bloom,
+     glass cards, focus-blue accent). */
+  :root {
+    color-scheme: dark;
+    --bg: #090b10;
+    --ink: #eef1f6;
+    --muted: #8a93a6;
+    --line: rgba(255,255,255,.10);
+    --glass-top: rgba(255,255,255,.075);
+    --glass-bot: rgba(255,255,255,.02);
+    --bloom: #6ea8ff;
+    --done: #5fd98a;
+    --build: #ffb45d;
+    --next: #6ea8ff;
+    --future: #b18aff;
+    --rose: #ff7398;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; background: var(--bg); color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased; line-height: 1.5;
+    position: relative; overflow-x: hidden;
+  }
+  /* faint on-brand bloom, static */
+  body::before {
+    content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(60% 55% at 82% 8%, color-mix(in srgb, var(--bloom) 20%, transparent), transparent 60%),
+      radial-gradient(50% 50% at 8% 100%, rgba(181,30,44,.12), transparent 66%),
+      linear-gradient(160deg, #07090e, #10131b 55%, #080b10);
+  }
+  .wrap { position: relative; z-index: 1; max-width: 1180px; margin: 0 auto; padding: 40px 24px 64px; }
+
+  header.top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px 24px; margin-bottom: 8px; }
+  .brand .kicker { font-size: 12px; font-weight: 800; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); }
+  .brand h1 { margin: 4px 0 6px; font-size: clamp(28px, 5vw, 44px); font-weight: 800; letter-spacing: -.03em; line-height: 1; text-wrap: balance; }
+  .brand p { margin: 0; color: var(--muted); font-size: 15px; max-width: 60ch; }
+  .brand b { color: var(--ink); font-weight: 650; }
+  .commits { display: flex; gap: 8px; flex-wrap: wrap; }
+  .sha { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 11.5px; padding: 5px 9px; border-radius: 8px; background: var(--glass-top); border: 1px solid var(--line); color: var(--muted); }
+  .sha b { color: var(--ink); font-weight: 600; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; margin: 22px 0 30px; padding: 12px 16px; border-radius: 12px; background: var(--glass-top); border: 1px solid var(--line); }
+  .legend span { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--muted); }
+  .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; box-shadow: 0 0 10px currentColor; }
+
+  h2.section { font-size: 12px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); margin: 34px 0 14px; display: flex; align-items: center; gap: 10px; }
+  h2.section::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+
+  /* ---- Runtime flow ---- */
+  .flow-scroll { overflow-x: auto; padding-bottom: 6px; }
+  .flow { display: flex; align-items: stretch; gap: 0; min-width: max-content; }
+  .step { position: relative; display: flex; flex-direction: column; gap: 3px; padding: 12px 15px; border-radius: 12px; background: linear-gradient(180deg, var(--glass-top), var(--glass-bot)); border: 1px solid var(--line); min-width: 128px; }
+  .step .t { font-size: 13.5px; font-weight: 700; letter-spacing: -.01em; }
+  .step .s { font-size: 11.5px; color: var(--muted); }
+  .step.accent { border-color: color-mix(in srgb, var(--bloom) 45%, var(--line)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--bloom) 22%, transparent), 0 0 24px -8px color-mix(in srgb, var(--bloom) 60%, transparent); }
+  .arrow { align-self: center; padding: 0 10px; color: var(--muted); font-size: 18px; }
+  .branch { align-self: center; padding: 0 4px; color: var(--muted); font-size: 11px; }
+
+  /* ---- Two processes ---- */
+  .procs { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .proc { padding: 18px 18px 16px; border-radius: 16px; background: linear-gradient(180deg, var(--glass-top), var(--glass-bot)); border: 1px solid var(--line); box-shadow: inset 0 1px rgba(255,255,255,.14); }
+  .proc h3 { margin: 0 0 2px; font-size: 17px; font-weight: 750; letter-spacing: -.01em; }
+  .proc .role { margin: 0 0 12px; font-size: 12.5px; color: var(--muted); }
+  .proc ul { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 6px; }
+  .proc li { font-size: 11.5px; padding: 4px 9px; border-radius: 7px; background: rgba(255,255,255,.05); border: 1px solid var(--line); color: #cdd4e0; }
+  .proc li.rust::before { content: "◆ "; color: var(--build); }
+  .proc li.react::before { content: "◆ "; color: var(--next); }
+
+  /* ---- Status board ---- */
+  .board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; align-items: start; }
+  .col { display: flex; flex-direction: column; gap: 10px; }
+  .col-head { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 750; padding: 2px 2px 8px; border-bottom: 1px solid var(--line); }
+  .col-head .n { margin-left: auto; font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .card { padding: 11px 12px; border-radius: 11px; background: linear-gradient(180deg, var(--glass-top), var(--glass-bot)); border: 1px solid var(--line); border-left-width: 3px; }
+  .card .ct { font-size: 13px; font-weight: 650; letter-spacing: -.01em; }
+  .card .cd { font-size: 11.5px; color: var(--muted); margin-top: 3px; }
+  .card .tag { display: inline-block; margin-top: 8px; font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 2px 7px; border-radius: 999px; background: rgba(255,255,255,.06); color: var(--muted); border: 1px solid var(--line); }
+
+  footer.next { margin-top: 34px; padding: 18px 20px; border-radius: 16px; border: 1px solid color-mix(in srgb, var(--build) 30%, var(--line)); background: linear-gradient(180deg, color-mix(in srgb, var(--build) 8%, transparent), transparent); }
+  footer.next h3 { margin: 0 0 4px; font-size: 15px; font-weight: 750; }
+  footer.next h3 .dot { display: inline-block; vertical-align: middle; margin-right: 8px; color: var(--build); }
+  footer.next p { margin: 0; color: var(--muted); font-size: 13.5px; }
+  footer.next code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; background: rgba(255,255,255,.07); padding: 1px 6px; border-radius: 5px; color: var(--ink); }
+
+  @media (max-width: 860px) {
+    .board { grid-template-columns: 1fr 1fr; }
+    .procs { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 520px) {
+    .board { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <div class="kicker">🎮 PS5 Mode · Build Board</div>
+      <h1>Console launcher — project map</h1>
+      <p>A 10-foot, DualSense-driven TV launcher. <b>Two Tauri processes</b>: a tray-resident <b>listener</b> that watches for a triple-click, and the fullscreen <b>launcher</b> it spawns. This board organizes the parts and tracks where each stands.</p>
+    </div>
+    <div class="commits">
+      <span class="sha"><b>94bf11e</b> refine pass</span>
+      <span class="sha"><b>5d86d0f</b> art list</span>
+      <span class="sha">local-only · private</span>
+    </div>
+  </header>
+
+  <div class="legend" role="list">
+    <span role="listitem"><i class="dot" style="color:var(--done)"></i> Shipped &amp; verified</span>
+    <span role="listitem"><i class="dot" style="color:var(--build)"></i> Needs your build (cargo)</span>
+    <span role="listitem"><i class="dot" style="color:var(--next)"></i> Next up</span>
+    <span role="listitem"><i class="dot" style="color:var(--future)"></i> Future / backlog</span>
+  </div>
+
+  <h2 class="section">Runtime flow</h2>
+  <div class="flow-scroll">
+    <div class="flow">
+      <div class="step"><span class="t">Windows login</span><span class="s">autostart</span></div>
+      <span class="arrow">→</span>
+      <div class="step accent"><span class="t">Listener</span><span class="s">tray · HID poll</span></div>
+      <span class="arrow">→</span>
+      <div class="step"><span class="t">Triple-click PS</span><span class="s">on DualSense</span></div>
+      <span class="arrow">→</span>
+      <div class="step accent"><span class="t">Launcher spawns</span><span class="s">Tauri · WebView2</span></div>
+      <span class="arrow">→</span>
+      <div class="step"><span class="t">Startup → Home</span><span class="s">CodexLauncher</span></div>
+      <span class="arrow">→</span>
+      <div class="step"><span class="t">Cross · launch app</span><span class="s">Options · panels · idle</span></div>
+    </div>
+  </div>
+
+  <h2 class="section">The two processes</h2>
+  <div class="procs">
+    <div class="proc">
+      <h3>Listener <span style="color:var(--build);font-size:12px">· Rust / tray-resident</span></h3>
+      <p class="role">Always on. Boots at login, polls the pad, spawns the launcher.</p>
+      <ul>
+        <li class="rust">HID poll</li><li class="rust">triple-click detect</li><li class="rust">launch spawn</li><li class="rust">tray (single icon ✓)</li><li class="rust">autostart</li><li class="rust">bt_wake</li><li class="rust">cursor_mode</li><li class="rust">rumble</li>
+      </ul>
+    </div>
+    <div class="proc">
+      <h3>Launcher <span style="color:var(--next);font-size:12px">· React + Rust</span></h3>
+      <p class="role">Fullscreen home. Spawned per session; renders in WebView2.</p>
+      <ul>
+        <li class="react">CodexLauncher</li><li class="react">Atmosphere</li><li class="react">heroArt/*</li><li class="react">panels (Settings/Search/Keyboard)</li><li class="react">QuickOverlay</li><li class="react">hooks (controller/grid/touchpad/spring)</li><li class="rust">commands (launch/display/audio/net/bt)</li><li class="rust">game_scan · live_backdrop · config</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2 class="section">Status board</h2>
+  <div class="board">
+
+    <div class="col">
+      <div class="col-head"><i class="dot" style="color:var(--done)"></i> Shipped <span class="n">9</span></div>
+      <div class="card" style="border-left-color:var(--done)"><div class="ct">Living atmosphere</div><div class="cd">Compositor-only drift/breathe; shared component.</div><span class="tag">Launcher UI</span></div>
+      <div class="card" style="border-left-color:var(--done)"><div class="ct">Spring dock scroll</div><div class="cd">Critically-damped, interruptible glide.</div><span class="tag">Motion</span></div>
+      <div class="card" style="border-left-color:var(--done)"><div class="ct">Local panel backgrounds</div><div class="cd">Killed the remote fluid iframe — works offline.</div><span class="tag">Launcher UI</span></div>
+      <div class="card" style="border-left-color:var(--done)"><div class="ct">Glass-on-glass + a11y</div><div class="cd">Scrim fix; reduced-motion/-transparency/-contrast.</div><span class="tag">Launcher UI</span></div>
+      <div class="card" style="border-left-color:var(--done)"><div class="ct">Dead code removed</div><div class="cd">Launcher/Tile/CodexHome (backed up).</div><span class="tag">Infra</span></div>
+      <div class="card" style="border-left-color:var(--done)"><div class="ct">Git checkpoint + .gitignore</div><div class="cd">Two commits, local-only, private.</div><span class="tag">Infra</span></div>
+      <div class="card" style="border-left-color:var(--done)"><div class="ct">4K art shopping list</div><div class="cd">Every tile audited &amp; classified.</div><span class="tag">Art</span></div>
+      <div class="card" style="border-left-color:var(--done)"><div class="ct">WebView2 decision</div><div class="cd">Staying — no alternative earns the migration.</div><span class="tag">Architecture</span></div>
+      <div class="card" style="border-left-color:var(--done)"><div class="ct">Frontend build verified</div><div class="cd"><code style="font-size:11px">tsc &amp;&amp; vite build</code> pass.</div><span class="tag">Infra</span></div>
+    </div>
+
+    <div class="col">
+      <div class="col-head"><i class="dot" style="color:var(--build)"></i> Needs your build <span class="n">2</span></div>
+      <div class="card" style="border-left-color:var(--build)"><div class="ct">Activate tray fix</div><div class="cd">Code committed; run <code style="font-size:11px">cargo/tauri build</code> on the listener to collapse to one icon.</div><span class="tag">Listener</span></div>
+      <div class="card" style="border-left-color:var(--build)"><div class="ct">Build launcher to view</div><div class="cd">See atmosphere + spring together on the real panel (can't screenshot localhost here).</div><span class="tag">Verify</span></div>
+    </div>
+
+    <div class="col">
+      <div class="col-head"><i class="dot" style="color:var(--next)"></i> Next up <span class="n">3</span></div>
+      <div class="card" style="border-left-color:var(--next)"><div class="ct">Wire in hero art</div><div class="cd">8 games + Disney+ → drop 4K into keyart/, map in gameLogos.ts.</div><span class="tag">Art</span></div>
+      <div class="card" style="border-left-color:var(--next)"><div class="ct">Delete dead art dupes</div><div class="cd">~1.5 MB of unused non-4K keyart jpgs.</div><span class="tag">Art / Infra</span></div>
+      <div class="card" style="border-left-color:var(--next)"><div class="ct">Touchpad momentum (Opt. B)</div><div class="cd">True 1:1 drag + inertia + rubber-band; wants live controller testing.</div><span class="tag">Motion</span></div>
+    </div>
+
+    <div class="col">
+      <div class="col-head"><i class="dot" style="color:var(--future)"></i> Future <span class="n">5</span></div>
+      <div class="card" style="border-left-color:var(--future)"><div class="ct">Per-game accent colors</div><div class="cd">Authentic bloom vs the hash fallback.</div><span class="tag">Art</span></div>
+      <div class="card" style="border-left-color:var(--future)"><div class="ct">Backend TODOs</div><div class="cd">controller-state snapshot, app_launch, HID buf[0].</div><span class="tag">Backend</span></div>
+      <div class="card" style="border-left-color:var(--future)"><div class="ct">Perf check on the panel</div><div class="cd">Confirm blur cost / DPR at native 1440p.</div><span class="tag">Perf</span></div>
+      <div class="card" style="border-left-color:var(--future)"><div class="ct">native-overlay-poc</div><div class="cd">In-game overlay direction.</div><span class="tag">Native</span></div>
+      <div class="card" style="border-left-color:var(--future)"><div class="ct">unreal-scaffold</div><div class="cd">Decide role / keep-or-cut.</div><span class="tag">Native</span></div>
+    </div>
+
+  </div>
+
+  <footer class="next">
+    <h3><i class="dot"></i>The one blocker between you and seeing it all</h3>
+    <p>Everything shipped is committed and frontend-verified, but the <b>tray fix is Rust</b> and I can't compile it here. Run <code>cd listener &amp;&amp; npx tauri build</code> (then <code>cd ..\launcher &amp;&amp; npx tauri dev</code>) and the double tray collapses to one — after that we're clear to wire in art and tackle touchpad momentum.</p>
+  </footer>
+</div>
+</body>
+</html>
