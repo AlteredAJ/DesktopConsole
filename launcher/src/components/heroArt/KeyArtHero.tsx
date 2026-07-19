@@ -8,9 +8,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import { nextFromBag } from "./shuffleBag";
+import { MOTION } from "../../motion";
 
 // How long each image in a rotating set holds before the slow crossfade.
-const ROTATE_MS = 9000;
+const ROTATE_MS = MOTION.heroArt.holdMs;
 
 export function KeyArtHero({
   art,
@@ -35,7 +36,7 @@ export function KeyArtHero({
   const [showLogo, setShowLogo] = useState(true);
   useEffect(() => {
     if (!logo || !cycle) return;
-    const id = setInterval(() => setShowLogo((s) => !s), 7000);
+    const id = setInterval(() => setShowLogo((s) => !s), MOTION.heroArt.logoCycleMs);
     return () => clearInterval(id);
   }, [logo, cycle]);
 
@@ -81,7 +82,7 @@ export function KeyArtHero({
     width: "100%",
     height: "100%",
     objectFit: "cover",
-    transition: "opacity 1200ms ease-in-out",
+    transition: `opacity ${MOTION.heroArt.crossfadeMs}ms ease-in-out`,
   };
 
   return (

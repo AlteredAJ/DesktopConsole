@@ -6,6 +6,7 @@ import { IdleScreen } from "./components/IdleScreen";
 import { StartupScreen } from "./components/StartupScreen";
 import { useController, PadState } from "./hooks/useController";
 import { useEdges } from "./hooks/useEdges";
+import { MOTION } from "./motion";
 import { startupFeedback } from "./feedback";
 
 // Code-split everything that ISN'T the grid ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â the grid is what's on screen
@@ -24,9 +25,9 @@ interface WifiRequest {
   security: string;
 }
 
-const IDLE_MS = 10 * 60 * 1000; // 10 minutes
+const IDLE_MS = MOTION.idle.afterMs;
 const STICK_CENTER = 128;
-const STICK_DEADZONE = 24; // ADC jitter noise floor ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â real stick input only
+const STICK_DEADZONE = MOTION.idle.stickDeadzone; // ADC jitter noise floor ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â real stick input only
 
 function isMeaningfulInput(pad: PadState): boolean {
   if (pad.cross || pad.circle || pad.triangle || pad.options || pad.ps || pad.touchpad_btn) return true;

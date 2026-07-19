@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { useController } from "../hooks/useController";
 import { useEdges } from "../hooks/useEdges";
+import { MOTION } from "../motion";
 import { useTouchpad } from "../hooks/useTouchpad";
 import { ButtonHints } from "./ButtonHints";
 import { CodexPanelShell } from "./CodexPanelShell";
@@ -9,8 +10,8 @@ import { getControllerSettings } from "../settings";
 
 const HAT_UP = 0; const HAT_RIGHT = 2; const HAT_DOWN = 4; const HAT_LEFT = 6;
 const ACTIONS = ["Shift", "Space", "Delete", "Done"] as const;
-const KEYBOARD_SWIPE_ROW_DISTANCE = 340;
-const KEYBOARD_SWIPE_COLUMN_DISTANCE = 420;
+const KEYBOARD_SWIPE_ROW_DISTANCE = MOTION.keyboard.swipeRowDistance;
+const KEYBOARD_SWIPE_COLUMN_DISTANCE = MOTION.keyboard.swipeColumnDistance;
 const LAYOUTS = {
   lower: ["qwertyuiop", "asdfghjkl", "zxcvbnm"],
   upper: ["QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM"],

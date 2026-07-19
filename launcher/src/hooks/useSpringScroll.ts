@@ -11,12 +11,13 @@
 // React re-render per frame. Honors prefers-reduced-motion by jumping.
 
 import { useCallback, useEffect, useRef } from "react";
+import { MOTION } from "../motion";
 
 // Fraction of the remaining distance closed each frame. ~0.22 @ 60fps reads as a
 // snappy, bounce-free settle (~150-200ms) — the Apple-TV dock glide, not a slow
 // drift. Tuned for a 60Hz living-room panel.
-const FOLLOW = 0.22;
-const EPSILON = 0.5; // px; snap-and-stop threshold
+const FOLLOW = MOTION.dock.follow;
+const EPSILON = MOTION.dock.epsilonPx; // px; snap-and-stop threshold
 
 export function useSpringScroll(ref: React.RefObject<HTMLElement | null>) {
   const st = useRef({ target: 0, raf: 0, running: false, reduce: false });

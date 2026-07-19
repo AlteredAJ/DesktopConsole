@@ -9,6 +9,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useController } from "../hooks/useController";
 import { useEdges } from "../hooks/useEdges";
+import { MOTION } from "../motion";
 import { useTouchpad } from "../hooks/useTouchpad";
 import { ButtonHints } from "./ButtonHints";
 import { CodexPanelShell } from "./CodexPanelShell";
@@ -42,8 +43,8 @@ const HAT_LEFT = 6;
 // Row 3 is special-cased (single wide "space" key) rather than listed here.
 const KEY_ROWS = ["qwertyuiop", "asdfghjkl", "zxcvbnm<"];
 // Keyboard swipe travel is intentionally lower-sensitivity than home navigation.
-const KEYBOARD_SWIPE_ROW_DISTANCE = 340;
-const KEYBOARD_SWIPE_COLUMN_DISTANCE = 420;
+const KEYBOARD_SWIPE_ROW_DISTANCE = MOTION.keyboard.swipeRowDistance;
+const KEYBOARD_SWIPE_COLUMN_DISTANCE = MOTION.keyboard.swipeColumnDistance;
 
 export function Search({ onOpen }: { onOpen: (p: Panel) => void }) {
   const [query, setQuery] = useState("");

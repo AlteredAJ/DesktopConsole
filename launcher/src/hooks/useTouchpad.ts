@@ -7,6 +7,7 @@
 
 import { useRef } from "react";
 import { useController, PadState } from "./useController";
+import { MOTION } from "../motion";
 
 export interface DragState {
   dx: number; // total horizontal travel since finger-down
@@ -19,7 +20,7 @@ export interface DragState {
 // first lands and presses to click, so a tap doesn't register as a drag and
 // nudge the selection. Once travel crosses this, we re-anchor at the crossing
 // point so movement begins from there with no sudden jump.
-const DRAG_DEADZONE = 14;
+const DRAG_DEADZONE = MOTION.touchpad.dragDeadzone;
 
 export function useTouchpad(onDrag: (drag: DragState) => void) {
   const start = useRef<{ x: number; y: number } | null>(null);

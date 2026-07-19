@@ -3,12 +3,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import { IDLE_ART } from "../gameLogos";
+import { MOTION } from "../motion";
 
 const PARTICLE_COUNT = 64;
 
 // How long each hero holds before the slow crossfade to the next one.
-const SLIDE_MS = 9000;
-const FADE_MS = 1600;
+const SLIDE_MS = MOTION.idle.slideMs;
+const FADE_MS = MOTION.idle.fadeMs;
 
 // Ambient PS5-style idle slideshow: real hero key-art drifts (ken-burns) behind
 // the wordmark and slowly crossfades. Compositor-only (opacity + transform), so

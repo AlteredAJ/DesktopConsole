@@ -6,6 +6,7 @@ import { Clock } from "./Clock";
 import { Atmosphere } from "./Atmosphere";
 import { useController } from "../hooks/useController";
 import { useEdges } from "../hooks/useEdges";
+import { MOTION } from "../motion";
 import { useGridNav } from "../hooks/useGridNav";
 import { useTouchpad, type DragState } from "../hooks/useTouchpad";
 import { useSpringScroll } from "../hooks/useSpringScroll";
@@ -26,7 +27,7 @@ type GameAction = { id: "play" | "close" | "trainer"; label: string };
 interface LiveBackdropFrame { tile_id: string; title: string; data_url: string; width: number; height: number; }
 type TabId = Category | "continue";
 const TABS: Array<{ id: TabId; label: string }> = [{ id: "continue", label: "Continue" }, { id: "apps", label: "Apps" }, { id: "games", label: "Games" }, { id: "launchers", label: "Launchers" }];
-const TILE_DISTANCE = 220; const MOMENTUM_MS = 140; const L1 = 0x01; const R1 = 0x02;
+const TILE_DISTANCE = MOTION.dock.tileDistance; const MOMENTUM_MS = MOTION.dock.momentumMs; const L1 = 0x01; const R1 = 0x02;
 // Share/Create is unbound elsewhere in this app. buf[9] 0x10 per the standard
 // DualSense shoulders-byte layout (L1=0x01,R1=0x02,L2=0x04,R2=0x08,Create=0x10,
 // Options=0x20,L3=0x40,R3=0x80) — consistent with hid.rs's confirmed
