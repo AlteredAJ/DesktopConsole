@@ -135,6 +135,20 @@ For an at-a-glance board, open `BUILD_BOARD.html`.
 
 Format per entry: Intent · Changed · Files · Verified · Next/limits.
 
+### 2026-07-19 — warnings cleared + ambient idle art
+- **Intent:** zero-warning backend; make the idle state feel alive.
+- **Changed:** removed unused `tauri::Manager` imports (listener `lib.rs`, `tray.rs`);
+  `#[allow(dead_code)]` on the intended-but-unwired `toggle_minimize`. Added a
+  PS5-style **idle-screen art slideshow** — real 4K hero art (`IDLE_ART` in
+  `gameLogos.ts`) ken-burns behind the wordmark and slowly crossfades
+  (9s hold / 1.6s fade), compositor-only, scrim keeps text legible,
+  `prefers-reduced-motion` holds one static frame. True idle only, not the splash.
+- **Files:** `listener/src-tauri/src/{lib,tray}.rs`, `launcher/src-tauri/src/commands.rs`,
+  `launcher/src/components/IdleScreen.tsx`, `gameLogos.ts`, `styles.css`.
+- **Verified:** launcher `tsc`+`vite build` clean; both `cargo check` clean (0 warnings).
+- **Next/limits:** slideshow art = the same wired hero set; grows automatically as
+  `ART_SHOPPING_LIST.md` games get art. Lands on the next launcher build.
+
 ### 2026-07-19 — tray Exit fix + cleanup
 - **Intent:** make the tray "Exit" actually quit; remove dead weight.
 - **Changed:** listener `ExitRequested` guard now only calls `prevent_exit()` for
