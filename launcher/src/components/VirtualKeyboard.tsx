@@ -1,17 +1,11 @@
-import { useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { useController } from "../hooks/useController";
 import { useEdges } from "../hooks/useEdges";
-import { MOTION } from "../motion";
-import { useTouchpad } from "../hooks/useTouchpad";
+import { useKeyboardGrid } from "../hooks/useKeyboardGrid";
 import { ButtonHints } from "./ButtonHints";
 import { CodexPanelShell } from "./CodexPanelShell";
-import { selectFeedback } from "../feedback";
-import { getControllerSettings } from "../settings";
 
-const HAT_UP = 0; const HAT_RIGHT = 2; const HAT_DOWN = 4; const HAT_LEFT = 6;
 const ACTIONS = ["Shift", "Space", "Delete", "Done"] as const;
-const KEYBOARD_SWIPE_ROW_DISTANCE = MOTION.keyboard.swipeRowDistance;
-const KEYBOARD_SWIPE_COLUMN_DISTANCE = MOTION.keyboard.swipeColumnDistance;
 const LAYOUTS = {
   lower: ["qwertyuiop", "asdfghjkl", "zxcvbnm"],
   upper: ["QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM"],
@@ -26,28 +20,26 @@ interface VirtualKeyboardProps { onDone: (text: string) => void; onCancel?: () =
  * mount just the grid+logic inside its own dimmed, floating panel.
  */
 export function VirtualKeyboard({ onDone, onCancel, title = "Keyboard", subtitle = "D-pad, left stick, or touchpad to choose a key.", placeholder = "Type something...", secret = false, bare = false }: VirtualKeyboardProps) {
-  const [text, setText] = useState(""); const [row, setRow] = useState(0); const [col, setCol] = useState(0); const [layout, setLayout] = useState<Layout>("lower");
+  const [text, setText] = useState(""); const [layout, setLayout] = useState<Layout>("lower");
   // Edges via the shared tracker — the keyboard is summoned mid-press
   // (double-Share), so its baseline must come from the first real pad frame.
-  const edges = useEdges(); const prevStick = useRef<"up" | "down" | "left" | "right" | null>(null); const dragStart = useRef<{ row: number; col: number } | null>(null);
-  const rowLength = (r: number) => r === 3 ? ACTIONS.length : LAYOUTS[layout][r as 0 | 1 | 2].length;
-  function move(direction: number) {
-    if (direction === HAT_LEFT) setCol((value) => Math.max(0, value - 1));
-    else if (direction === HAT_RIGHT) setCol((value) => Math.min(rowLength(row) - 1, value + 1));
-    else if (direction === HAT_UP) setRow((value) => { const next = Math.max(0, value - 1); setCol((current) => Math.min(current, rowLength(next) - 1)); return next; });
-    else if (direction === HAT_DOWN) setRow((value) => { const next = Math.min(3, value + 1); setCol((current) => Math.min(current, rowLength(next) - 1)); return next; });
-  }
-  function commit() {
-    if (row < 3) { setText((value) => value + LAYOUTS[layout][row as 0 | 1 | 2][col]); return; }
-    const action = ACTIONS[col];
-    if (action === "Shift") setLayout((value) => value === "lower" ? "upper" : value === "upper" ? "symbols" : "lower");
-    else if (action === "Space") setText((value) => value + " ");
-    else if (action === "Delete") setText((value) => value.slice(0, -1));
+  const edges = useEdges();
+  // Letter rows plus the action row, as the flat shape useKeyboardGrid wants.
+  const rows = useMemo(() => [...LAYOUTS[layout].map((letters) => [...letters]), [...ACTIONS]], [layout]);
+  const grid = useKeyboardGrid(rows, (value, r) => {
+    if (r < 3) { setText((current) => current + value); return; }
+    if (value === "Shift") setLayout((current) => current === "lower" ? "upper" : current === "upper" ? "symbols" : "lower");
+    else if (value === "Space") setText((current) => current + " ");
+    else if (value === "Delete") setText((current) => current.slice(0, -1));
     else onDone(text);
-  }
-  useController((pad) => { const edge = edges.sync(pad); const hat = edge.hat(); if (hat !== null) move(hat); const stick = Math.abs(pad.lx - 128) > 52 ? (pad.lx > 128 ? "right" : "left") : Math.abs(pad.ly - 128) > 52 ? (pad.ly > 128 ? "down" : "up") : null; if (stick !== prevStick.current) { prevStick.current = stick; if (stick === "left") move(HAT_LEFT); if (stick === "right") move(HAT_RIGHT); if (stick === "up") move(HAT_UP); if (stick === "down") move(HAT_DOWN); } if (edge.rising("cross") || edge.rising("touchpad_btn")) { selectFeedback(); commit(); } if (edge.rising("square")) setText((value) => value.slice(0, -1)); if (edge.rising("circle")) onCancel?.(); });
-  useTouchpad((drag) => { if (!drag.active) { dragStart.current = null; return; } if (!dragStart.current) dragStart.current = { row, col }; const start = dragStart.current; const sensitivity = getControllerSettings().keyboardSwipeSensitivity; const nextRow = Math.max(0, Math.min(3, start.row + Math.round(drag.dy / (KEYBOARD_SWIPE_ROW_DISTANCE / sensitivity)))); const nextCol = Math.max(0, Math.min(rowLength(nextRow) - 1, start.col + Math.round(drag.dx / (KEYBOARD_SWIPE_COLUMN_DISTANCE / sensitivity)))); setRow(nextRow); setCol(nextCol); });
-  const key = (value: string, r: number, c: number) => <button key={`${r}-${c}-${value}`} className={r === row && c === col ? "is-selected" : ""} style={{ minWidth: r === 3 ? (value === "Space" ? "13rem" : "7rem") : "3.7rem" }} onClick={() => { setRow(r); setCol(c); }}><span>{value}</span></button>;
+  });
+  useController((pad) => {
+    const edge = edges.sync(pad); // always sample first — never behind a return
+    grid.navigate(pad, edge);
+    if (edge.rising("square")) setText((value) => value.slice(0, -1));
+    if (edge.rising("circle")) onCancel?.();
+  });
+  const key = (value: string, r: number, c: number) => <button key={`${r}-${c}-${value}`} className={grid.isSelected(r, c) ? "is-selected" : ""} style={{ minWidth: r === 3 ? (value === "Space" ? "13rem" : "7rem") : "3.7rem" }} onClick={() => grid.setCell(r, c)}><span>{value}</span></button>;
   const visibleText = secret && text ? "•".repeat(text.length) : text;
   const content = <div className="codex-keyboard"><div className="codex-keyboard-value">{visibleText || <span>{placeholder}</span>}</div><div className="codex-keyboard-layout">{layout === "lower" ? "abc" : layout === "upper" ? "ABC" : "123"}</div><div className="codex-keyboard-grid">{LAYOUTS[layout].map((letters, r) => <div key={`${layout}-${letters}`}>{[...letters].map((letter, c) => key(letter, r, c))}</div>)}<div>{ACTIONS.map((action, c) => key(action, 3, c))}</div></div><ButtonHints hints={[{ glyph: "dpad", label: "Navigate" }, { glyph: "cross", label: "Enter" }, { glyph: "square", label: "Delete" }, { glyph: "circle", label: "Back" }]} /><style>{CSS}</style></div>;
   if (bare) return content;

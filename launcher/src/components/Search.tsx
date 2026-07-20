@@ -5,18 +5,16 @@
 // that's VirtualKeyboard.tsx's separate Unit B scope) so this doesn't have to
 // wait on the swipe-to-type keyboard overlay to be useful today.
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useController } from "../hooks/useController";
 import { useEdges } from "../hooks/useEdges";
-import { MOTION } from "../motion";
-import { useTouchpad } from "../hooks/useTouchpad";
+import { useKeyboardGrid } from "../hooks/useKeyboardGrid";
 import { ButtonHints } from "./ButtonHints";
 import { CodexPanelShell } from "./CodexPanelShell";
 import { accentFor, ServiceIcon } from "./icons";
 import { fuzzyFilter } from "../utils/fuzzy";
 import { selectFeedback, navFeedback } from "../feedback";
-import { getControllerSettings } from "../settings";
 import type { Panel } from "../App";
 
 interface Tile {
@@ -34,29 +32,20 @@ interface RawAppConfig {
   apps: RawAppTile[];
 }
 
-// DualSense hat values (buf[8] low nibble) Ã¢â‚¬â€ same convention as useGridNav.ts.
-const HAT_UP = 0;
-const HAT_RIGHT = 2;
-const HAT_DOWN = 4;
-const HAT_LEFT = 6;
 
-// Row 3 is special-cased (single wide "space" key) rather than listed here.
 const KEY_ROWS = ["qwertyuiop", "asdfghjkl", "zxcvbnm<"];
-// Keyboard swipe travel is intentionally lower-sensitivity than home navigation.
-const KEYBOARD_SWIPE_ROW_DISTANCE = MOTION.keyboard.swipeRowDistance;
-const KEYBOARD_SWIPE_COLUMN_DISTANCE = MOTION.keyboard.swipeColumnDistance;
+// Last row is a single wide space key. Hat/stick/swipe navigation and the
+// swipe-travel constants now live in useKeyboardGrid, shared with
+// VirtualKeyboard so the two keyboards can't drift apart.
+const GRID_ROWS: readonly (readonly string[])[] = [...KEY_ROWS.map((keys) => [...keys]), [" "]];
 
 export function Search({ onOpen }: { onOpen: (p: Panel) => void }) {
   const [query, setQuery] = useState("");
   const [tiles, setTiles] = useState<Tile[]>([]);
-  const [row, setRow] = useState(0);
-  const [col, setCol] = useState(0);
   const [resultIndex, setResultIndex] = useState(0);
   // Button/d-pad/shoulder edges come from the shared tracker (baseline seeded
-  // from the first real pad frame); only the analog stick keeps a local ref.
+  // from the first real pad frame).
   const edges = useEdges();
-  const prevStick = useRef<"up" | "down" | "left" | "right" | null>(null);
-  const dragStart = useRef<{ row: number; col: number } | null>(null);
 
   useEffect(() => {
     void invoke<RawAppConfig>("get_config").then((cfg) => {
@@ -67,19 +56,12 @@ export function Search({ onOpen }: { onOpen: (p: Panel) => void }) {
   const results = useMemo(() => fuzzyFilter(query, tiles, (t) => t.label), [query, tiles]);
   useEffect(() => setResultIndex(0), [query]);
 
-  function rowLen(r: number): number {
-    return r === 3 ? 1 : KEY_ROWS[r].length;
-  }
-
-  function commitKey() {
-    if (row === 3) {
-      setQuery((q) => q + " ");
-      return;
-    }
-    const key = KEY_ROWS[row][col];
-    if (key === "<") setQuery((q) => q.slice(0, -1));
+  // Letter rows plus a single wide space key as the last row.
+  const grid = useKeyboardGrid(GRID_ROWS, (key) => {
+    if (key === " ") setQuery((q) => q + " ");
+    else if (key === "<") setQuery((q) => q.slice(0, -1));
     else setQuery((q) => q + key);
-  }
+  });
 
   function launch(tile?: Tile) {
     if (!tile) return;
@@ -87,21 +69,9 @@ export function Search({ onOpen }: { onOpen: (p: Panel) => void }) {
     if (tile.id === "youtube") return onOpen("youtube");
     void invoke("launch_app", { target: tile.id, needsCursor: tile.needsCursor });
   }
-  function moveDirection(direction: number) {
-    if (direction === HAT_LEFT) setCol((c) => Math.max(0, c - 1));
-    else if (direction === HAT_RIGHT) setCol((c) => Math.min(rowLen(row) - 1, c + 1));
-    else if (direction === HAT_UP) setRow((r) => { const next = Math.max(0, r - 1); setCol((c) => Math.min(c, rowLen(next) - 1)); return next; });
-    else if (direction === HAT_DOWN) setRow((r) => { const next = Math.min(3, r + 1); setCol((c) => Math.min(c, rowLen(next) - 1)); return next; });
-  }
-
   useController((pad) => {
-    const padEdge = edges.sync(pad);
-    const hat = padEdge.hat();
-    if (hat !== null) moveDirection(hat);
-    const stick = Math.abs(pad.lx - 128) > 52 ? (pad.lx > 128 ? "right" : "left") : Math.abs(pad.ly - 128) > 52 ? (pad.ly > 128 ? "down" : "up") : null;
-    if (stick !== prevStick.current) { prevStick.current = stick; if (stick === "left") moveDirection(HAT_LEFT); if (stick === "right") moveDirection(HAT_RIGHT); if (stick === "up") moveDirection(HAT_UP); if (stick === "down") moveDirection(HAT_DOWN); }
-
-    if (padEdge.rising("cross") || padEdge.rising("touchpad_btn")) { selectFeedback(); commitKey(); }
+    const padEdge = edges.sync(pad); // always sample first — never behind a return
+    grid.navigate(pad, padEdge);
 
     // Shoulders cycle the highlighted result instead of switching tabs here
     // (that's the Launcher grid's meaning for L1/R1 Ã¢â‚¬â€ Search repurposes them
@@ -115,16 +85,6 @@ export function Search({ onOpen }: { onOpen: (p: Panel) => void }) {
     if (padEdge.rising("triangle")) launch(results[resultIndex]);
   });
 
-  useTouchpad((drag) => {
-    if (!drag.active) { dragStart.current = null; return; }
-    if (!dragStart.current) dragStart.current = { row, col };
-    const start = dragStart.current;
-    const sensitivity = getControllerSettings().keyboardSwipeSensitivity;
-    const nextRow = Math.max(0, Math.min(3, start.row + Math.round(drag.dy / (KEYBOARD_SWIPE_ROW_DISTANCE / sensitivity))));
-    const nextCol = Math.max(0, Math.min(rowLen(nextRow) - 1, start.col + Math.round(drag.dx / (KEYBOARD_SWIPE_COLUMN_DISTANCE / sensitivity))));
-    setRow(nextRow);
-    setCol(nextCol);
-  });
   return (
     <CodexPanelShell eyebrow="LIBRARY" title="Search" subtitle="Find an app, game, or launcher from the couch."><div style={{ display: "flex", flexDirection: "column", minHeight: "100%" }}>
       <div
@@ -177,8 +137,8 @@ export function Search({ onOpen }: { onOpen: (p: Panel) => void }) {
                 height: "3.5rem",
                 display: "grid",
                 placeItems: "center",
-                background: r === row && c === col ? "var(--tile-focus)" : "var(--tile)",
-                border: r === row && c === col ? "2px solid var(--accent)" : "2px solid transparent",
+                background: grid.isSelected(r, c) ? "var(--tile-focus)" : "var(--tile)",
+                border: grid.isSelected(r, c) ? "2px solid var(--accent)" : "2px solid transparent",
                 borderRadius: "0.5rem",
                 fontSize: "1.4rem",
               }}
@@ -195,8 +155,8 @@ export function Search({ onOpen }: { onOpen: (p: Panel) => void }) {
             height: "3.5rem",
             display: "grid",
             placeItems: "center",
-            background: row === 3 ? "var(--tile-focus)" : "var(--tile)",
-            border: row === 3 ? "2px solid var(--accent)" : "2px solid transparent",
+            background: grid.row === 3 ? "var(--tile-focus)" : "var(--tile)",
+            border: grid.row === 3 ? "2px solid var(--accent)" : "2px solid transparent",
             borderRadius: "0.5rem",
             fontSize: "1rem",
             color: "var(--muted)",
