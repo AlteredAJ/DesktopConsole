@@ -8,6 +8,7 @@ import { useController, PadState } from "./hooks/useController";
 import { useEdges } from "./hooks/useEdges";
 import { MOTION } from "./motion";
 import { startupFeedback } from "./feedback";
+import { getPerformanceSettings, subscribePerformanceSettings } from "./settings";
 
 // Code-split everything that ISN'T the grid ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â the grid is what's on screen
 // on every single launch (triple-click PS spawns straight into it), so it
@@ -17,6 +18,7 @@ const YouTubeEmbed = lazy(() => import("./components/YouTubeEmbed").then((m) => 
 const SettingsMenu = lazy(() => import("./components/SettingsMenu").then((m) => ({ default: m.SettingsMenu })));
 const VirtualKeyboard = lazy(() => import("./components/VirtualKeyboard").then((m) => ({ default: m.VirtualKeyboard })));
 const Search = lazy(() => import("./components/Search").then((m) => ({ default: m.Search })));
+const PerfHud = lazy(() => import("./components/PerfHud").then((m) => ({ default: m.PerfHud })));
 
 export type Panel = "grid" | "youtube" | "settings" | "network" | "keyboard" | "wifi-password" | "search";
 
@@ -115,6 +117,19 @@ export function App() {
     if (edge.rising("options") && panel !== "settings") setPanel("settings");
   });
 
+  // Performance settings are read live so toggling the HUD (or reduce-motion)
+  // in Settings takes effect immediately, without a relaunch.
+  const [, bumpPerf] = useState(0);
+  useEffect(() => subscribePerformanceSettings(() => bumpPerf((n) => n + 1)), []);
+  const perf = getPerformanceSettings();
+
+  // The in-app reduce-motion switch is additive to the OS preference the CSS
+  // already honours: setting it here calms the app even when the system is set
+  // to full motion. It never re-enables motion the OS asked to suppress.
+  useEffect(() => {
+    document.documentElement.classList.toggle("reduce-motion", perf.reduceMotion);
+  }, [perf.reduceMotion]);
+
   // Idle detection: analog stick jitter alone must never keep this armed
   // forever (see isMeaningfulInput's deadzone) ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â checked on a slow interval
   // rather than per-frame since a 10-minute threshold doesn't need precision.
@@ -136,6 +151,7 @@ export function App() {
           compiled chunks (a few KB each) fetched from local disk, not a
           network round-trip, so a loading spinner would just flash. */}
       <Suspense fallback={null}>
+        {perf.perfHud && <PerfHud />}
         {panel === "youtube" && <YouTubeEmbed />}
         {panel === "settings" && <SettingsMenu initialTab="Appearance" networkNotice={networkNotice} onRequestWifiPassword={(network) => { setNetworkNotice(undefined); setWifiRequest(network); setPanel("wifi-password"); }} />}
         {panel === "wifi-password" && wifiRequest && <VirtualKeyboard title="Wi-Fi password" subtitle={`Enter the password for ${wifiRequest.ssid}. Shift cycles letters, capitals, and symbols.`} placeholder="Enter network password..." secret onDone={(password) => { const request = wifiRequest; void invoke("wifi_connect", { ssid: request.ssid, password, security: request.security }).then(() => { setNetworkNotice(`Connecting to ${request.ssid}…`); setWifiRequest(null); setPanel("settings"); }).catch((error) => { setNetworkNotice(String(error)); setPanel("settings"); }); }} />}

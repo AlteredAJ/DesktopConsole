@@ -11,7 +11,7 @@ import { useTouchpad } from "../hooks/useTouchpad";
 import { ButtonHints } from "./ButtonHints";
 import { CodexPanelShell } from "./CodexPanelShell";
 import { getTheme, setTheme, subscribeTheme, ACCENT_SWATCHES, AccentScheme } from "../theme";
-import { getControllerSettings, getFeedbackSettings, setControllerSettings, setFeedbackSettings, subscribeControllerSettings, subscribeFeedbackSettings } from "../settings";
+import { getControllerSettings, getFeedbackSettings, getPerformanceSettings, setControllerSettings, setFeedbackSettings, setPerformanceSettings, subscribeControllerSettings, subscribeFeedbackSettings, subscribePerformanceSettings } from "../settings";
 import { navFeedback, selectFeedback } from "../feedback";
 
 interface DisplayMode {
@@ -47,7 +47,7 @@ interface MixerSession {
 }
 
 const ACCENTS = Object.keys(ACCENT_SWATCHES) as AccentScheme[];
-const TABS = ["Appearance", "Feedback", "Display", "System", "Controller", "Audio", "Bluetooth"] as const;
+const TABS = ["Appearance", "Feedback", "Display", "System", "Controller", "Audio", "Bluetooth", "Performance"] as const;
 type Tab = (typeof TABS)[number] | "Network";
 
 // Shoulder bits (buf[9]) ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â same convention as Launcher.tsx.
@@ -250,9 +250,10 @@ export function SettingsMenu({ initialTab = "Appearance", networkNotice, onReque
     const un1 = subscribeTheme(() => forceUpdate((n) => n + 1));
     const un2 = subscribeFeedbackSettings(() => forceUpdate((n) => n + 1));
     const un3 = subscribeControllerSettings(() => forceUpdate((n) => n + 1));
+    const un4 = subscribePerformanceSettings(() => forceUpdate((n) => n + 1));
     return () => {
       un1();
-      un2(); un3();
+      un2(); un3(); un4();
     };
   }, []);
 
@@ -300,6 +301,7 @@ export function SettingsMenu({ initialTab = "Appearance", networkNotice, onReque
 
   const theme = getTheme();
   const feedback = getFeedbackSettings();
+  const performance_ = getPerformanceSettings();
 
   function rowCountFor(t: Tab): number {
     if (t === "Appearance") return 2;
@@ -307,6 +309,7 @@ export function SettingsMenu({ initialTab = "Appearance", networkNotice, onReque
     if (t === "Display") return modes.length;
     if (t === "System") return 2;
     if (t === "Controller") return 3;
+    if (t === "Performance") return 4;
     if (t === "Audio") return 3 + sessions.length; // volume, mute, device-picker, + per-app rows
     if ((t as string) === "Network") return 1 + networks.length + (wifiScan.requires_location ? 1 : 0);
     return 1 + paired.length; // Bluetooth: toggle + informational rows
@@ -387,6 +390,12 @@ export function SettingsMenu({ initialTab = "Appearance", networkNotice, onReque
       } else if (tab === "Feedback") {
         if (focus === 0) setFeedbackSettings({ soundEnabled: !getFeedbackSettings().soundEnabled });
         else if (focus === 1) setFeedbackSettings({ hapticsEnabled: !getFeedbackSettings().hapticsEnabled });
+      } else if (tab === "Performance") {
+        const perf = getPerformanceSettings();
+        if (focus === 0) setPerformanceSettings({ perfHud: !perf.perfHud });
+        else if (focus === 1) setPerformanceSettings({ reduceMotion: !perf.reduceMotion });
+        else if (focus === 2) setPerformanceSettings({ heroRotation: !perf.heroRotation });
+        else if (focus === 3) setPerformanceSettings({ idleRotation: !perf.idleRotation });
       } else if (tab === "Display") {
         if (modes[focus]) void invoke("set_display_mode", { mode: modes[focus] });
       } else if (tab === "System") {
@@ -491,6 +500,15 @@ export function SettingsMenu({ initialTab = "Appearance", networkNotice, onReque
           <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
             <Row focused={focus === 0} icon={<IconSound />} label="Sound effects" value={feedback.soundEnabled ? "On" : "Off"} />
             <Row focused={focus === 1} icon={<IconHaptics />} label="Controller haptics" value={feedback.hapticsEnabled ? "On" : "Off"} />
+          </div>
+        )}
+
+        {tab === "Performance" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+            <Row focused={focus === 0} icon={<IconDisplay />} label="Performance overlay" value={performance_.perfHud ? "On" : "Off"} />
+            <Row focused={focus === 1} icon={<IconDisplay />} label="Reduce motion" value={performance_.reduceMotion ? "On" : "Off"} />
+            <Row focused={focus === 2} icon={<IconDisplay />} label="Hero art rotation" value={performance_.heroRotation ? "On" : "Off"} />
+            <Row focused={focus === 3} icon={<IconDisplay />} label="Idle art rotation" value={performance_.idleRotation ? "On" : "Off"} />
           </div>
         )}
 

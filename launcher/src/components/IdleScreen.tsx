@@ -3,6 +3,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { IDLE_ART } from "../gameLogos";
+import { getPerformanceSettings, subscribePerformanceSettings } from "../settings";
 import { MOTION } from "../motion";
 
 const PARTICLE_COUNT = 64;
@@ -22,14 +23,17 @@ function IdleArt() {
   ).current;
   const [active, setActive] = useState(0);
 
+  // Settings > Performance can hold the idle slideshow on a single still.
+  const [rotationOn, setRotationOn] = useState(() => getPerformanceSettings().idleRotation);
+  useEffect(() => subscribePerformanceSettings(() => setRotationOn(getPerformanceSettings().idleRotation)), []);
   useEffect(() => {
-    if (reduced || IDLE_ART.length < 2) return;
+    if (reduced || !rotationOn || IDLE_ART.length < 2) return;
     const id = window.setInterval(
       () => setActive((i) => (i + 1) % IDLE_ART.length),
       SLIDE_MS,
     );
     return () => window.clearInterval(id);
-  }, [reduced]);
+  }, [reduced, rotationOn]);
 
   return (
     <div style={{ position: "absolute", inset: 0, overflow: "hidden", zIndex: 0 }}>

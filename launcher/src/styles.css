@@ -252,6 +252,22 @@ html.overlay-document, html.overlay-document body, html.overlay-document #root {
   .codex-shelf-ghost { display: none !important; }
 }
 
+/* In-app reduce-motion switch (Settings > Performance), toggled as a class by
+   App.tsx. Same effect as the query above but independent of the OS setting —
+   someone can want the system default everywhere else and still want this one
+   app calm. Additive only: this never re-enables motion the OS asked to
+   suppress, since the query block still applies on top. Keep the two in sync. */
+html.reduce-motion .atmos-orb,
+html.reduce-motion .atmos-sheen { animation: none; }
+html.reduce-motion .app-enter { animation: appOpen 140ms linear both; }
+html.reduce-motion .app-enter,
+html.reduce-motion .app-exit { transform: none !important; }
+html.reduce-motion .codex-backdrop,
+html.reduce-motion .codex-launcher .atmos { transform: none !important; }
+html.reduce-motion .codex-shelf-in,
+html.reduce-motion .codex-copy { animation-duration: 120ms !important; transform: none !important; filter: none !important; }
+html.reduce-motion .codex-shelf-ghost { display: none !important; }
+
 /* Reduced transparency: make the frosted chrome frostier/solid and drop
    backdrop-filter entirely. Doubles as a performance escape hatch on weak GPUs —
    backdrop-filter is the single most expensive thing we composite. `!important`

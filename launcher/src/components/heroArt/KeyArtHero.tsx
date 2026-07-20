@@ -7,6 +7,7 @@
 // logo, like the reference banner, doesn't need it).
 
 import { useEffect, useRef, useState } from "react";
+import { getPerformanceSettings, subscribePerformanceSettings } from "../../settings";
 import { nextFromBag } from "./shuffleBag";
 import { MOTION } from "../../motion";
 
@@ -58,8 +59,13 @@ export function KeyArtHero({
   ).current;
   const [slots, setSlots] = useState<[string, string]>(() => [pool[nextFromBag(pool)] ?? "", ""]);
   const [front, setFront] = useState(0);
+  // Settings > Performance can switch the rotation off entirely — it's a
+  // constant background crossfade plus an image decode per cycle, which is real
+  // cost on a weaker GPU for something purely decorative.
+  const [rotationOn, setRotationOn] = useState(() => getPerformanceSettings().heroRotation);
+  useEffect(() => subscribePerformanceSettings(() => setRotationOn(getPerformanceSettings().heroRotation)), []);
   useEffect(() => {
-    if (reduced || pool.length < 2) return;
+    if (reduced || !rotationOn || pool.length < 2) return;
     const timer = setInterval(() => {
       const next = pool[nextFromBag(pool)];
       const pre = new Image();
@@ -74,7 +80,7 @@ export function KeyArtHero({
     }, ROTATE_MS);
     return () => clearInterval(timer);
     // pool identity is stable per hero (module-level array); guard on its length.
-  }, [reduced, pool.length]);
+  }, [reduced, rotationOn, pool.length]);
 
   const layer: React.CSSProperties = {
     position: "absolute",

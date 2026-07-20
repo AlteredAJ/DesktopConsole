@@ -63,3 +63,51 @@ export function subscribeControllerSettings(listener: () => void): () => void {
   controllerListeners.add(listener);
   return () => controllerListeners.delete(listener);
 }
+
+// ── Performance ─────────────────────────────────────────────────────────────
+// Settings > Performance. These gate cost, not styling — the perf HUD is the
+// thing that lets motion claims be *measured* rather than eyeballed, which is
+// how every animation change here has been accepted so far.
+//
+// `reduceMotion` is an in-app switch that is deliberately independent of the OS
+// `prefers-reduced-motion` the CSS already honours: someone can want the system
+// default everywhere else and still want this one app calm (or vice versa).
+// It's additive — the OS preference still wins when it's set.
+
+const PERFORMANCE_STORAGE_KEY = "ps5mode-performance-settings";
+
+export interface PerformanceSettings {
+  perfHud: boolean;
+  reduceMotion: boolean;
+  heroRotation: boolean;
+  idleRotation: boolean;
+}
+
+const PERFORMANCE_DEFAULTS: PerformanceSettings = {
+  perfHud: false,
+  reduceMotion: false,
+  heroRotation: true,
+  idleRotation: true,
+};
+
+function loadPerformance(): PerformanceSettings {
+  try {
+    const raw = localStorage.getItem(PERFORMANCE_STORAGE_KEY);
+    if (raw) return { ...PERFORMANCE_DEFAULTS, ...JSON.parse(raw) };
+  } catch { /* ignore malformed storage */ }
+  return { ...PERFORMANCE_DEFAULTS };
+}
+
+let performanceCurrent = loadPerformance();
+const performanceListeners = new Set<() => void>();
+
+export function getPerformanceSettings(): PerformanceSettings { return performanceCurrent; }
+export function setPerformanceSettings(next: Partial<PerformanceSettings>) {
+  performanceCurrent = { ...performanceCurrent, ...next };
+  localStorage.setItem(PERFORMANCE_STORAGE_KEY, JSON.stringify(performanceCurrent));
+  performanceListeners.forEach((listener) => listener());
+}
+export function subscribePerformanceSettings(listener: () => void): () => void {
+  performanceListeners.add(listener);
+  return () => performanceListeners.delete(listener);
+}
