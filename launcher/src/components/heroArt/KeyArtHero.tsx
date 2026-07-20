@@ -111,7 +111,7 @@ export function KeyArtHero({
           inset: 0,
           background:
             logoPosition === "left"
-              ? "linear-gradient(180deg, transparent 42%, rgba(6,7,10,0.5) 74%, rgba(6,7,10,0.93) 100%), linear-gradient(90deg, rgba(6,7,10,0.82) 0%, rgba(6,7,10,0.4) 22%, transparent 46%)"
+              ? "linear-gradient(180deg, transparent 42%, rgba(6,7,10,0.5) 74%, rgba(6,7,10,0.93) 100%), linear-gradient(66deg, rgba(6,7,10,0.95) 0%, transparent 45%)"
               : "linear-gradient(180deg, transparent 42%, rgba(6,7,10,0.5) 74%, rgba(6,7,10,0.93) 100%), radial-gradient(ellipse 46% 42% at 68% 44%, rgba(6,7,10,0.62), transparent 72%)",
         }}
       />

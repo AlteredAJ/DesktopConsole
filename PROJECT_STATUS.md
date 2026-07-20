@@ -78,7 +78,10 @@ For an at-a-glance board, open `BUILD_BOARD.html`.
 shared keyboard core → slim bottom-docked Desktop Mode keyboard → Desktop Mode
 (`SendInput`) → Settings hub (Performance tab + About) → RGB rebuild on
 OpenRGB's localhost SDK (spawn it with `--server --startminimized` on demand,
-since it doesn't run at boot).
+since it doesn't run at boot). **Before writing the SDK socket client**, see the
+network-stack reference note in that spec's §3b — the OpenRGB SDK is a raw
+framed binary TCP protocol, and the wiki's `Build-Your-Own-X — Curated Learning
+List` has a matching tutorial category to skim first.
 
 **⚠️ Everything in Phases 1–2 is build-verified only — none of it has run on the
 panel yet.** The input rewrite in particular changes behaviour that only a

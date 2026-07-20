@@ -192,6 +192,15 @@ setup:
 launch above), (2) set color/mode, (3) the UI, (4) presets on top. Step 1 alone
 already beats today's write-only guesswork.
 
+> **Before starting step 1:** the OpenRGB SDK protocol is a raw length-prefixed
+> binary TCP protocol (magic bytes + command ID + payload length + payload) —
+> exactly the "how do you frame a byte stream into messages" problem covered by
+> the network-stack tutorials in the wiki's `Build-Your-Own-X — Curated Learning
+> List` page (`E:\Obsidian Vault\Alt3red\wiki\Build-Your-Own-X — Curated
+> Learning List.md`). Skim the relevant one before writing the socket client —
+> it's the exact shape of the framing/parsing code this step needs, and will
+> save reinventing it ad hoc.
+
 **Device coverage:** deliberately not hardcoded — the whole point of the SDK is
 that it reports whatever controllers exist (GPU, RAM, board, peripherals). Build
 the UI from what's enumerated at runtime.
