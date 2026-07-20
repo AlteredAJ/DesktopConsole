@@ -31,6 +31,8 @@ use crate::triple_click::ClickTracker;
 pub static MOUSE_MODE: AtomicBool = AtomicBool::new(false);
 
 const MISC_TOUCHPAD_CLICK: u8 = 0x02;
+/// PS button, same byte as the touchpad click. Used as a held modifier below.
+const MISC_PS: u8 = 0x01;
 /// A touchpad click held longer than this is a drag/hold, not a tap-to-click.
 const TAP_MAX: Duration = Duration::from_millis(220);
 const HOLD_FOR_MOUSE: Duration = Duration::from_millis(2000);
@@ -111,6 +113,7 @@ impl State {
     /// touchpad for swipe navigation.
     pub fn feed(&mut self, b10: u8, touch_active: bool, touch_x: u16, touch_y: u16) {
         let click_now = (b10 & MISC_TOUCHPAD_CLICK) != 0;
+        let ps_held = (b10 & MISC_PS) != 0;
         let rising = click_now && !self.prev_click;
         let falling = !click_now && self.prev_click;
         self.prev_click = click_now;
@@ -119,6 +122,12 @@ impl State {
             self.press_started = None;
             self.hold_triggered = false;
             self.prev_touch = None;
+            // Returning to the console always ends a desktop-mouse session, so
+            // the mode can never still be armed the next time an app or game
+            // takes focus.
+            if MOUSE_MODE.swap(false, Ordering::Relaxed) {
+                eprintln!("[cursor_mode] mouse mode -> false (back on console)");
+            }
             return;
         }
 
@@ -127,10 +136,18 @@ impl State {
             self.hold_triggered = false;
         }
 
-        // A deliberate 2.5-second physical press toggles the desktop mouse
-        // mode. It fires while held, exactly once, and is therefore distinct
-        // from a normal tap-to-click.
-        if click_now && !self.hold_triggered
+        // Toggling desktop mouse mode requires PS HELD + a 2.5s touchpad press.
+        //
+        // The bare touchpad hold this used to use is not safe outside the
+        // console: "not the launcher" includes every game, and the touchpad is
+        // a live game input. Playing Assetto Corsa with a hand resting on the
+        // touchpad was silently flipping mouse mode on and then injecting real
+        // OS cursor movement and clicks into the running game. PS is never a
+        // game input (the game never sees it — we consume it), so requiring it
+        // as a modifier makes this gesture impossible to trigger by accident
+        // while playing, without needing cross-process IPC to know whether the
+        // foreground app is a game or a browser.
+        if click_now && ps_held && !self.hold_triggered
             && self.press_started.is_some_and(|started| started.elapsed() >= HOLD_FOR_MOUSE)
         {
             let now = !MOUSE_MODE.load(Ordering::Relaxed);
@@ -146,10 +163,11 @@ impl State {
             eprintln!("[cursor_mode] mouse mode -> {now}");
         }
 
-        // Triple-clicking the physical trackpad opens Windows' own on-screen
-        // keyboard from any non-launcher app. This leaves the launcher’s
-        // controller keyboard unchanged and avoids stealing focus in the grid.
-        if self.keyboard_clicks.feed(rising) {
+        // PS HELD + triple-click opens Windows' own on-screen keyboard from any
+        // non-launcher app. PS is required for the same reason as the toggle
+        // above — a bare triple-click is reachable during normal play, and this
+        // gesture spawns osk.exe on top of whatever is running.
+        if self.keyboard_clicks.feed(rising && ps_held) {
             let keyboard = std::env::var_os("WINDIR")
                 .map(|dir| std::path::PathBuf::from(dir).join("System32").join("osk.exe"))
                 .unwrap_or_else(|| std::path::PathBuf::from(r"C:\\Windows\\System32\\osk.exe"));
