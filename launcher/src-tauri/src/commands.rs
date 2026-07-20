@@ -72,6 +72,33 @@ pub fn hide_quick_overlay(app: &AppHandle) {
         let _ = window.hide();
     }
     OVERLAY_ACTIVE.store(false, Ordering::Relaxed);
+    // Always fall back to the Quick Menu, so the next double-PS shows the menu
+    // rather than whatever surface happened to be up last.
+    let _ = app.emit_to("overlay", "overlay-mode", "quick");
+}
+
+/// Show the overlay window as the Desktop Mode keyboard dock (double-Share
+/// while an ordinary app has focus). Same prewarmed window as the Quick Menu,
+/// different mode — see OverlayRoot.tsx for why only one surface mounts.
+///
+/// The window is intentionally never focused: it's built `focusable(false)` and
+/// click-through, so the app underneath keeps keyboard focus and send_text's
+/// synthesized keystrokes land there instead of in our own webview.
+pub fn show_keyboard_dock(app: &AppHandle) {
+    if WINDOW_TRANSITION.swap(true, Ordering::AcqRel) {
+        return;
+    }
+    match overlay_window(app) {
+        Ok(window) => {
+            // Mode first, then show — so the dock is what appears, rather than
+            // the Quick Menu flashing for a frame before switching.
+            let _ = app.emit_to("overlay", "overlay-mode", "keyboard");
+            let _ = window.show();
+            OVERLAY_ACTIVE.store(true, Ordering::Relaxed);
+        }
+        Err(error) => eprintln!("[keyboard dock] {error}"),
+    }
+    WINDOW_TRANSITION.store(false, Ordering::Release);
 }
 
 pub fn toggle_quick_overlay(app: &AppHandle) {
@@ -86,6 +113,8 @@ pub fn toggle_quick_overlay(app: &AppHandle) {
     }
     match overlay_window(app) {
         Ok(window) => {
+            // Explicit mode, in case the dock was the last surface shown.
+            let _ = app.emit_to("overlay", "overlay-mode", "quick");
             let _ = window.show();
             OVERLAY_ACTIVE.store(true, Ordering::Relaxed);
             crate::rumble::select();

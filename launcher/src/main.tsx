@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { App } from "./App";
-import { QuickOverlay } from "./components/QuickOverlay";
+import { OverlayRoot } from "./components/OverlayRoot";
 import "./styles.css";
 import "./theme"; // applies saved theme vars before first paint
 
@@ -10,6 +10,6 @@ if (isOverlay) document.documentElement.classList.add("overlay-document");
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    {isOverlay ? <QuickOverlay /> : <App />}
+    {isOverlay ? <OverlayRoot /> : <App />}
   </React.StrictMode>,
 );

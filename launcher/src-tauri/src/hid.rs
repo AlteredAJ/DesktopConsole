@@ -143,6 +143,12 @@ fn input_loop(app: AppHandle) {
         #[cfg(windows)]
         let mut outside_last_ps_tap: Option<Instant> = None;
         #[cfg(windows)]
+        let mut outside_prev_share = false;
+        #[cfg(windows)]
+        let mut outside_share_taps = 0u8;
+        #[cfg(windows)]
+        let mut outside_last_share_tap: Option<Instant> = None;
+        #[cfg(windows)]
         let mut outside_hold_started: Option<Instant> = None;
         #[cfg(windows)]
         let mut outside_hold_fired = false;
@@ -201,6 +207,31 @@ fn input_loop(app: AppHandle) {
                         }
                     }
                     outside_prev_ps = s.ps;
+
+                    // Double-Share summons the keyboard — "use double share
+                    // anywhere" (AJ), so the same gesture that opens it on Home
+                    // opens the Desktop Mode dock out here. Only when the
+                    // overlay isn't already up, so it can't fight the Quick
+                    // Menu for the same window.
+                    const SHARE_BUTTON: u8 = 0x10; // shoulders byte
+                    let share_now = ((s.buttons >> 8) as u8 & SHARE_BUTTON) != 0;
+                    let share_rising = share_now && !outside_prev_share;
+                    if share_rising && !crate::commands::OVERLAY_ACTIVE.load(Ordering::Relaxed) {
+                        const DOUBLE_SHARE_WINDOW: Duration = Duration::from_millis(420);
+                        let now = Instant::now();
+                        if outside_last_share_tap.is_none_or(|last| now.duration_since(last) > DOUBLE_SHARE_WINDOW) {
+                            outside_share_taps = 0;
+                        }
+                        outside_share_taps += 1;
+                        outside_last_share_tap = Some(now);
+                        if outside_share_taps >= 2 {
+                            crate::commands::show_keyboard_dock(&app);
+                            outside_share_taps = 0;
+                            outside_last_share_tap = None;
+                        }
+                    }
+                    outside_prev_share = share_now;
+
                     // While the overlay is visible it receives the same
                     // controller stream, but the minimized dashboard stays
                     // inert and the game keeps keyboard/mouse focus.

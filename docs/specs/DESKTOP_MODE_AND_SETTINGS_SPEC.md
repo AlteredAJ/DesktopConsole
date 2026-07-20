@@ -97,8 +97,10 @@ forms all sit mid-screen.
 - [x] Same key layout/interaction as the Home overlay. (Same `VirtualKeyboard`
       via the new `slim` prop — a second presentation, not a second keyboard.
       Logic untouched; it all lives in `useKeyboardGrid` after C3.)
-- [ ] In Desktop Mode, typed characters land in the focused app. **Needs the
-      SendInput bridge — the dock renders but has no consumer wired yet.**
+- [x] In Desktop Mode, typed characters land in the focused app.
+      (`send_text.rs` — `SendInput` with `KEYEVENTF_UNICODE`. Summoned by
+      double-Share while yielded, per "use double share anywhere".)
+      **Build-verified only; needs an on-device pass.**
 
 ---
 

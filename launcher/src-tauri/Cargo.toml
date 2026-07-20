@@ -28,6 +28,8 @@ windows = { version = "0.58", features = [
     "Win32_Foundation",
     "Win32_Graphics_Gdi",
     "Win32_UI_WindowsAndMessaging",
+    # Desktop Mode text entry (send_text.rs) - SendInput/KEYBDINPUT.
+    "Win32_UI_Input_KeyboardAndMouse",
     "Win32_Security_Credentials",
     # Audio tab: master volume/mute via IAudioEndpointVolume, per-app mixer
     # via IAudioSessionManager2/ISimpleAudioVolume (all officially documented

@@ -15,6 +15,9 @@ mod active_apps;
 // already consumes the pad-state stream; mouse_inject stays backend-side since
 // it injects real OS cursor events.
 mod mouse_inject;
+// Desktop Mode text entry via SendInput (see send_text.rs for why that API and
+// not any form of injection).
+mod send_text;
 // Unit C
 mod app_launch;
 // Unit D
@@ -106,6 +109,7 @@ pub fn run() {
             commands::sync_game_library,
             commands::get_game_index,
             commands::prepare_live_backdrop,
+            send_text::send_text,
         ])
         .setup(|app| {
             rumble::init();
