@@ -87,10 +87,18 @@ forms all sit mid-screen.
   keyboard, not a second keyboard.
 
 ### Acceptance
-- [ ] Occupies only the bottom band; a browser search field mid-screen stays visible.
-- [ ] Readable over both dark and bright pages.
-- [ ] Same key layout/interaction as the Home overlay.
-- [ ] In Desktop Mode, typed characters land in the focused app.
+- [x] Occupies only the bottom band; a browser search field mid-screen stays visible.
+      (`KeyboardOverlay variant="dock"` — bottom-anchored, `max-height:33cqh`,
+      and no full-screen scrim at all so the page stays visible and usable.)
+- [x] Readable over both dark and bright pages. (Dock panel is deliberately
+      darker/less transparent than the centred one, since it has to sit over an
+      arbitrary page including a bright white one. Goes fully flat under
+      `prefers-reduced-transparency`, per the no-glass-on-glass contract.)
+- [x] Same key layout/interaction as the Home overlay. (Same `VirtualKeyboard`
+      via the new `slim` prop — a second presentation, not a second keyboard.
+      Logic untouched; it all lives in `useKeyboardGrid` after C3.)
+- [ ] In Desktop Mode, typed characters land in the focused app. **Needs the
+      SendInput bridge — the dock renders but has no consumer wired yet.**
 
 ---
 
