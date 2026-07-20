@@ -91,6 +91,10 @@ controller can confirm.
   builds the launcher via the Tauri CLI + the listener, restarts the listener).
   The **launcher must be built with `tauri build`** — a plain `cargo build` points
   its window at the dev server (`localhost`) and shows a connection-refused page.
+  Add **`-Dev`** for iteration (skips the release profile's LTO/codegen-units=1,
+  much faster — same profile `verify.ps1` already uses for `cargo check`);
+  reserve a plain release rebuild for sessions where you're judging real
+  feel/perf on the panel.
 - **Next up:** wire per-game 4K hero art (see `ART_SHOPPING_LIST.md` — 8 games +
   Disney+); delete ~1.5 MB of unused non-4K `keyart/*.jpg` dupes; touchpad
   momentum / true 1:1 drag (Option B — wants live controller testing).
