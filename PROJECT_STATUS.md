@@ -48,10 +48,8 @@ For an at-a-glance board, open `BUILD_BOARD.html`.
   press of Share/Create** (chosen with AJ 2026-07-19 — it's unbound elsewhere).
   Home's own controller/touchpad handlers early-return while it's open, same pattern
   as the Power panel. **Wants a controller test**, specifically:
-  - The Share/Create bit (`CodexLauncher.tsx`'s `SHARE_BUTTON = 0x10`) is assumed
-    from the standard DualSense shoulders-byte layout, **not independently verified
-    on hardware** the way `hid.rs`'s other confirmed bits are — if double-press
-    doesn't summon it, check this bit first.
+  - The Share/Create bit (`CodexLauncher.tsx`'s `SHARE_BUTTON = 0x10`) is
+    **confirmed working on hardware** (AJ, 2026-07-19) — no longer a guess.
   - No consumer wired yet — `onDone` just closes the overlay (typed text is
     discarded). First real use case (Wi-Fi password? rename?) still open — AJ
     deferred that decision when the spec was scoped.

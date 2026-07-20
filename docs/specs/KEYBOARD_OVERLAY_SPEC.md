@@ -92,8 +92,8 @@ launcher/src/components/
 - [x] `prefers-reduced-motion`: overlay appears without large motion.
       (Opacity-only fade, disabled entirely under the media query.)
 - [x] `tsc && vite build` clean; no new remote/network deps.
-- [ ] **Not yet controller-tested on hardware** — see PROJECT_STATUS.md's note
-      on the unverified `SHARE_BUTTON` bit assumption.
+- [x] **Controller-tested on hardware** — double-press-Share summon confirmed
+      working (AJ, 2026-07-19).
 
 ## Constraints (project ground rules — do not violate)
 
@@ -106,7 +106,7 @@ launcher/src/components/
 
 1. **Summon gesture** — double press of Share/Create ("as it's unbinded I think").
    Implemented in `CodexLauncher.tsx` as `SHARE_BUTTON = 0x10` on the shoulders
-   byte — **this bit is assumed, not hardware-confirmed**; verify on first test.
+   byte — **confirmed working on hardware** (AJ, 2026-07-19).
 2. **Consolidate or not** — leave Search's inline keyboard untouched for now.
    AJ: "later down the line I'll look into organizing" — flagged in
    PROJECT_STATUS.md as a future-session possibility, not started.
