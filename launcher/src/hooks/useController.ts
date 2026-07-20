@@ -47,6 +47,16 @@ export function useController(onPad: (pad: PadState) => void) {
       if (next) cb.current(next);
     };
     const un = listen<PadState>("pad-state", (e) => {
+      // A hidden window must NEVER act on controller input. The backend now
+      // targets each surface explicitly (hid.rs emits to "main"; the overlay
+      // gets its own emit_to only while OVERLAY_ACTIVE), but this is the
+      // second half of that contract: whatever arrives, a window that isn't
+      // on screen drops it. Without this, hiding the launcher behind a game
+      // still left it navigating its own UI in the background.
+      if (document.visibilityState === "hidden") {
+        pending.current = null;
+        return;
+      }
       pending.current = e.payload;
       if (frame.current === null) frame.current = requestAnimationFrame(flush);
     });

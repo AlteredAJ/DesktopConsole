@@ -15,6 +15,10 @@ pub fn build(app: &AppHandle) -> tauri::Result<()> {
         .show_menu_on_left_click(false)
         .on_menu_event(|app, event| {
             if event.id() == "exit" {
+                // Kill the spawned launcher FIRST — it's a separate process and
+                // app.exit(0) only ends the listener, so without this it was
+                // left running hidden, still polling the pad.
+                crate::launch::kill_launcher();
                 app.exit(0);
             }
         })

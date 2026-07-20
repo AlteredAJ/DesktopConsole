@@ -218,17 +218,28 @@ fn input_loop(app: AppHandle) {
                         continue;
                     }
                 }
+                // Touchpad gestures (double-click restore, triple-click osk,
+                // drag-to-move-cursor) are ONLY for browser/PWA tiles, which
+                // set needs_cursor at launch. In a game the touchpad is a live
+                // game input, so leaving these armed meant ordinary play kept
+                // tripping restore_focus() — which cleared YIELDED and brought
+                // the whole hidden dashboard back to processing input mid-race.
+                // While a game holds focus the ONLY things still listened for
+                // are the PS gestures above (double-PS quick menu) and the
+                // PS+Options emergency exit — neither is a game input.
                 #[cfg(windows)]
-                handle_outside_trackpad(
-                    &app,
-                    &s,
-                    &mut outside_prev_click,
-                    &mut outside_hold_started,
-                    &mut outside_hold_fired,
-                    &mut outside_tap_count,
-                    &mut outside_last_tap,
-                    &mut outside_prev_touch,
-                );
+                if crate::mouse_inject::CURSOR_MODE.load(Ordering::Relaxed) {
+                    handle_outside_trackpad(
+                        &app,
+                        &s,
+                        &mut outside_prev_click,
+                        &mut outside_hold_started,
+                        &mut outside_hold_fired,
+                        &mut outside_tap_count,
+                        &mut outside_last_tap,
+                        &mut outside_prev_touch,
+                    );
+                }
                 rearm_after_yield = true;
                 last_emitted = None;
                 prev_touch = None;
@@ -273,7 +284,14 @@ fn input_loop(app: AppHandle) {
             let changed = last_emitted.as_ref() != Some(&s);
             let due = last_emit.elapsed() >= EMIT_INTERVAL;
             if changed && due {
-                let _ = app.emit("pad-state", &s);
+                // emit_to("main"), NOT emit(). `emit` is a global broadcast to
+                // EVERY window, and the quick overlay is prewarmed hidden at
+                // startup (commands::prewarm_quick_overlay) — so a plain emit
+                // fed the hidden Quick Menu every pad frame alongside Home, and
+                // both windows processed the same input at once. That directly
+                // violates the "never route controller events to two consumers"
+                // rule. Each surface now gets an explicitly targeted stream.
+                let _ = app.emit_to("main", "pad-state", &s);
                 last_emitted = Some(s);
                 last_emit = std::time::Instant::now();
             }
