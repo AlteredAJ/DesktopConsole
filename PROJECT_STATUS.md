@@ -72,18 +72,37 @@ For an at-a-glance board, open `BUILD_BOARD.html`.
    stable fragment instead of machine paths. Blank-square fallback gone.
 6. ✅ `motion.ts` — all feel constants in one file.
 
-**Phase 3 — features. NOT STARTED.** See `DESKTOP_MODE_AND_SETTINGS_SPEC.md`:
-shared keyboard core → slim bottom-docked Desktop Mode keyboard → Desktop Mode
-(`SendInput`) → Settings hub (Performance tab + About) → RGB rebuild on
-OpenRGB's localhost SDK (spawn it with `--server --startminimized` on demand,
-since it doesn't run at boot). **Before writing the SDK socket client**, see the
-network-stack reference note in that spec's §3b — the OpenRGB SDK is a raw
-framed binary TCP protocol, and the wiki's `Build-Your-Own-X — Curated Learning
-List` has a matching tutorial category to skim first.
+**Phase 3 — features. IN PROGRESS.** See `DESKTOP_MODE_AND_SETTINGS_SPEC.md`.
 
-**⚠️ Everything in Phases 1–2 is build-verified only — none of it has run on the
+1. ✅ **C3 — one keyboard core** (`hooks/useKeyboardGrid.ts`). Search and
+   VirtualKeyboard each had their own copy of the same grid: row/col clamping,
+   hat + stick nav, touchpad swipe-select, commit-on-cross, and duplicate
+   swipe-travel constants. Now one hook; both are presentations of it.
+   Navigation is fed from the caller's existing `useController` + shared edge
+   tracker rather than opening a second one — one tracker, one sample a frame.
+2. ✅ **Slim bottom-docked keyboard** — `KeyboardOverlay variant="dock"` +
+   `VirtualKeyboard slim`. Bottom-anchored, `max-height:33cqh`, no full-screen
+   scrim, so a browser field mid-page stays visible. Darker glass than the
+   centred panel (has to be legible over a bright page); flat under
+   `prefers-reduced-transparency`.
+3. ✅ **Desktop Mode text entry** — `send_text.rs`, `SendInput` +
+   `KEYEVENTF_UNICODE` (layout-independent, emoji-safe, one batched call).
+   Summoned by **double-Share while yielded** ("use double share anywhere").
+   The prewarmed overlay window now hosts both in-game surfaces through
+   `OverlayRoot`, which mounts exactly one of Quick Menu / keyboard dock.
+4. ⬜ **Settings hub** — Performance tab + About tab (PC specs + version,
+   credits, licenses). Tabs agreed: System · Display · Audio · Network ·
+   Controller · Lighting · Performance · About.
+5. ⬜ **RGB rebuild** on OpenRGB's localhost SDK (spawn with
+   `--server --startminimized` on demand, since it doesn't run at boot).
+   **Before writing the SDK socket client**, see the network-stack reference
+   note in that spec's §3b — the OpenRGB SDK is a raw framed binary TCP
+   protocol, and the wiki's `Build-Your-Own-X — Curated Learning List` has a
+   matching tutorial category to skim first.
+
+**⚠️ Everything in Phases 1–3 is build-verified only — none of it has run on the
 panel yet.** The input rewrite in particular changes behaviour that only a
-controller can confirm.
+controller can confirm, and the Desktop Mode keyboard has never been typed on.
 
 ## Open threads
 
