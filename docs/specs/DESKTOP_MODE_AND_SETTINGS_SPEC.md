@@ -244,7 +244,34 @@ binary protocol on `127.0.0.1:6742` instead of shelling out to the CLI), plus a
 Lighting tab listing enumerated devices with per-device mode cycling and the
 curated scenes kept as presets on top.
 
-### ⚠️ The OpenRGB wire parser is UNVERIFIED
+### ✅ The OpenRGB wire parser is VERIFIED (2026-07-20)
+
+Tested against AJ's live SDK server. It found one real bug: a **`vendor`
+string sits between `name` and `description`** and was missing from
+`parse_device()`, shifting every later field by one string and failing inside
+the mode loop with a bogus 23KB length. Fixed and re-verified — the
+bounds-checked cursor did its job, surfacing this as a clean error rather than
+a panic or silent garbage.
+
+Confirmed enumeration on this machine (protocol 3, 2 controllers):
+
+| Device | Vendor | Type | LEDs | Zones |
+|---|---|---|---|---|
+| Sony DualSense (BT) | Sony | Gamepad | 6 | Lightbar, Player LEDs |
+| ASRock B850M-C | ASRock | Motherboard | 241 | RGB LED 1 Header, Addressable Header 1-3/Audio |
+
+Mode names read correctly too (DualSense: Direct / Mic Off / Mic Pulse; board:
+Off, Static, Breathing, Strobe, Spectrum Cycle, Rainbow, Direct, …16 total).
+
+> **⚠️ Security note for AJ:** OpenRGB's SDK server is currently bound to
+> **`0.0.0.0`**, i.e. every network interface — anyone on the same network can
+> drive your lighting. Our client only ever dials `127.0.0.1`, so setting
+> OpenRGB's host to `127.0.0.1` costs us nothing and closes that off. Worth
+> doing given this project's own "never expose a local-network port" rule.
+
+<details><summary>Original pre-verification note (kept for history)</summary>
+
+#### The OpenRGB wire parser was UNVERIFIED
 
 `parse_device()` reads a version-dependent binary struct. It could not be tested
 this session: OpenRGB was running on this machine **with its SDK server switched
@@ -262,6 +289,8 @@ device list is the test — real names, types, LED counts and mode names mean th
 struct layout is right. Garbled names or an "openrgb: truncated packet" error
 mean a field width is wrong for the negotiated protocol version, most likely one
 of the version-gated skips in the mode loop.
+
+</details>
 
 ### Colour picker — built 2026-07-20
 Hue + brightness as two adjustable rows in Settings > Lighting, driven with

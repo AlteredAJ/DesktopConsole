@@ -98,14 +98,16 @@ For an at-a-glance board, open `BUILD_BOARD.html`.
    on `127.0.0.1:6742` (client connecting out, never a listening port).
    Enumerates devices with their real modes and LED counts, sets mode and
    colour; the four curated scenes stay as presets on top.
-   **⚠️ The wire parser is UNVERIFIED** — OpenRGB was running here with its SDK
-   server switched off, so it couldn't be tested. Turn on *Enable SDK Server*
-   in OpenRGB and open Settings > Lighting: real device names/LED counts mean
-   the struct layout is right; garbled text or "truncated packet" means a
-   version-gated field width is wrong. See the spec's status note.
-   That probe did catch a real bug: the fail-safe would have spawned a *second*
-   OpenRGB instance, and two processes driving the same controllers over USB
-   can wedge the hardware. Fixed — it now detects a running instance.
+   **✅ Wire parser VERIFIED against the live server (2026-07-20).** Enumerates
+   the DualSense (6 LEDs, Lightbar + Player LEDs) and the ASRock B850M-C
+   (241 LEDs, 16 modes, 4 zones) with correct names, types and mode lists.
+   Testing found two real bugs, both fixed: a missing **`vendor`** string
+   between name and description that shifted every later field, and a fail-safe
+   that would have spawned a *second* OpenRGB instance (two processes driving
+   the same controllers over USB can wedge the hardware).
+   **⚠️ AJ:** OpenRGB's SDK server is bound to `0.0.0.0` — the whole network.
+   Set it to `127.0.0.1`; our client only ever dials loopback, so it costs
+   nothing and matches this project's "never expose a local-network port" rule.
 6. ✅ **Colour picker** — hue + brightness rows in Settings > Lighting, scrubbed
    with d-pad or left stick, Cross applies to all devices. HSV rather than RGB
    because hue is a single axis a stick maps onto; saturation pinned at 1 since

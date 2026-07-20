@@ -224,6 +224,13 @@ fn parse_device(index: u32, body: &[u8], protocol: u32) -> Result<Device, String
     c.skip(4)?; // total data size, already known from the header
     let kind = c.u32()?;
     let name = c.string()?;
+    // `vendor` sits between name and description. Verified against a live
+    // server (2026-07-20): the DualSense reports name "Sony DualSense (BT)"
+    // then vendor "Sony". Omitting it shifted every subsequent field by one
+    // string and blew up inside the mode loop with a bogus 23KB length — which
+    // is exactly the failure mode the bounds-checked cursor exists to turn into
+    // an error instead of a panic.
+    let _vendor = c.string()?;
     let _description = c.string()?;
     let _version = c.string()?;
     let _serial = c.string()?;
