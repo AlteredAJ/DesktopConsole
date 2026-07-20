@@ -31,6 +31,8 @@ mod icon_extract;
 mod game_scan;
 mod openrgb;
 mod live_backdrop;
+// Settings > About - read-only spec sheet (see system_info.rs).
+mod system_info;
 
 use tauri::Manager;
 
@@ -110,6 +112,7 @@ pub fn run() {
             commands::get_game_index,
             commands::prepare_live_backdrop,
             send_text::send_text,
+            system_info::system_info,
         ])
         .setup(|app| {
             rumble::init();

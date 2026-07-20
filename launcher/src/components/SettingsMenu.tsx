@@ -13,6 +13,20 @@ import { CodexPanelShell } from "./CodexPanelShell";
 import { getTheme, setTheme, subscribeTheme, ACCENT_SWATCHES, AccentScheme } from "../theme";
 import { getControllerSettings, getFeedbackSettings, getPerformanceSettings, setControllerSettings, setFeedbackSettings, setPerformanceSettings, subscribeControllerSettings, subscribeFeedbackSettings, subscribePerformanceSettings } from "../settings";
 import { navFeedback, selectFeedback } from "../feedback";
+import { ART_CREDITS, THIRD_PARTY } from "../credits";
+
+interface SystemInfo {
+  cpu?: string | null;
+  cpu_cores?: number | null;
+  gpus: string[];
+  memory_total?: number | null;
+  os_name?: string | null;
+  os_version?: string | null;
+  kernel_version?: string | null;
+  app_version: string;
+  webview_version?: string | null;
+  config_path?: string | null;
+}
 
 interface DisplayMode {
   width: number;
@@ -47,7 +61,7 @@ interface MixerSession {
 }
 
 const ACCENTS = Object.keys(ACCENT_SWATCHES) as AccentScheme[];
-const TABS = ["Appearance", "Feedback", "Display", "System", "Controller", "Audio", "Bluetooth", "Performance"] as const;
+const TABS = ["Appearance", "Feedback", "Display", "System", "Controller", "Audio", "Bluetooth", "Performance", "About"] as const;
 type Tab = (typeof TABS)[number] | "Network";
 
 // Shoulder bits (buf[9]) ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â same convention as Launcher.tsx.
@@ -109,6 +123,20 @@ function Row({
       <span style={{ fontSize: "1.05rem", color: "var(--muted)", display: "flex", alignItems: "center", gap: "0.5rem" }}>
         {value}
       </span>
+    </div>
+  );
+}
+
+/**
+ * Read-only About row. Not the focusable `Row` above on purpose: About is a
+ * spec sheet with nothing to activate, so giving its lines a focus ring would
+ * imply a control that isn't there.
+ */
+function InfoRow({ label, value, mono = false }: { label: string; value: string; mono?: boolean }) {
+  return (
+    <div style={{ display: "flex", alignItems: "baseline", gap: "1rem", padding: "0.55rem 0.9rem", borderRadius: "0.6rem", background: "rgba(255,255,255,0.025)" }}>
+      <span style={{ fontSize: "1rem", color: "var(--muted)", flexShrink: 0, minWidth: "11rem" }}>{label}</span>
+      <span style={{ fontSize: "1rem", textAlign: "right", flex: 1, wordBreak: "break-all", fontFamily: mono ? "ui-monospace, monospace" : undefined }}>{value}</span>
     </div>
   );
 }
@@ -290,6 +318,9 @@ export function SettingsMenu({ initialTab = "Appearance", networkNotice, onReque
         clearInterval(id);
       };
     }
+    if (tab === "About" && !sysInfo) {
+      void invoke<SystemInfo>("system_info").then((info) => !cancelled && setSysInfo(info)).catch(() => {});
+    }
     if (tab === "Bluetooth") {
       void invoke<boolean>("bluetooth_enabled").then((e) => !cancelled && setBtEnabled(e));
       void invoke<PairedDevice[]>("bluetooth_paired_devices").then((d) => !cancelled && setPaired(d));
@@ -302,6 +333,7 @@ export function SettingsMenu({ initialTab = "Appearance", networkNotice, onReque
   const theme = getTheme();
   const feedback = getFeedbackSettings();
   const performance_ = getPerformanceSettings();
+  const [sysInfo, setSysInfo] = useState<SystemInfo | null>(null);
 
   function rowCountFor(t: Tab): number {
     if (t === "Appearance") return 2;
@@ -310,6 +342,7 @@ export function SettingsMenu({ initialTab = "Appearance", networkNotice, onReque
     if (t === "System") return 2;
     if (t === "Controller") return 3;
     if (t === "Performance") return 4;
+    if (t === "About") return 0; // read-only spec sheet, nothing to activate
     if (t === "Audio") return 3 + sessions.length; // volume, mute, device-picker, + per-app rows
     if ((t as string) === "Network") return 1 + networks.length + (wifiScan.requires_location ? 1 : 0);
     return 1 + paired.length; // Bluetooth: toggle + informational rows
@@ -500,6 +533,55 @@ export function SettingsMenu({ initialTab = "Appearance", networkNotice, onReque
           <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
             <Row focused={focus === 0} icon={<IconSound />} label="Sound effects" value={feedback.soundEnabled ? "On" : "Off"} />
             <Row focused={focus === 1} icon={<IconHaptics />} label="Controller haptics" value={feedback.hapticsEnabled ? "On" : "Off"} />
+          </div>
+        )}
+
+        {tab === "About" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: "1.4rem", overflowY: "auto", maxHeight: "100%", paddingRight: "0.5rem" }}>
+            <div>
+              <SectionTitle>SYSTEM</SectionTitle>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+                {sysInfo?.cpu && <InfoRow label="Processor" value={sysInfo.cpu_cores ? `${sysInfo.cpu} (${sysInfo.cpu_cores} cores)` : sysInfo.cpu} />}
+                {sysInfo?.gpus.map((gpu) => <InfoRow key={gpu} label="Graphics" value={gpu} />)}
+                {sysInfo?.memory_total ? <InfoRow label="Memory" value={`${(sysInfo.memory_total / 1024 ** 3).toFixed(1)} GB`} /> : null}
+                {sysInfo?.os_name && <InfoRow label="System" value={[sysInfo.os_name, sysInfo.os_version].filter(Boolean).join(" ")} />}
+                {sysInfo?.kernel_version && <InfoRow label="Build" value={sysInfo.kernel_version} />}
+                {!sysInfo && <InfoRow label="System" value="Reading..." />}
+              </div>
+            </div>
+
+            <div>
+              <SectionTitle>PS5 MODE</SectionTitle>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+                <InfoRow label="Version" value={sysInfo?.app_version ?? "-"} />
+                {/* WebView2 is the renderer; a version mismatch is a real
+                    failure mode, so it's worth being able to read off here. */}
+                <InfoRow label="WebView2 runtime" value={sysInfo?.webview_version ?? "unknown"} />
+                {sysInfo?.config_path && <InfoRow label="Config" value={sysInfo.config_path} mono />}
+              </div>
+            </div>
+
+            <div>
+              <SectionTitle>ART CREDITS</SectionTitle>
+              <p style={{ margin: "0 0 0.6rem", fontSize: "0.95rem", color: "var(--muted)", lineHeight: 1.5 }}>
+                Hero and idle artwork is the work of these artists, sourced from ArtStation.
+                Used here in a personal, non-commercial launcher.
+              </p>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
+                {ART_CREDITS.map((name) => (
+                  <span key={name} style={{ padding: "0.4rem 0.75rem", borderRadius: "0.6rem", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.06)", fontSize: "0.95rem" }}>{name}</span>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <SectionTitle>LICENSES</SectionTitle>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+                {THIRD_PARTY.map((item) => (
+                  <InfoRow key={item.name} label={`${item.name} - ${item.what}`} value={item.license} />
+                ))}
+              </div>
+            </div>
           </div>
         )}
 
