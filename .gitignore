@@ -40,3 +40,4 @@ DerivedDataCache/
 Thumbs.db
 ehthumbs.db
 .DS_Store
+.foglamp/
