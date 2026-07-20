@@ -139,8 +139,13 @@ function Row({
       style={{
         padding: "1rem 1.3rem",
         borderRadius: "1rem",
-        background: focused ? "linear-gradient(135deg, rgba(255,255,255,0.18), rgba(255,255,255,0.07))" : "rgba(255,255,255,0.025)",
-        border: focused ? "2px solid rgba(255,255,255,0.95)" : "1px solid rgba(255,255,255,0.055)",
+        // Reference focus treatment is a thin translucent outline, not a bright
+        // filled ring — on a 1440p panel across a room the heavy version reads
+        // as shouty. Unfocused rows carry no fill at all, so the list reads as
+        // rows separated by hairlines rather than a stack of buttons.
+        background: focused ? "rgba(255,255,255,0.06)" : "transparent",
+        border: focused ? "1px solid rgba(255,255,255,0.55)" : "1px solid transparent",
+        borderBottom: focused ? "1px solid rgba(255,255,255,0.55)" : "1px solid rgba(255,255,255,0.07)",
         display: "flex",
         alignItems: "center",
         gap: "1.15rem",
