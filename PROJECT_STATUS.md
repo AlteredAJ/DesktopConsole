@@ -90,15 +90,25 @@ For an at-a-glance board, open `BUILD_BOARD.html`.
    Summoned by **double-Share while yielded** ("use double share anywhere").
    The prewarmed overlay window now hosts both in-game surfaces through
    `OverlayRoot`, which mounts exactly one of Quick Menu / keyboard dock.
-4. ⬜ **Settings hub** — Performance tab + About tab (PC specs + version,
-   credits, licenses). Tabs agreed: System · Display · Audio · Network ·
-   Controller · Lighting · Performance · About.
-5. ⬜ **RGB rebuild** on OpenRGB's localhost SDK (spawn with
-   `--server --startminimized` on demand, since it doesn't run at boot).
-   **Before writing the SDK socket client**, see the network-stack reference
-   note in that spec's §3b — the OpenRGB SDK is a raw framed binary TCP
-   protocol, and the wiki's `Build-Your-Own-X — Curated Learning List` has a
-   matching tutorial category to skim first.
+4. ✅ **Settings hub** — **Performance** tab (perf HUD, in-app reduce-motion,
+   hero/idle rotation switches) and **About** tab (CPU/GPU/RAM/OS spec sheet,
+   app + WebView2 versions, config path, ArtStation credits derived from art
+   filenames, third-party licenses). **Lighting** tab added with the RGB work.
+5. ✅ **RGB rebuild** — `openrgb.rs` now speaks OpenRGB's SDK binary protocol
+   on `127.0.0.1:6742` (client connecting out, never a listening port).
+   Enumerates devices with their real modes and LED counts, sets mode and
+   colour; the four curated scenes stay as presets on top.
+   **⚠️ The wire parser is UNVERIFIED** — OpenRGB was running here with its SDK
+   server switched off, so it couldn't be tested. Turn on *Enable SDK Server*
+   in OpenRGB and open Settings > Lighting: real device names/LED counts mean
+   the struct layout is right; garbled text or "truncated packet" means a
+   version-gated field width is wrong. See the spec's status note.
+   That probe did catch a real bug: the fail-safe would have spawned a *second*
+   OpenRGB instance, and two processes driving the same controllers over USB
+   can wedge the hardware. Fixed — it now detects a running instance.
+6. ⬜ **Colour picker** — stick/d-pad hue strip + brightness. Backend
+   (`set_rgb_device_color`) exists and is wired; only the picker UI is missing,
+   so colour currently comes from the four presets.
 
 **⚠️ Everything in Phases 1–3 is build-verified only — none of it has run on the
 panel yet.** The input rewrite in particular changes behaviour that only a
