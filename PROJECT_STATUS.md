@@ -106,9 +106,13 @@ For an at-a-glance board, open `BUILD_BOARD.html`.
    That probe did catch a real bug: the fail-safe would have spawned a *second*
    OpenRGB instance, and two processes driving the same controllers over USB
    can wedge the hardware. Fixed — it now detects a running instance.
-6. ⬜ **Colour picker** — stick/d-pad hue strip + brightness. Backend
-   (`set_rgb_device_color`) exists and is wired; only the picker UI is missing,
-   so colour currently comes from the four presets.
+6. ✅ **Colour picker** — hue + brightness rows in Settings > Lighting, scrubbed
+   with d-pad or left stick, Cross applies to all devices. HSV rather than RGB
+   because hue is a single axis a stick maps onto; saturation pinned at 1 since
+   desaturating an LED just reads as dimmer. Both rows draw the real gradient
+   with a position marker, not a bare number.
+   Still open: per-zone/per-LED control, and per-device colour override
+   (the picker applies to everything at once).
 
 **⚠️ Everything in Phases 1–3 is build-verified only — none of it has run on the
 panel yet.** The input rewrite in particular changes behaviour that only a

@@ -83,6 +83,24 @@ const HAT_RIGHT = 2;
 const HAT_DOWN = 4;
 const HAT_LEFT = 6;
 
+/**
+ * HSV -> 8-bit RGB. Saturation is held at 1 by the Lighting tab: a desaturated
+ * "colour" on an LED just reads as dimmer white, so exposing it as a third axis
+ * would cost a row and buy nothing perceptible on this hardware.
+ */
+function hsvToRgb(h: number, s: number, v: number): [number, number, number] {
+  const c = v * s;
+  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+  const m = v - c;
+  const [r, g, b] =
+    h < 60 ? [c, x, 0] :
+    h < 120 ? [x, c, 0] :
+    h < 180 ? [0, c, x] :
+    h < 240 ? [0, x, c] :
+    h < 300 ? [x, 0, c] : [c, 0, x];
+  return [Math.round((r + m) * 255), Math.round((g + m) * 255), Math.round((b + m) * 255)];
+}
+
 function RowIcon({ children }: { children: React.ReactNode }) {
   return (
     <div
@@ -352,6 +370,11 @@ export function SettingsMenu({ initialTab = "Appearance", networkNotice, onReque
   const [sysInfo, setSysInfo] = useState<SystemInfo | null>(null);
   const [rgb, setRgb] = useState<RgbState | null>(null);
   const [rgbBusy, setRgbBusy] = useState(false);
+  // Custom colour is held as HSV because that's what maps onto a controller:
+  // hue is one continuous axis you scrub left/right, brightness another.
+  // An RGB triple would need three axes and reads as nothing to a person.
+  const [hue, setHue] = useState(200);
+  const [brightness, setBrightness] = useState(100);
 
   function rowCountFor(t: Tab): number {
     if (t === "Appearance") return 2;
@@ -359,7 +382,7 @@ export function SettingsMenu({ initialTab = "Appearance", networkNotice, onReque
     if (t === "Display") return modes.length;
     if (t === "System") return 2;
     if (t === "Controller") return 3;
-    if (t === "Lighting") return RGB_PRESETS.length + (rgb?.devices.length ?? 0);
+    if (t === "Lighting") return RGB_PRESETS.length + 3 + (rgb?.devices.length ?? 0); // presets + hue + brightness + apply + devices
     if (t === "Performance") return 4;
     if (t === "About") return 0; // read-only spec sheet, nothing to activate
     if (t === "Audio") return 3 + sessions.length; // volume, mute, device-picker, + per-app rows
@@ -409,6 +432,12 @@ export function SettingsMenu({ initialTab = "Appearance", networkNotice, onReque
             level: Math.max(0, Math.min(1, session.volume + delta)),
           });
         }
+      } else if (tab === "Lighting" && (hat === HAT_LEFT || hat === HAT_RIGHT)) {
+        const dir = hat === HAT_RIGHT ? 1 : -1;
+        // Hue wraps: it's a colour wheel, and hitting a wall at red would be
+        // wrong. Brightness clamps, since 0 and 100 are real endpoints.
+        if (focus === RGB_PRESETS.length) setHue((h) => (h + dir * 10 + 360) % 360);
+        else if (focus === RGB_PRESETS.length + 1) setBrightness((b) => Math.max(0, Math.min(100, b + dir * 5)));
       } else if (tab === "Controller" && (hat === HAT_LEFT || hat === HAT_RIGHT)) {
         const delta = hat === HAT_RIGHT ? 0.1 : -0.1;
         if (focus === 0) setSensitivity((s) => { const next = Math.max(0.2, Math.min(5, +(s + delta).toFixed(1))); void invoke("set_cursor_sensitivity", { value: next }); return next; });
@@ -428,6 +457,8 @@ export function SettingsMenu({ initialTab = "Appearance", networkNotice, onReque
         else if (tab === "Controller" && focus === 0) setSensitivity((s) => { const next = Math.max(0.2, Math.min(5, +(s + (stick === "right" ? 0.1 : -0.1)).toFixed(1))); void invoke("set_cursor_sensitivity", { value: next }); return next; });
         else if (tab === "Controller" && focus === 1) setHomeSwipeSensitivity((s) => { const next = Math.max(0.5, Math.min(1.8, +(s + (stick === "right" ? 0.1 : -0.1)).toFixed(1))); setControllerSettings({ homeSwipeSensitivity: next }); return next; });
         else if (tab === "Controller" && focus === 2) setKeyboardSwipeSensitivity((s) => { const next = Math.max(0.35, Math.min(1.2, +(s + (stick === "right" ? 0.1 : -0.1)).toFixed(2))); setControllerSettings({ keyboardSwipeSensitivity: next }); return next; });
+        else if (tab === "Lighting" && focus === RGB_PRESETS.length) setHue((h) => (h + (stick === "right" ? 10 : -10) + 360) % 360);
+        else if (tab === "Lighting" && focus === RGB_PRESETS.length + 1) setBrightness((b) => Math.max(0, Math.min(100, b + (stick === "right" ? 5 : -5))));
         else if (tab === "Audio" && focus >= 3) { const session = sessions[focus - 3]; if (session) { const next = Math.max(0, Math.min(1, session.volume + delta)); setSessions((list) => list.map((item, index) => index === focus - 3 ? { ...item, volume: next } : item)); void invoke("set_session_volume", { processId: session.process_id, level: next }); } }
       }
     }
@@ -450,11 +481,20 @@ export function SettingsMenu({ initialTab = "Appearance", networkNotice, onReque
             .then(() => setRgb((r) => (r ? { ...r, message: `Applied ${preset.label}` } : r)))
             .catch((error) => setRgb((r) => (r ? { ...r, message: String(error) } : { available: false, message: String(error), devices: [] })))
             .finally(() => setRgbBusy(false));
+        } else if (focus === RGB_PRESETS.length || focus === RGB_PRESETS.length + 1 || focus === RGB_PRESETS.length + 2) {
+          // Cross anywhere in the custom-colour block applies it to everything.
+          const [r, g, b] = hsvToRgb(hue, 1, brightness / 100);
+          setRgbBusy(true);
+          const targets = rgb?.devices ?? [];
+          void Promise.all(targets.map((d) => invoke("set_rgb_device_color", { index: d.index, red: r, green: g, blue: b })))
+            .then(() => setRgb((state) => state && ({ ...state, message: targets.length ? `Applied custom colour to ${targets.length} device(s)` : "No devices to apply to" })))
+            .catch((error) => setRgb((state) => (state ? { ...state, message: String(error) } : { available: false, message: String(error), devices: [] })))
+            .finally(() => setRgbBusy(false));
         } else {
           // Cross on a device cycles to its next reported mode. Modes are read
           // from the device, never hardcoded - different hardware exposes
           // wildly different sets.
-          const device = rgb?.devices[focus - RGB_PRESETS.length];
+          const device = rgb?.devices[focus - RGB_PRESETS.length - 3];
           if (device && device.modes.length > 0) {
             const next = device.modes[(device.modes.findIndex((m) => m.index === device.active_mode) + 1) % device.modes.length];
             setRgbBusy(true);
@@ -586,6 +626,34 @@ export function SettingsMenu({ initialTab = "Appearance", networkNotice, onReque
                   <Row key={preset.id} focused={focus === i} icon={<IconPalette />} label={preset.label}
                     value={<span style={{ width: "1rem", height: "1rem", borderRadius: "50%", background: preset.swatch, display: "inline-block", border: "1px solid rgba(255,255,255,.25)" }} />} />
                 ))}
+              </div>
+            </div>
+
+            <div>
+              <SectionTitle>CUSTOM COLOUR</SectionTitle>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+                {/* Hue strip: the full wheel drawn as a gradient with a marker
+                    at the current value, so the control is readable at 10 feet
+                    instead of being a bare number. */}
+                <Row focused={focus === RGB_PRESETS.length} icon={<IconPalette />} label="Hue"
+                  value={<span style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                    <span style={{ position: "relative", width: "14rem", height: "0.85rem", borderRadius: "0.45rem", border: "1px solid rgba(255,255,255,.18)", background: "linear-gradient(90deg,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)" }}>
+                      <span style={{ position: "absolute", top: "-0.22rem", bottom: "-0.22rem", left: `calc(${(hue / 360) * 100}% - 0.15rem)`, width: "0.3rem", borderRadius: "0.15rem", background: "#fff", boxShadow: "0 0 0 1px rgba(0,0,0,.5)" }} />
+                    </span>
+                    <span style={{ fontVariantNumeric: "tabular-nums", minWidth: "3rem", textAlign: "right" }}>{hue}&deg;</span>
+                  </span>} />
+                <Row focused={focus === RGB_PRESETS.length + 1} icon={<IconPalette />} label="Brightness"
+                  value={<span style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                    <span style={{ position: "relative", width: "14rem", height: "0.85rem", borderRadius: "0.45rem", border: "1px solid rgba(255,255,255,.18)", background: `linear-gradient(90deg,#000,hsl(${hue} 100% 50%))` }}>
+                      <span style={{ position: "absolute", top: "-0.22rem", bottom: "-0.22rem", left: `calc(${brightness}% - 0.15rem)`, width: "0.3rem", borderRadius: "0.15rem", background: "#fff", boxShadow: "0 0 0 1px rgba(0,0,0,.5)" }} />
+                    </span>
+                    <span style={{ fontVariantNumeric: "tabular-nums", minWidth: "3rem", textAlign: "right" }}>{brightness}%</span>
+                  </span>} />
+                <Row focused={focus === RGB_PRESETS.length + 2} icon={<IconPalette />} label="Apply to all devices"
+                  value={<span style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                    <span style={{ width: "1.5rem", height: "1.5rem", borderRadius: "0.4rem", border: "1px solid rgba(255,255,255,.25)", background: `rgb(${hsvToRgb(hue, 1, brightness / 100).join(",")})` }} />
+                    {rgbBusy ? "..." : "Cross"}
+                  </span>} />
               </div>
             </div>
 

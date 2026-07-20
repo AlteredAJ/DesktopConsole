@@ -263,8 +263,17 @@ struct layout is right. Garbled names or an "openrgb: truncated packet" error
 mean a field width is wrong for the negotiated protocol version, most likely one
 of the version-gated skips in the mode loop.
 
+### Colour picker — built 2026-07-20
+Hue + brightness as two adjustable rows in Settings > Lighting, driven with
+d-pad or left stick left/right, Cross to apply to every enumerated device.
+Held as **HSV, not RGB**: hue is one continuous axis you scrub, which is what a
+stick maps onto — three RGB axes read as nothing to a person. Saturation is
+pinned at 1 because a desaturated colour on an LED just looks dimmer, so
+exposing it would cost a row and buy nothing perceptible. Hue wraps (it's a
+wheel); brightness clamps (0 and 100 are real endpoints). Both rows draw the
+actual gradient with a marker so they're readable at 10 feet rather than being
+a bare number.
+
 ### Not yet built
-- The stick/d-pad **colour picker** (hue strip + brightness). The backend call
-  it needs (`set_rgb_device_color`) exists and is wired; only the picker UI is
-  missing, so today colour comes from the four presets.
 - Per-zone / per-LED control (backend sets a whole device at once).
+- Per-device colour override — the picker currently applies to all devices.
