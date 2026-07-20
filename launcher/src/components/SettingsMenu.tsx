@@ -28,6 +28,17 @@ interface SystemInfo {
   config_path?: string | null;
 }
 
+interface RgbMode { index: number; name: string; }
+interface RgbDevice { index: number; name: string; kind: string; led_count: number; active_mode: number; modes: RgbMode[]; }
+interface RgbState { available: boolean; message?: string | null; devices: RgbDevice[]; }
+
+const RGB_PRESETS = [
+  { id: "ice", label: "Ice", swatch: "#75C8FF" },
+  { id: "violet", label: "Violet", swatch: "#9D7CFF" },
+  { id: "warm", label: "Warm", swatch: "#FF9A61" },
+  { id: "off", label: "Off", swatch: "#1a1d24" },
+] as const;
+
 interface DisplayMode {
   width: number;
   height: number;
@@ -61,7 +72,7 @@ interface MixerSession {
 }
 
 const ACCENTS = Object.keys(ACCENT_SWATCHES) as AccentScheme[];
-const TABS = ["Appearance", "Feedback", "Display", "System", "Controller", "Audio", "Bluetooth", "Performance", "About"] as const;
+const TABS = ["Appearance", "Feedback", "Display", "System", "Controller", "Audio", "Bluetooth", "Lighting", "Performance", "About"] as const;
 type Tab = (typeof TABS)[number] | "Network";
 
 // Shoulder bits (buf[9]) ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â same convention as Launcher.tsx.
@@ -318,6 +329,11 @@ export function SettingsMenu({ initialTab = "Appearance", networkNotice, onReque
         clearInterval(id);
       };
     }
+    if (tab === "Lighting" && !rgb) {
+      // Enumerating may have to start OpenRGB, so this can take a moment.
+      void invoke<RgbState>("rgb_devices").then((state) => !cancelled && setRgb(state))
+        .catch((error) => !cancelled && setRgb({ available: false, message: String(error), devices: [] }));
+    }
     if (tab === "About" && !sysInfo) {
       void invoke<SystemInfo>("system_info").then((info) => !cancelled && setSysInfo(info)).catch(() => {});
     }
@@ -334,6 +350,8 @@ export function SettingsMenu({ initialTab = "Appearance", networkNotice, onReque
   const feedback = getFeedbackSettings();
   const performance_ = getPerformanceSettings();
   const [sysInfo, setSysInfo] = useState<SystemInfo | null>(null);
+  const [rgb, setRgb] = useState<RgbState | null>(null);
+  const [rgbBusy, setRgbBusy] = useState(false);
 
   function rowCountFor(t: Tab): number {
     if (t === "Appearance") return 2;
@@ -341,6 +359,7 @@ export function SettingsMenu({ initialTab = "Appearance", networkNotice, onReque
     if (t === "Display") return modes.length;
     if (t === "System") return 2;
     if (t === "Controller") return 3;
+    if (t === "Lighting") return RGB_PRESETS.length + (rgb?.devices.length ?? 0);
     if (t === "Performance") return 4;
     if (t === "About") return 0; // read-only spec sheet, nothing to activate
     if (t === "Audio") return 3 + sessions.length; // volume, mute, device-picker, + per-app rows
@@ -423,6 +442,28 @@ export function SettingsMenu({ initialTab = "Appearance", networkNotice, onReque
       } else if (tab === "Feedback") {
         if (focus === 0) setFeedbackSettings({ soundEnabled: !getFeedbackSettings().soundEnabled });
         else if (focus === 1) setFeedbackSettings({ hapticsEnabled: !getFeedbackSettings().hapticsEnabled });
+      } else if (tab === "Lighting") {
+        if (focus < RGB_PRESETS.length) {
+          const preset = RGB_PRESETS[focus];
+          setRgbBusy(true);
+          void invoke("set_rgb_scene", { scene: preset.id })
+            .then(() => setRgb((r) => (r ? { ...r, message: `Applied ${preset.label}` } : r)))
+            .catch((error) => setRgb((r) => (r ? { ...r, message: String(error) } : { available: false, message: String(error), devices: [] })))
+            .finally(() => setRgbBusy(false));
+        } else {
+          // Cross on a device cycles to its next reported mode. Modes are read
+          // from the device, never hardcoded - different hardware exposes
+          // wildly different sets.
+          const device = rgb?.devices[focus - RGB_PRESETS.length];
+          if (device && device.modes.length > 0) {
+            const next = device.modes[(device.modes.findIndex((m) => m.index === device.active_mode) + 1) % device.modes.length];
+            setRgbBusy(true);
+            void invoke("set_rgb_device_mode", { index: device.index, mode: next.index })
+              .then(() => setRgb((r) => r && ({ ...r, devices: r.devices.map((d) => d.index === device.index ? { ...d, active_mode: next.index } : d) })))
+              .catch((error) => setRgb((r) => (r ? { ...r, message: String(error) } : r)))
+              .finally(() => setRgbBusy(false));
+          }
+        }
       } else if (tab === "Performance") {
         const perf = getPerformanceSettings();
         if (focus === 0) setPerformanceSettings({ perfHud: !perf.perfHud });
@@ -533,6 +574,38 @@ export function SettingsMenu({ initialTab = "Appearance", networkNotice, onReque
           <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
             <Row focused={focus === 0} icon={<IconSound />} label="Sound effects" value={feedback.soundEnabled ? "On" : "Off"} />
             <Row focused={focus === 1} icon={<IconHaptics />} label="Controller haptics" value={feedback.hapticsEnabled ? "On" : "Off"} />
+          </div>
+        )}
+
+        {tab === "Lighting" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: "1.2rem", overflowY: "auto", maxHeight: "100%", paddingRight: "0.5rem" }}>
+            <div>
+              <SectionTitle>SCENES</SectionTitle>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+                {RGB_PRESETS.map((preset, i) => (
+                  <Row key={preset.id} focused={focus === i} icon={<IconPalette />} label={preset.label}
+                    value={<span style={{ width: "1rem", height: "1rem", borderRadius: "50%", background: preset.swatch, display: "inline-block", border: "1px solid rgba(255,255,255,.25)" }} />} />
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <SectionTitle>DEVICES</SectionTitle>
+              {!rgb && <InfoRow label="OpenRGB" value="Connecting..." />}
+              {/* A missing OpenRGB is a normal state here, not a crash - it
+                  doesn't run at boot. Show what's wrong and stay usable. */}
+              {rgb && !rgb.available && <InfoRow label="OpenRGB" value={rgb.message ?? "Unavailable"} />}
+              {rgb?.available && rgb.devices.length === 0 && <InfoRow label="OpenRGB" value="Connected, but no devices detected" />}
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+                {rgb?.devices.map((device, i) => {
+                  const activeName = device.modes.find((m) => m.index === device.active_mode)?.name ?? "-";
+                  return <Row key={device.index} focused={focus === RGB_PRESETS.length + i} icon={<IconPalette />}
+                    label={`${device.name}  (${device.kind}, ${device.led_count} LEDs)`}
+                    value={rgbBusy ? "..." : activeName} />;
+                })}
+              </div>
+              {rgb?.available && rgb.message && <p style={{ margin: "0.6rem 0 0", fontSize: "0.95rem", color: "var(--muted)" }}>{rgb.message}</p>}
+            </div>
           </div>
         )}
 

@@ -141,6 +141,19 @@ pub fn open_rgb_controls() -> Result<(), String> { crate::openrgb::open_gui() }
 #[tauri::command]
 pub fn set_rgb_scene(scene: String) -> Result<(), String> { crate::openrgb::set_scene(&scene) }
 
+#[tauri::command]
+pub fn rgb_devices() -> crate::openrgb::RgbState { crate::openrgb::devices() }
+
+#[tauri::command]
+pub fn set_rgb_device_color(index: u32, red: u8, green: u8, blue: u8) -> Result<(), String> {
+    crate::openrgb::set_device_color(index, red, green, blue)
+}
+
+#[tauri::command]
+pub fn set_rgb_device_mode(index: u32, mode: u32) -> Result<(), String> {
+    crate::openrgb::set_device_mode(index, mode)
+}
+
 /// Native preflight for Home's live-app backdrop. A missing/ambiguous/protected
 /// source deliberately returns None so the frontend can keep Hero art without
 /// a visible error or a late flicker.

@@ -232,3 +232,39 @@ the UI from what's enumerated at runtime.
 - Never route controller events to two consumers at once — Desktop Mode keyboard
   and the Quick Menu must not both own input.
 - Verify with `tsc && vite build` + `cargo check`; rebuild via `.\rebuild.ps1`.
+
+
+---
+
+## Status update — 2026-07-20
+
+**Built this session:** Performance tab (+ perf HUD), About tab (spec sheet +
+derived art credits), and the OpenRGB SDK rebuild (`openrgb.rs` now speaks the
+binary protocol on `127.0.0.1:6742` instead of shelling out to the CLI), plus a
+Lighting tab listing enumerated devices with per-device mode cycling and the
+curated scenes kept as presets on top.
+
+### ⚠️ The OpenRGB wire parser is UNVERIFIED
+
+`parse_device()` reads a version-dependent binary struct. It could not be tested
+this session: OpenRGB was running on this machine **with its SDK server switched
+off**, so nothing was listening on 6742 and a read-only probe was refused.
+
+That failure was itself useful — it exposed a real bug that *is* fixed:
+`connect_or_start()` originally would have spawned a **second** OpenRGB instance
+whenever a connection failed, and two processes driving the same controllers over
+USB can wedge the hardware. It now detects a running instance (via `sysinfo`) and
+returns an actionable message instead.
+
+**To verify the parser:** in OpenRGB, turn on *Settings > General > Enable SDK
+Server* (or relaunch it with `--server`), then open Settings > Lighting. The
+device list is the test — real names, types, LED counts and mode names mean the
+struct layout is right. Garbled names or an "openrgb: truncated packet" error
+mean a field width is wrong for the negotiated protocol version, most likely one
+of the version-gated skips in the mode loop.
+
+### Not yet built
+- The stick/d-pad **colour picker** (hue strip + brightness). The backend call
+  it needs (`set_rgb_device_color`) exists and is wired; only the picker UI is
+  missing, so today colour comes from the four presets.
+- Per-zone / per-LED control (backend sets a whole device at once).

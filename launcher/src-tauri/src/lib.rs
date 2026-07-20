@@ -113,6 +113,9 @@ pub fn run() {
             commands::prepare_live_backdrop,
             send_text::send_text,
             system_info::system_info,
+            commands::rgb_devices,
+            commands::set_rgb_device_color,
+            commands::set_rgb_device_mode,
         ])
         .setup(|app| {
             rumble::init();
