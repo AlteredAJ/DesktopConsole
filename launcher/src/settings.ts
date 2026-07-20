@@ -111,3 +111,51 @@ export function subscribePerformanceSettings(listener: () => void): () => void {
   performanceListeners.add(listener);
   return () => performanceListeners.delete(listener);
 }
+
+// ── Audio layers ────────────────────────────────────────────────────────────
+// Three independent switches, not one "sound on/off". Plenty of people who are
+// happy with UI ticks would hate a constant ambient bed, and the reverse is
+// true too — collapsing them into one toggle forces an all-or-nothing choice.
+//
+// `soundEnabled` in FeedbackSettings above still gates UI ticks (it predates
+// this and is wired through feedback.ts); these cover the two musical layers
+// plus a level trim for the bed.
+
+const AUDIO_STORAGE_KEY = "ps5mode-audio-settings";
+
+export interface AudioSettings {
+  /** The generative pad under the dashboard. */
+  ambientEnabled: boolean;
+  /** Slower, sparser music once the idle screen takes over. */
+  idleMusicEnabled: boolean;
+  /** 0..1 trim on the bed only — UI ticks keep their own fixed level. */
+  ambientLevel: number;
+}
+
+const AUDIO_DEFAULTS: AudioSettings = {
+  ambientEnabled: true,
+  idleMusicEnabled: true,
+  ambientLevel: 0.6,
+};
+
+function loadAudio(): AudioSettings {
+  try {
+    const raw = localStorage.getItem(AUDIO_STORAGE_KEY);
+    if (raw) return { ...AUDIO_DEFAULTS, ...JSON.parse(raw) };
+  } catch { /* ignore malformed storage */ }
+  return { ...AUDIO_DEFAULTS };
+}
+
+let audioCurrent = loadAudio();
+const audioListeners = new Set<() => void>();
+
+export function getAudioSettings(): AudioSettings { return audioCurrent; }
+export function setAudioSettings(next: Partial<AudioSettings>) {
+  audioCurrent = { ...audioCurrent, ...next };
+  localStorage.setItem(AUDIO_STORAGE_KEY, JSON.stringify(audioCurrent));
+  audioListeners.forEach((listener) => listener());
+}
+export function subscribeAudioSettings(listener: () => void): () => void {
+  audioListeners.add(listener);
+  return () => audioListeners.delete(listener);
+}

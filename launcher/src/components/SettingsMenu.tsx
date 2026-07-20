@@ -11,8 +11,8 @@ import { useTouchpad } from "../hooks/useTouchpad";
 import { ButtonHints } from "./ButtonHints";
 import { CodexPanelShell } from "./CodexPanelShell";
 import { getTheme, setTheme, subscribeTheme, ACCENT_SWATCHES, AccentScheme } from "../theme";
-import { getControllerSettings, getFeedbackSettings, getPerformanceSettings, setControllerSettings, setFeedbackSettings, setPerformanceSettings, subscribeControllerSettings, subscribeFeedbackSettings, subscribePerformanceSettings } from "../settings";
-import { navFeedback, selectFeedback } from "../feedback";
+import { getAudioSettings, setAudioSettings, subscribeAudioSettings, getControllerSettings, getFeedbackSettings, getPerformanceSettings, setControllerSettings, setFeedbackSettings, setPerformanceSettings, subscribeControllerSettings, subscribeFeedbackSettings, subscribePerformanceSettings } from "../settings";
+import { navFeedback, selectFeedback, toggleFeedback } from "../feedback";
 import { ART_CREDITS, THIRD_PARTY } from "../credits";
 
 interface SystemInfo {
@@ -308,9 +308,10 @@ export function SettingsMenu({ initialTab = "Appearance", networkNotice, onReque
     const un2 = subscribeFeedbackSettings(() => forceUpdate((n) => n + 1));
     const un3 = subscribeControllerSettings(() => forceUpdate((n) => n + 1));
     const un4 = subscribePerformanceSettings(() => forceUpdate((n) => n + 1));
+    const un5 = subscribeAudioSettings(() => forceUpdate((n) => n + 1));
     return () => {
       un1();
-      un2(); un3(); un4();
+      un2(); un3(); un4(); un5();
     };
   }, []);
 
@@ -367,6 +368,7 @@ export function SettingsMenu({ initialTab = "Appearance", networkNotice, onReque
   const theme = getTheme();
   const feedback = getFeedbackSettings();
   const performance_ = getPerformanceSettings();
+  const audio = getAudioSettings();
   const [sysInfo, setSysInfo] = useState<SystemInfo | null>(null);
   const [rgb, setRgb] = useState<RgbState | null>(null);
   const [rgbBusy, setRgbBusy] = useState(false);
@@ -385,7 +387,7 @@ export function SettingsMenu({ initialTab = "Appearance", networkNotice, onReque
     if (t === "Lighting") return RGB_PRESETS.length + 3 + (rgb?.devices.length ?? 0); // presets + hue + brightness + apply + devices
     if (t === "Performance") return 4;
     if (t === "About") return 0; // read-only spec sheet, nothing to activate
-    if (t === "Audio") return 3 + sessions.length; // volume, mute, device-picker, + per-app rows
+    if (t === "Audio") return 6 + sessions.length; // volume, mute, device-picker, ambient on, idle music, ambient level, + per-app rows
     if ((t as string) === "Network") return 1 + networks.length + (wifiScan.requires_location ? 1 : 0);
     return 1 + paired.length; // Bluetooth: toggle + informational rows
   }
@@ -418,13 +420,13 @@ export function SettingsMenu({ initialTab = "Appearance", networkNotice, onReque
           void invoke("set_master_volume", { level: next });
           return next;
         });
-      } else if (tab === "Audio" && focus >= 3 && (hat === HAT_LEFT || hat === HAT_RIGHT)) {
+      } else if (tab === "Audio" && focus >= 6 && (hat === HAT_LEFT || hat === HAT_RIGHT)) {
         const delta = hat === HAT_RIGHT ? 0.05 : -0.05;
-        const session = sessions[focus - 3];
+        const session = sessions[focus - 6];
         if (session) {
           setSessions((list) =>
             list.map((s, i) =>
-              i === focus - 3 ? { ...s, volume: Math.max(0, Math.min(1, s.volume + delta)) } : s,
+              i === focus - 6 ? { ...s, volume: Math.max(0, Math.min(1, s.volume + delta)) } : s,
             ),
           );
           void invoke("set_session_volume", {
@@ -432,6 +434,9 @@ export function SettingsMenu({ initialTab = "Appearance", networkNotice, onReque
             level: Math.max(0, Math.min(1, session.volume + delta)),
           });
         }
+      } else if (tab === "Audio" && focus === 5 && (hat === HAT_LEFT || hat === HAT_RIGHT)) {
+        const delta = hat === HAT_RIGHT ? 0.1 : -0.1;
+        setAudioSettings({ ambientLevel: Math.max(0, Math.min(1, +(getAudioSettings().ambientLevel + delta).toFixed(2))) });
       } else if (tab === "Lighting" && (hat === HAT_LEFT || hat === HAT_RIGHT)) {
         const dir = hat === HAT_RIGHT ? 1 : -1;
         // Hue wraps: it's a colour wheel, and hitting a wall at red would be
@@ -457,13 +462,23 @@ export function SettingsMenu({ initialTab = "Appearance", networkNotice, onReque
         else if (tab === "Controller" && focus === 0) setSensitivity((s) => { const next = Math.max(0.2, Math.min(5, +(s + (stick === "right" ? 0.1 : -0.1)).toFixed(1))); void invoke("set_cursor_sensitivity", { value: next }); return next; });
         else if (tab === "Controller" && focus === 1) setHomeSwipeSensitivity((s) => { const next = Math.max(0.5, Math.min(1.8, +(s + (stick === "right" ? 0.1 : -0.1)).toFixed(1))); setControllerSettings({ homeSwipeSensitivity: next }); return next; });
         else if (tab === "Controller" && focus === 2) setKeyboardSwipeSensitivity((s) => { const next = Math.max(0.35, Math.min(1.2, +(s + (stick === "right" ? 0.1 : -0.1)).toFixed(2))); setControllerSettings({ keyboardSwipeSensitivity: next }); return next; });
+        else if (tab === "Audio" && focus === 5) setAudioSettings({ ambientLevel: Math.max(0, Math.min(1, +(getAudioSettings().ambientLevel + (stick === "right" ? 0.1 : -0.1)).toFixed(2))) });
         else if (tab === "Lighting" && focus === RGB_PRESETS.length) setHue((h) => (h + (stick === "right" ? 10 : -10) + 360) % 360);
         else if (tab === "Lighting" && focus === RGB_PRESETS.length + 1) setBrightness((b) => Math.max(0, Math.min(100, b + (stick === "right" ? 5 : -5))));
-        else if (tab === "Audio" && focus >= 3) { const session = sessions[focus - 3]; if (session) { const next = Math.max(0, Math.min(1, session.volume + delta)); setSessions((list) => list.map((item, index) => index === focus - 3 ? { ...item, volume: next } : item)); void invoke("set_session_volume", { processId: session.process_id, level: next }); } }
+        else if (tab === "Audio" && focus >= 6) { const session = sessions[focus - 6]; if (session) { const next = Math.max(0, Math.min(1, session.volume + delta)); setSessions((list) => list.map((item, index) => index === focus - 6 ? { ...item, volume: next } : item)); void invoke("set_session_volume", { processId: session.process_id, level: next }); } }
       }
     }
     if (padEdge.rising("cross")) {
-      selectFeedback();
+      // Two-state switches get the on/off toggle sound rather than the generic
+      // "committed" chirp, so you can hear which way a setting went without
+      // reading the row. Everything else keeps the normal select.
+      const isToggleRow =
+        tab === "Feedback" ||
+        tab === "Performance" ||
+        (tab === "Audio" && (focus === 1 || focus === 3 || focus === 4)) ||
+        (tab === "System" && focus === 0) ||
+        (tab === "Bluetooth" && focus === 0);
+      if (!isToggleRow) selectFeedback();
       if (tab === "Appearance") {
         if (focus === 0) setTheme({ mode: getTheme().mode === "dark" ? "light" : "dark" });
         else if (focus === 1) {
@@ -471,8 +486,8 @@ export function SettingsMenu({ initialTab = "Appearance", networkNotice, onReque
           setTheme({ accent: ACCENTS[(i + 1) % ACCENTS.length] });
         }
       } else if (tab === "Feedback") {
-        if (focus === 0) setFeedbackSettings({ soundEnabled: !getFeedbackSettings().soundEnabled });
-        else if (focus === 1) setFeedbackSettings({ hapticsEnabled: !getFeedbackSettings().hapticsEnabled });
+        if (focus === 0) { const next = !getFeedbackSettings().soundEnabled; setFeedbackSettings({ soundEnabled: next }); toggleFeedback(next); }
+        else if (focus === 1) { const next = !getFeedbackSettings().hapticsEnabled; setFeedbackSettings({ hapticsEnabled: next }); toggleFeedback(next); }
       } else if (tab === "Lighting") {
         if (focus < RGB_PRESETS.length) {
           const preset = RGB_PRESETS[focus];
@@ -506,16 +521,15 @@ export function SettingsMenu({ initialTab = "Appearance", networkNotice, onReque
         }
       } else if (tab === "Performance") {
         const perf = getPerformanceSettings();
-        if (focus === 0) setPerformanceSettings({ perfHud: !perf.perfHud });
-        else if (focus === 1) setPerformanceSettings({ reduceMotion: !perf.reduceMotion });
-        else if (focus === 2) setPerformanceSettings({ heroRotation: !perf.heroRotation });
-        else if (focus === 3) setPerformanceSettings({ idleRotation: !perf.idleRotation });
+        const key = (["perfHud", "reduceMotion", "heroRotation", "idleRotation"] as const)[focus];
+        if (key) { const next = !perf[key]; setPerformanceSettings({ [key]: next }); toggleFeedback(next); }
       } else if (tab === "Display") {
         if (modes[focus]) void invoke("set_display_mode", { mode: modes[focus] });
       } else if (tab === "System") {
         if (focus === 0) {
           setGameMode((g) => {
             void invoke("set_game_mode_enabled", { on: !g });
+            toggleFeedback(!g);
             return !g;
           });
         } else if (focus === 1) {
@@ -527,15 +541,24 @@ export function SettingsMenu({ initialTab = "Appearance", networkNotice, onReque
       } else if (tab === "Audio" && focus === 1) {
         setMuted((m) => {
           void invoke("set_master_mute", { muted: !m });
+          toggleFeedback(!m);
           return !m;
         });
       } else if (tab === "Audio" && focus === 2) {
         void invoke("open_audio_device_picker");
-      } else if (tab === "Audio" && focus >= 3) {
-        const session = sessions[focus - 3];
+      } else if (tab === "Audio" && focus === 3) {
+        const next = !getAudioSettings().ambientEnabled;
+        setAudioSettings({ ambientEnabled: next });
+        toggleFeedback(next);
+      } else if (tab === "Audio" && focus === 4) {
+        const next = !getAudioSettings().idleMusicEnabled;
+        setAudioSettings({ idleMusicEnabled: next });
+        toggleFeedback(next);
+      } else if (tab === "Audio" && focus >= 6) {
+        const session = sessions[focus - 6];
         if (session) {
           setSessions((list) =>
-            list.map((s, i) => (i === focus - 3 ? { ...s, muted: !s.muted } : s)),
+            list.map((s, i) => (i === focus - 6 ? { ...s, muted: !s.muted } : s)),
           );
           void invoke("set_session_mute", { processId: session.process_id, muted: !session.muted });
         }
@@ -555,6 +578,7 @@ export function SettingsMenu({ initialTab = "Appearance", networkNotice, onReque
       } else if (tab === "Bluetooth" && focus === 0) {
         setBtEnabled((e) => {
           void invoke("set_bluetooth_enabled", { on: !e });
+          toggleFeedback(!e);
           return !e;
         });
       }
@@ -796,6 +820,24 @@ export function SettingsMenu({ initialTab = "Appearance", networkNotice, onReque
               <Row focused={focus === 2} icon={<IconVolume />} label="Output device" value="Change..." />
             </div>
 
+            {/* Three switches, not one "sound on/off": plenty of people who
+                want UI ticks would hate a constant bed, and vice versa. */}
+            <SectionTitle>CONSOLE AMBIENCE</SectionTitle>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+              <Row focused={focus === 3} icon={<IconSound />} label="Ambient bed" value={audio.ambientEnabled ? "On" : "Off"} />
+              <Row focused={focus === 4} icon={<IconSound />} label="Idle screen music" value={audio.idleMusicEnabled ? "On" : "Off"} />
+              <Row focused={focus === 5} icon={<IconVolume />} label="Ambience level"
+                value={
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                    <div style={{ width: "8rem", height: "0.4rem", borderRadius: "999px", background: "rgba(255,255,255,0.12)", overflow: "hidden" }}>
+                      <div style={{ width: `${Math.round(audio.ambientLevel * 100)}%`, height: "100%", background: "var(--accent)" }} />
+                    </div>
+                    {Math.round(audio.ambientLevel * 100)}%
+                  </div>
+                }
+              />
+            </div>
+
             {sessions.length > 0 && (
               <>
                 <SectionTitle>APP VOLUMES</SectionTitle>
@@ -803,7 +845,7 @@ export function SettingsMenu({ initialTab = "Appearance", networkNotice, onReque
                   {sessions.map((s, i) => (
                     <Row
                       key={s.process_id}
-                      focused={focus === i + 3}
+                      focused={focus === i + 6}
                       icon={<IconVolume />}
                       label={s.name}
                       value={

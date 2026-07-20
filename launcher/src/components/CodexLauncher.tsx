@@ -6,11 +6,12 @@ import { Clock } from "./Clock";
 import { Atmosphere } from "./Atmosphere";
 import { useController } from "../hooks/useController";
 import { useEdges } from "../hooks/useEdges";
+import { duckAmbient, setAmbientHue } from "../ambient";
 import { MOTION } from "../motion";
 import { useGridNav } from "../hooks/useGridNav";
 import { useTouchpad, type DragState } from "../hooks/useTouchpad";
 import { useSpringScroll } from "../hooks/useSpringScroll";
-import { navFeedback, selectFeedback } from "../feedback";
+import { navFeedback, selectFeedback, launchFeedback, tabFeedback } from "../feedback";
 import { getControllerSettings } from "../settings";
 import { getRecents, recordLaunch } from "../recents";
 import type { Panel } from "../App";
@@ -42,6 +43,18 @@ const POWER_ACTIONS: Array<{ id: PowerAction; label: string; description: string
   { id: "sleep", label: "Rest mode", description: "Enter the animated idle screen and lower power use. Press PS to wake.", command: "rest_mode" },
   { id: "shutdown", label: "Turn off", description: "Close Windows and power down this PC.", command: "shutdown_machine" },
 ];
+/** #rrggbb -> hue degrees. Only the hue matters to the bed. */
+function hueOf(hex: string): number {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
+  if (!m) return 210;
+  const n = parseInt(m[1], 16);
+  const r = ((n >> 16) & 255) / 255, g = ((n >> 8) & 255) / 255, b = (n & 255) / 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min;
+  if (d === 0) return 210;
+  const h = max === r ? ((g - b) / d) % 6 : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
+  return (h * 60 + 360) % 360;
+}
+
 function WifiIcon() { return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 9.7a12.8 12.8 0 0 1 17 0M6.8 13a8 8 0 0 1 10.4 0M10.1 16.3a3.2 3.2 0 0 1 3.8 0M12 19.3h.01" /></svg>; }
 function GearIcon() { return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.4 13.5a7.7 7.7 0 0 0 .05-1.5 7.7 7.7 0 0 0-.05-1.5l2-1.55-2-3.46-2.38.96a7.45 7.45 0 0 0-2.58-1.5L14.1 2.4h-4l-.35 2.5a7.45 7.45 0 0 0-2.58 1.5l-2.38-.96-2 3.46 2 1.55a7.7 7.7 0 0 0-.05 1.5c0 .5.02 1 .05 1.5l-2 1.55 2 3.46 2.38-.96a7.45 7.45 0 0 0 2.58 1.5l.35 2.5h4l.35-2.5a7.45 7.45 0 0 0 2.58-1.5l2.38.96 2-3.46-2-1.55Z" /><circle cx="12" cy="12" r="2.65" /></svg>; }
 function PowerIcon() { return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6v8.1" /><path d="M7.1 5.5a8.1 8.1 0 1 0 9.8 0" /></svg>; }
@@ -109,6 +122,10 @@ export function CodexLauncher({ onOpen, onReady, onRest, inputEnabled }: { onOpe
   const { focus, setFocus, move, jumpTo } = useGridNav(Math.max(tiles.length, 1), Math.max(tiles.length, 1));
   const scrollDockTo = useSpringScroll(dockRef);
   const activeTile = tiles[focus]; const accent = activeTile ? accentFor(activeTile.id) : "#6ea8ff"; const HeroArt = activeTile ? heroArtFor(activeTile.id) : undefined;
+  // Feed the focused tile's accent to the ambient bed so the harmony and filter
+  // colour track what you're looking at — the same --focus-bloom that drives the
+  // visual bloom, so audio and light agree instead of drifting apart.
+  useEffect(() => { setAmbientHue(hueOf(accent)); }, [accent]);
   // Parallax: -1 (first tile) .. +1 (last tile), fed to CSS as --px so the hero
   // art and atmosphere pan at different depths as focus moves across the dock.
   const parallax = tiles.length > 1 ? (focus / (tiles.length - 1) - 0.5) * 2 : 0;
@@ -151,10 +168,13 @@ export function CodexLauncher({ onOpen, onReady, onRest, inputEnabled }: { onOpe
       outgoingTimer.current = window.setTimeout(() => setOutgoing(null), 300);
     }
     setTabIndex(clamped);
-    navFeedback();
+    tabFeedback(dir);
   }
   function movePower(delta: number) { setPowerIndex((current) => { const next = Math.max(0, Math.min(POWER_ACTIONS.length - 1, current + delta)); if (next !== current) navFeedback(); return next; }); }
-  function launch(tile?: Tile) { if (!tile) return; recordLaunch(tile.id); setRecents(getRecents()); selectFeedback(); if (tile.id === "youtube") return onOpen("youtube"); setClosing(true); window.setTimeout(() => void invoke("launch_app", { target: tile.id, needsCursor: !!tile.needsCursor }), 160); }
+  function launch(tile?: Tile) { if (!tile) return; recordLaunch(tile.id); setRecents(getRecents()); launchFeedback();
+    // Hard-duck before we hand the screen over. Our bed must never play under
+    // a game — competing with its audio is the fastest way to feel broken.
+    duckAmbient(true); if (tile.id === "youtube") return onOpen("youtube"); setClosing(true); window.setTimeout(() => void invoke("launch_app", { target: tile.id, needsCursor: !!tile.needsCursor }), 160); }
   const expandedActions = useMemo<GameAction[]>(() => {
     if (!expandedTile) return [];
     const list: GameAction[] = [{ id: "play", label: "Play" }];

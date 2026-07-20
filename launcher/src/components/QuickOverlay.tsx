@@ -2,7 +2,7 @@ import { type CSSProperties, useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useController } from "../hooks/useController";
 import { useEdges } from "../hooks/useEdges";
-import { navFeedback, selectFeedback } from "../feedback";
+import { navFeedback, selectFeedback, errorFeedback } from "../feedback";
 import { ACCENT_SWATCHES, getTheme, subscribeTheme } from "../theme";
 
 type OverlayItem = {
@@ -72,7 +72,7 @@ export function QuickOverlay() {
       const next = RGB_SCENES[(RGB_SCENES.indexOf(rgbScene) + 1) % RGB_SCENES.length];
       setRgbScene(next);
       setNotice(`RGB scene: ${RGB_LABELS[next]}`);
-      return void invoke("set_rgb_scene", { scene: next }).catch(() => setNotice("OpenRGB is unavailable"));
+      return void invoke("set_rgb_scene", { scene: next }).catch((error) => { errorFeedback(); setNotice(String(error).replace(/^Error:\s*/, "")); });
     }
     if (item.id === "party") { setNotice("Game Base needs a linked provider — Discord, Steam, or Xbox"); return; }
     setNotice(`${item.label} is prepared for the next overlay pass`);

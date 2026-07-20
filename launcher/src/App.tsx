@@ -7,8 +7,9 @@ import { StartupScreen } from "./components/StartupScreen";
 import { useController, PadState } from "./hooks/useController";
 import { useEdges } from "./hooks/useEdges";
 import { MOTION } from "./motion";
-import { startupFeedback } from "./feedback";
-import { getPerformanceSettings, subscribePerformanceSettings } from "./settings";
+import { backFeedback, startupFeedback } from "./feedback";
+import { getPerformanceSettings, subscribePerformanceSettings, subscribeAudioSettings } from "./settings";
+import { duckAmbient, refreshAmbient, setAmbientIdle, startAmbient, stopAmbient } from "./ambient";
 
 // Code-split everything that ISN'T the grid ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â the grid is what's on screen
 // on every single launch (triple-click PS spawns straight into it), so it
@@ -70,11 +71,30 @@ export function App() {
     return () => cancelAnimationFrame(first);
   }, []);
   useEffect(() => {
-    const un = listen("window-restored", () => setEnterKey((k) => k + 1));
+    const un = listen("window-restored", () => {
+      setEnterKey((k) => k + 1);
+      // Back on the console: the app that had focus is gone, so un-duck.
+      duckAmbient(false);
+    });
     return () => {
       un.then((f) => f());
     };
   }, []);
+
+  // The ambient bed only exists once we're actually on Home. Starting it during
+  // the startup screen would mean audio before the user has committed to
+  // anything, which breaks the "person-initiated only" rule.
+  useEffect(() => {
+    if (!entered) return;
+    startAmbient();
+    return () => stopAmbient();
+  }, [entered]);
+
+  // Settings changes (per-layer switches, level trim) apply without a restart.
+  useEffect(() => subscribeAudioSettings(refreshAmbient), []);
+
+  // The idle screen gets the sparser, slower variant.
+  useEffect(() => { setAmbientIdle(idle); }, [idle]);
 
   // Global controller stream: Circle backs out to the grid from anywhere,
   // a single Options tap opens Settings from anywhere (edge-triggered ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â see
@@ -112,6 +132,7 @@ export function App() {
     }
     if (isMeaningfulInput(pad)) lastActivity.current = Date.now();
     if (edge.rising("circle") && panel !== "grid") {
+      backFeedback();
       setPanel(panel === "wifi-password" ? "settings" : "grid");
     }
     if (edge.rising("options") && panel !== "settings") setPanel("settings");

@@ -139,8 +139,48 @@ abruptly when idle triggers.
 3. Layer 2 ambient bed.
 4. Layer 3 idle music.
 
-## Open questions for AJ
-1. How present should the ambient bed be — *barely there* (recommended) or
-   clearly audible?
-2. Should the bed react to the focused app's accent, or stay constant?
-3. Ambient on by default, or opt-in?
+## Answered by AJ, 2026-07-20 — and BUILT
+
+1. **How present?** *Barely there.* The bed's ceiling is 0.03 gain against UI
+   ticks at 0.05–0.07, so it reads as room tone under them.
+2. **React to accent?** *Yes, follow it.* The focused tile's accent hue drives
+   the low-pass cutoff and the chord's third (cool accents → minor, warmer →
+   major), fed from the same `--focus-bloom` that drives the visual bloom, so
+   light and audio agree instead of drifting apart.
+3. **On by default?** *On.*
+4. AJ also asked for **PS5/Apple-TV-level quality**, so the vocabulary below
+   was written against researched practice rather than invented.
+
+### What the research changed
+
+- **tvOS: audio only when person-initiated**, and never for alerts. So the bed
+  starts only once you're actually on Home — not during the startup screen —
+  and nothing plays speculatively.
+- **A consistent sonic contract.** Back is deliberately the inverse of select
+  (falling instead of rising), so "I went back" is legible without looking.
+- **Under ~2.5kHz.** TV speakers exaggerate the top end; a click that's fine on
+  a laptop is piercing across a room.
+- **Short attacks, not instant.** Every tone ramps in over 8ms — jumping
+  straight to amplitude is a click, which reads as a glitch.
+- **Eno's incommensurable periods** (*Music for Airports*: 23.5s / 25.875s /
+  29.9375s tape loops that never re-sync). `ambient.ts` uses the same trick with
+  four voices at 23.5 / 25.875 / 29.9375 / 37.125s, so the bed takes hours to
+  approximately re-align — a loop would give itself away in minutes.
+
+### Built
+
+| Layer | Where | Notes |
+|---|---|---|
+| 1 — UI vocabulary | `sound.ts` | back/cancel, direction-pitched tab switch, two-state toggle, soft error, launch swell. Was 3 sounds, now 9. |
+| Toggles + ducking | `settings.ts`, `App.tsx`, `CodexLauncher.tsx` | Three independent switches (bed / idle music / level) in Settings > Audio. Hard duck to silence on launch, released on `window-restored`. |
+| 2 — ambient bed | `ambient.ts` | 4 detuned voice pairs → lowpass → master. Accent-reactive. |
+| 3 — idle music | `ambient.ts` (`setAmbientIdle`) | Same engine, sparser (envelope raised to a power so fewer voices overlap) and slightly more present, since you've walked away. |
+
+**Never over the Quick Menu:** satisfied by construction — the bed is started
+only by `App.tsx` in the main window, and the Quick Menu lives in the separate
+overlay webview, which has its own module instances and never calls
+`startAmbient()`.
+
+**Not verified on hardware.** Synthesis is judged by ear and nobody has heard
+this yet; the levels and the accent mapping are the most likely things to want
+tuning.

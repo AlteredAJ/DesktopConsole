@@ -5,7 +5,7 @@
 
 import { invoke } from "@tauri-apps/api/core";
 import { getFeedbackSettings } from "./settings";
-import { playNavTick, playSelect, playStartupChime } from "./sound";
+import { playBack, playError, playLaunch, playNavTick, playSelect, playStartupChime, playTabSwitch, playToggle } from "./sound";
 
 export function navFeedback() {
   const { soundEnabled, hapticsEnabled } = getFeedbackSettings();
@@ -17,6 +17,47 @@ export function selectFeedback() {
   const { soundEnabled, hapticsEnabled } = getFeedbackSettings();
   if (hapticsEnabled) void invoke("haptic_select");
   if (soundEnabled) playSelect();
+}
+
+/**
+ * Back / cancel — the counterpart to selectFeedback, which was previously
+ * silent. Haptics stay light here: going back is a lesser action than
+ * committing to one, and the feedback should say so.
+ */
+export function backFeedback() {
+  const { soundEnabled, hapticsEnabled } = getFeedbackSettings();
+  if (hapticsEnabled) void invoke("haptic_confirm");
+  if (soundEnabled) playBack();
+}
+
+/** Tab switch. `direction` is +1 right / -1 left so the sound tracks travel. */
+export function tabFeedback(direction: number) {
+  const { soundEnabled, hapticsEnabled } = getFeedbackSettings();
+  if (hapticsEnabled) void invoke("haptic_select");
+  if (soundEnabled) playTabSwitch(direction);
+}
+
+/** Settings switch flipped. Two-state, so on and off are distinguishable. */
+export function toggleFeedback(on: boolean) {
+  const { soundEnabled, hapticsEnabled } = getFeedbackSettings();
+  if (hapticsEnabled) void invoke("haptic_confirm");
+  if (soundEnabled) playToggle(on);
+}
+
+/**
+ * Something wasn't available (OpenRGB missing, a bridge failed). Deliberately
+ * sound-only and soft — no haptic, because buzzing the pad for a thing the
+ * user couldn't have known about reads as a scolding.
+ */
+export function errorFeedback() {
+  if (getFeedbackSettings().soundEnabled) playError();
+}
+
+/** Committed to opening something — the swell under the exit animation. */
+export function launchFeedback() {
+  const { soundEnabled, hapticsEnabled } = getFeedbackSettings();
+  if (hapticsEnabled) void invoke("haptic_select");
+  if (soundEnabled) playLaunch();
 }
 
 /** Entering Home — the console "power-on" moment. A two-stage haptic (a firm
