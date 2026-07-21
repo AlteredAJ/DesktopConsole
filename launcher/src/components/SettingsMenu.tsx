@@ -136,6 +136,7 @@ function Row({
   return (
     <div
       onClick={onClick}
+      data-focused={focused ? "true" : undefined}
       style={{
         padding: "1rem 1.3rem",
         borderRadius: "1rem",
@@ -321,6 +322,16 @@ export function SettingsMenu({ initialTab = "Appearance", networkNotice, onReque
   }, []);
 
   useEffect(() => setFocus(0), [tabIndex]);
+
+  // Keep the focused row on screen. Tabs like Lighting and About scroll (more
+  // rows than fit), and without this the highlight would walk off the bottom
+  // while the view stayed put. block:"nearest" only scrolls when the row is
+  // actually out of view, so it doesn't jump on every move.
+  const panelRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const el = panelRef.current?.querySelector('[data-focused="true"]');
+    (el as HTMLElement | null)?.scrollIntoView({ block: "nearest" });
+  }, [focus, tabIndex]);
 
   const tab = TABS[tabIndex];
 
@@ -621,7 +632,7 @@ export function SettingsMenu({ initialTab = "Appearance", networkNotice, onReque
         ))}
       </div>
 
-      <div style={{ flex: 1, overflow: "hidden" }}>
+      <div ref={panelRef} style={{ flex: 1, overflow: "hidden" }}>
         {tab === "Appearance" && (
           <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
             <Row focused={focus === 0} icon={<IconTheme />} label="Theme" value={theme.mode === "dark" ? "Dark" : "Light"} />

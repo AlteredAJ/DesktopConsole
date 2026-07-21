@@ -88,7 +88,10 @@ impl AppConfig {
         AppConfig {
             default_display: None,
             apps: vec![
-                tile("youtube", "YouTube", "apps", false),
+                // YouTube launches the desktop PWA shortcut, not an in-app
+                // embed. The id keeps "youtube" in it (a lnk: path) so the
+                // registry still resolves its icon/art by fragment match.
+                tile("lnk:C:\\Users\\Altered\\Desktop\\YouTube.lnk", "YouTube", "apps", true),
                 // Netflix via the browser (not the app scheme): WebView2 can't
                 // play it (no Widevine VMP), and the browser gives the highest
                 // quality with content protection intact.

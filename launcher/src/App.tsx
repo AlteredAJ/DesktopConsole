@@ -75,6 +75,13 @@ export function App() {
       setEnterKey((k) => k + 1);
       // Back on the console: the app that had focus is gone, so un-duck.
       duckAmbient(false);
+      // Return to the grid. Without this the launcher reappears on whatever
+      // panel it was last on (usually YouTube), which read as several
+      // different bugs: "reopens to YouTube", "Return to Console Home does
+      // nothing", "takes two attempts", and "clicks don't click" — the last
+      // because while a non-grid panel is up, CodexLauncher is unmounted and
+      // its Cross-to-launch handler isn't even running.
+      setPanel("grid");
     });
     return () => {
       un.then((f) => f());
