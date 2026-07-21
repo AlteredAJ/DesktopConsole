@@ -49,6 +49,8 @@ function artSet(glob: Record<string, unknown>): string[] {
 const netflixSet = artSet(import.meta.glob("./assets/logos/keyart/netflix/*.{jpg,jpeg,png,webp}", { eager: true, import: "default" }));
 const disneySet = artSet(import.meta.glob("./assets/logos/keyart/disney/*.{jpg,jpeg,png,webp}", { eager: true, import: "default" }));
 const epicSet = artSet(import.meta.glob("./assets/logos/keyart/epic/*.{jpg,jpeg,png,webp}", { eager: true, import: "default" }));
+const valorantSet = artSet(import.meta.glob("./assets/logos/keyart/valorant/*.{jpg,jpeg,png,webp}", { eager: true, import: "default" }));
+const rivalsSet = artSet(import.meta.glob("./assets/logos/keyart/rivals/*.{jpg,jpeg,png,webp}", { eager: true, import: "default" }));
 
 export interface AppIdentity {
   /** Stable, machine-independent key. Also the diagnostics label. */
@@ -89,6 +91,11 @@ const ENTRIES: Entry[] = [
   { key: "sifu", match: ["sifu.exe"], logo: sifu, art: sifuKeyArt, cycleLogo: true, isGame: true },
   { key: "legobatman", match: ["legobatmanlotdk.exe"], logo: legoBatman, art: legoBatmanKeyArt, isGame: true },
   { key: "deathstranding2", match: ["ds2.exe"], logo: deathStranding2, poster: deathStranding2Poster, isGame: true },
+  { key: "valorant", match: ["valorant.exe"], artSet: valorantSet, surface: "#1a2733", isGame: true },
+  // Rivals is a single 1080p keyart for now (all sourced art was sub-1440 —
+  // see the note in ART_SHOPPING_LIST.md); swap to an artSet once 1440p+
+  // atmospheric pieces exist. Rendered via artSet so adding files just works.
+  { key: "rivals", match: ["marvelrivals"], artSet: rivalsSet, surface: "#241528", isGame: true },
   { key: "fortnite", match: ["fortniteclient-win64-shipping.exe"], logo: fortnite, art: fortniteKeyArt, artSet: epicSet, lockup: fortniteLockup, surface: "#172a67", isGame: true },
   { key: "epic", match: ["epic"], artSet: epicSet, isGame: true },
   // ---- media / apps ----

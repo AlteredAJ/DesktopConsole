@@ -48,9 +48,9 @@ procedural `GameHero` SVG). Listed for AJ to source.
 
 | # | Game | Suggested ArtStation search |
 |---|---|---|
-| 1 | **Marvel Rivals** | *Marvel Rivals key art / hero splash / map concept* |
+| 1 | ~~Marvel Rivals~~ | ⚠️ 1 piece wired (js-almencion supervillains keyart, **1080p**). All 5 sourced were sub-1440 or character close-ups; wants proper 1440p+ atmospheric art. |
 | 2 | **Control** | *Control Remedy, Oldest House, brutalist interior concept* |
-| 3 | **VALORANT** | *VALORANT map concept / splash — Riot environment art* |
+| 3 | ~~VALORANT~~ ✅ | 5 wired (josh-h 1/5/8 4K, george-sokol icebox 1440p, dancheng-ye 4K). Done. |
 | 4 | **BeamNG.drive** | *BeamNG environment / open-road landscape* |
 | 5 | **Rocket League** | *Rocket League arena / stadium concept* |
 | 6 | **F1 23** | *F1 circuit / motorsport key art* |
