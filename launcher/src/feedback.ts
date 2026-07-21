@@ -5,7 +5,7 @@
 
 import { invoke } from "@tauri-apps/api/core";
 import { getFeedbackSettings } from "./settings";
-import { playBack, playError, playLaunch, playNavTick, playSelect, playStartupChime, playTabSwitch, playToggle } from "./sound";
+import { playBack, playError, playLaunch, playLogin, playNavTick, playSelect, playTabSwitch, playToggle } from "./sound";
 
 export function navFeedback() {
   const { soundEnabled, hapticsEnabled } = getFeedbackSettings();
@@ -69,5 +69,5 @@ export function startupFeedback() {
     void invoke("haptic_select");
     setTimeout(() => void invoke("haptic_confirm"), 150);
   }
-  if (soundEnabled) playStartupChime();
+  if (soundEnabled) playLogin();
 }

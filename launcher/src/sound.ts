@@ -132,7 +132,8 @@ export function playLaunch() {
 /** Boot chime — a warm ascending G-major arpeggio over a soft low pad. Plays
  * once when Home opens (fits inside the ~760 ms entry animation). Bell-like
  * because `tone` decays exponentially, so it reads as a console power-on
- * flourish, not four flat beeps. */
+ * flourish, not four flat beeps. Kept for reference; playLogin is now the
+ * entry sound. */
 export function playStartupChime() {
   const notes: Array<[number, number]> = [
     [392.0, 0],    // G4
@@ -142,4 +143,80 @@ export function playStartupChime() {
   ];
   for (const [freq, delay] of notes) tone(freq, 460, 0.06, { delayMs: delay });
   tone(196.0, 620, 0.04); // G3 fundamental underneath for body
+}
+
+/**
+ * Login swell — the console "power-on" sound. AJ asked for a smooth, ambient,
+ * longer, Xbox-style tone rather than the short chime: something that reads
+ * like the opening of a trailer, not a UI beep.
+ *
+ * How it gets there:
+ *  - It's a *swell*, not an arpeggio. Voices fade IN and hold rather than
+ *    striking and decaying, so there's no percussive "ping" — that's the
+ *    difference between a boot sound and a menu tick.
+ *  - A D-major-add9 chord (D–A–F#–E–D), voices staggered ~180ms apart so the
+ *    harmony assembles itself over about a second instead of arriving as a
+ *    block. Major-add9 is bright and open without being saccharine.
+ *  - A low D drone under it for body, and a slow low-pass that opens as it
+ *    swells, so the timbre brightens as it arrives — the "coming into focus"
+ *    quality Xbox/PlayStation boots share.
+ *  - ~2.2s total. It deliberately outlasts the ~760ms entry animation; a boot
+ *    sound resolving after the screen has settled feels intentional, not late.
+ *
+ * Synthesized, like everything here — no asset, no licence, references the
+ * feel of those boots without using anyone's audio.
+ */
+export function playLogin() {
+  const c = getCtx();
+  const now = c.currentTime;
+
+  // Shared swell bus with its own opening filter, so the whole chord brightens
+  // together rather than each voice filtering independently.
+  const swell = c.createGain();
+  swell.gain.value = 1;
+  const lp = c.createBiquadFilter();
+  lp.type = "lowpass";
+  lp.frequency.setValueAtTime(320, now);
+  lp.frequency.linearRampToValueAtTime(2600, now + 1.4);
+  lp.Q.value = 0.5;
+  lp.connect(swell);
+  swell.connect(bus());
+
+  // D major add9, voiced low-to-high so it blooms upward.
+  const voices: Array<[number, number, number]> = [
+    // freq,   delayMs, peakGain
+    [146.83, 0, 0.05],   // D3 drone
+    [220.0, 140, 0.05],  // A3
+    [293.66, 300, 0.05], // D4
+    [369.99, 470, 0.045],// F#4
+    [329.63, 650, 0.04], // E4 (the add9 colour, last so it settles on top)
+    [587.33, 820, 0.03], // D5 shimmer
+  ];
+
+  for (const [freq, delayMs, peak] of voices) {
+    const at = now + delayMs / 1000;
+    const osc = c.createOscillator();
+    const detuned = c.createOscillator();
+    const g = c.createGain();
+    osc.type = "triangle";
+    detuned.type = "sine";
+    osc.frequency.value = freq;
+    detuned.frequency.value = freq;
+    detuned.detune.value = 6; // slow beating = warmth, not a pure test tone
+
+    // Long fade-in, gentle fade-out — the envelope IS the swell.
+    g.gain.setValueAtTime(0.0001, at);
+    g.gain.exponentialRampToValueAtTime(peak, at + 0.6);
+    g.gain.setValueAtTime(peak, at + 1.1);
+    g.gain.exponentialRampToValueAtTime(0.0001, at + 2.2 - delayMs / 1000);
+
+    osc.connect(g);
+    detuned.connect(g);
+    g.connect(lp);
+    osc.start(at);
+    detuned.start(at);
+    const stop = now + 2.4;
+    osc.stop(stop);
+    detuned.stop(stop);
+  }
 }

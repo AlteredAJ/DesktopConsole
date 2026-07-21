@@ -8,7 +8,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { getPerformanceSettings, subscribePerformanceSettings } from "../../settings";
-import { nextFromBag } from "./shuffleBag";
+import { currentFromBag, nextFromBag } from "./shuffleBag";
 import { MOTION } from "../../motion";
 
 // How long each image in a rotating set holds before the slow crossfade.
@@ -57,7 +57,10 @@ export function KeyArtHero({
     typeof window !== "undefined" &&
       window.matchMedia?.("(prefers-reduced-motion: reduce)").matches,
   ).current;
-  const [slots, setSlots] = useState<[string, string]>(() => [pool[nextFromBag(pool)] ?? "", ""]);
+  // Opening frame is the pool's CURRENT image, not a fresh draw — so remounting
+  // on a tab switch or a Settings round-trip keeps the same wallpaper for the
+  // same app. Only the rotation timer below advances it.
+  const [slots, setSlots] = useState<[string, string]>(() => [pool[currentFromBag(pool)] ?? "", ""]);
   const [front, setFront] = useState(0);
   // Settings > Performance can switch the rotation off entirely — it's a
   // constant background crossfade plus an image decode per cycle, which is real
@@ -82,11 +85,17 @@ export function KeyArtHero({
     // pool identity is stable per hero (module-level array); guard on its length.
   }, [reduced, rotationOn, pool.length]);
 
+  // 110% with a -5% offset: the art is over-scanned so the parallax pan (the
+  // whole backdrop translates by a couple of cqw as focus moves) can never
+  // slide a bare edge of the image into view. Applied here on the image itself
+  // rather than only on the wrapper, so the single-image and crossfade paths
+  // both get it regardless of any transform the wrapper is mid-animating.
   const layer: React.CSSProperties = {
     position: "absolute",
-    inset: 0,
-    width: "100%",
-    height: "100%",
+    top: "-5%",
+    left: "-5%",
+    width: "110%",
+    height: "110%",
     objectFit: "cover",
     transition: `opacity ${MOTION.heroArt.crossfadeMs}ms ease-in-out`,
   };
@@ -99,11 +108,7 @@ export function KeyArtHero({
           <img src={slots[1]} alt="" style={{ ...layer, opacity: front === 1 ? 1 : 0 }} />
         </>
       ) : (
-        <img
-          src={pool[0] ?? art}
-          alt=""
-          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
-        />
+        <img src={pool[0] ?? art} alt="" style={layer} />
       )}
       {/* Legibility scrim. This is now the ONLY layer dimming the art — the
           wrapper used to also drop it to 72% opacity and mask away the left

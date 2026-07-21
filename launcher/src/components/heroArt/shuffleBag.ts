@@ -41,7 +41,8 @@ function refill(pool: string[], last: number | null): number[] {
 
 /**
  * Next index to show for this pool. Advances the bag, so two consecutive calls
- * return different images (until the whole set has been used).
+ * return different images (until the whole set has been used). This is the
+ * rotation timer's call.
  */
 export function nextFromBag(pool: string[]): number {
   if (pool.length <= 1) return 0;
@@ -54,4 +55,22 @@ export function nextFromBag(pool: string[]): number {
   const pick = bag.remaining.pop() as number;
   bag.last = pick;
   return pick;
+}
+
+/**
+ * The image this pool is *currently* showing, WITHOUT advancing — draws a fresh
+ * one only if the pool has never been shown.
+ *
+ * This is what a KeyArtHero uses for its opening frame, and it's the fix for
+ * "the wallpaper cycles when I switch tabs / dip into Settings": the component
+ * remounts constantly (every focus change, every return from a panel), and if
+ * mount advanced the bag, the same app would show a different piece each visit.
+ * Now an app keeps its wallpaper until its own rotation timer moves it on.
+ */
+export function currentFromBag(pool: string[]): number {
+  if (pool.length <= 1) return 0;
+  const bag = bags.get(pool);
+  if (bag && bag.last !== null) return bag.last;
+  // Never shown before — draw (and remember) one.
+  return nextFromBag(pool);
 }
