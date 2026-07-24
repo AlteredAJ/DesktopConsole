@@ -9,29 +9,52 @@
 html{background:#05080f;color:#f4f6fb;font-family:"Open Sans",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
 body{width:1920px;height:1080px;margin:0 auto;position:relative;overflow:hidden}
 
-/* ── HERO BACKDROP ── */
-.hero{position:absolute;inset:0;z-index:-1}
-.hero .base{position:absolute;inset:0;background:
-  radial-gradient(ellipse 62% 42% at 68% 28%,#1b3358 0%,#0c1a30 28%,#060c18 58%,#030509 100%)}
-.hero .accent{position:absolute;inset:0;background:
-  radial-gradient(circle 420px at 78% 16%,rgba(70,110,180,.38),transparent 60%),
-  radial-gradient(circle 240px at 24% 72%,rgba(140,100,60,.18),transparent 55%),
-  radial-gradient(circle 180px at 56% 88%,rgba(50,60,90,.22),transparent 60%)}
-.hero .texture{position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='6' height='6'%3E%3Crect width='6' height='6' fill='%23fff' fill-opacity='.007'/%3E%3Crect x='3' y='3' width='1' height='1' fill='%23fff' fill-opacity='.004'/%3E%3C/svg%3E");opacity:.6}
+/* ── HERO BACKDROP — compositor-only atmosphere (like codex Atmosphere.tsx) ── */
+.hero{position:absolute;inset:0;z-index:-1;overflow:hidden}
+.hero .base{position:absolute;inset:0;background:#040810}
+/* Animated orbs — transform + opacity only, no paint/layout. GPU-composited. */
+.atmos-orb{position:absolute;border-radius:50%;will-change:transform,opacity;pointer-events:none}
+.atmos-orb.a{width:820px;height:820px;top:-18%;left:42%;background:radial-gradient(circle,rgba(35,70,140,.22),transparent 68%);
+  animation:orb-drift-a 18s ease-in-out infinite}
+.atmos-orb.b{width:640px;height:640px;top:22%;left:-8%;background:radial-gradient(circle,rgba(90,60,140,.16),transparent 66%);
+  animation:orb-drift-b 22s ease-in-out infinite}
+.atmos-orb.c{width:560px;height:560px;bottom:-12%;right:-6%;
+  background:radial-gradient(circle,rgba(30,80,160,.18),transparent 64%);
+  animation:orb-drift-c 20s ease-in-out infinite}
+.atmos-orb.sheen{width:900px;height:320px;top:0;left:56%;
+  background:radial-gradient(ellipse 60% 50% at 50% 50%,rgba(255,255,255,.03),transparent 70%);
+  animation:orb-sheen 16s ease-in-out infinite}
+/* Scrim + legibility gradient over the atmosphere */
 .hero .scrim{position:absolute;inset:0;background:
   linear-gradient(68deg,rgba(5,7,12,.92) 0%,rgba(7,9,16,.55) 24%,transparent 38%),
   linear-gradient(184deg,transparent 26%,rgba(5,7,12,.25) 52%,rgba(4,6,11,.62) 72%,rgba(4,6,11,.92) 100%)}
-.hero .sheen{position:absolute;inset:0;background:
-  radial-gradient(ellipse 28% 8% at 76% 8%,rgba(255,255,255,.06),transparent 100%),
-  radial-gradient(ellipse 18% 5% at 22% 12%,rgba(180,200,255,.04),transparent 100%)}
-.hero .particle{position:absolute;border-radius:50%;background:rgba(255,255,255,.15);animation:drift 12s linear infinite}
-.hero .particle:nth-child(1){width:2px;height:2px;left:14%;top:22%;animation-duration:14s;animation-delay:0s}
-.hero .particle:nth-child(2){width:3px;height:3px;left:72%;top:8%;animation-duration:18s;animation-delay:-4s}
-.hero .particle:nth-child(3){width:1.5px;height:1.5px;left:42%;top:18%;animation-duration:16s;animation-delay:-8s}
-.hero .particle:nth-child(4){width:2px;height:2px;left:88%;top:32%;animation-duration:20s;animation-delay:-2s}
-.hero .particle:nth-child(5){width:1px;height:1px;left:6%;top:42%;animation-duration:15s;animation-delay:-6s}
-.hero .particle:nth-child(6){width:2.5px;height:2.5px;left:56%;top:14%;animation-duration:17s;animation-delay:-10s}
-@keyframes drift{to{transform:translate(40px,-30px);opacity:0}}
+/* Subtle screen-space specular bloom */
+.hero .bloom{position:absolute;inset:0;background:
+  radial-gradient(ellipse 28% 8% at 76% 8%,rgba(255,255,255,.05),transparent 100%),
+  radial-gradient(ellipse 18% 5% at 22% 12%,rgba(180,200,255,.03),transparent 100%)}
+
+@keyframes orb-drift-a {
+  0%,100%{transform:translate(0,0) scale(1)}
+  25%{transform:translate(-40px,20px) scale(1.06)}
+  50%{transform:translate(-18px,-14px) scale(.97)}
+  75%{transform:translate(28px,8px) scale(1.04)}
+}
+@keyframes orb-drift-b {
+  0%,100%{transform:translate(0,0) scale(1)}
+  33%{transform:translate(32px,-18px) scale(1.05)}
+  66%{transform:translate(-22px,14px) scale(.96)}
+}
+@keyframes orb-drift-c {
+  0%,100%{transform:translate(0,0) scale(1);opacity:1}
+  50%{transform:translate(-24px,-10px) scale(1.07);opacity:.8}
+}
+@keyframes orb-sheen {
+  0%,100%{transform:translate(0,0);opacity:.8}
+  50%{transform:translate(-30px,-6px);opacity:1}
+}
+@media(prefers-reduced-motion:reduce){
+  .atmos-orb{animation:none!important}
+}
 
 /* ── TOP NAV BAR ── 108px ── */
 .nav{position:absolute;top:0;left:0;right:0;height:108px;display:flex;align-items:center;justify-content:space-between;padding:0 48px;z-index:20;pointer-events:none}
@@ -167,12 +190,12 @@ h1 em{font-style:italic;font-weight:800;opacity:.55}
 <body>
 <div class="hero">
   <div class="base"></div>
-  <div class="accent"></div>
-  <div class="texture"></div>
+  <div class="atmos-orb a"></div>
+  <div class="atmos-orb b"></div>
+  <div class="atmos-orb c"></div>
+  <div class="atmos-orb sheen"></div>
   <div class="scrim"></div>
-  <div class="sheen"></div>
-  <div class="particle"></div><div class="particle"></div><div class="particle"></div>
-  <div class="particle"></div><div class="particle"></div><div class="particle"></div>
+  <div class="bloom"></div>
 </div>
 
 <nav class="nav">
