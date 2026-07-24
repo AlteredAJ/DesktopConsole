@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=1920">
+<title>A1 — Idle / Rest Screen</title>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,600;0,700;0,800;1,800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{background:#040810;color:#f4f6fb;font-family:"Open Sans",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{width:1920px;height:1080px;margin:0 auto;position:relative;overflow:hidden}
+.hero{position:absolute;inset:0;z-index:-1;overflow:hidden}
+.hero .base{position:absolute;inset:0;background:#040810}
+.atmos-orb{position:absolute;border-radius:50%;will-change:transform,opacity;pointer-events:none}
+.atmos-orb.a{width:1100px;height:820px;top:-18%;left:18%;background:radial-gradient(circle,rgba(50,100,200,.28),rgba(30,60,140,.1) 40%,transparent 68%);animation:orb-drift-a 22s ease-in-out infinite}
+.atmos-orb.b{width:840px;height:640px;top:14%;right:-6%;background:radial-gradient(circle,rgba(120,80,180,.18),rgba(60,30,120,.06) 38%,transparent 66%);animation:orb-drift-b 26s ease-in-out infinite}
+.atmos-orb.c{width:680px;height:560px;bottom:-8%;left:30%;background:radial-gradient(circle,rgba(40,120,220,.16),rgba(20,60,140,.08) 36%,transparent 64%);animation:orb-drift-c 24s ease-in-out infinite}
+.hero .scrim{position:absolute;inset:0;background:linear-gradient(180deg,transparent 10%,rgba(4,6,11,.3) 60%,rgba(4,6,11,.85) 90%)}
+.hero .vignette{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,transparent 40%,rgba(2,4,8,.55) 85%,rgba(2,4,8,.85))}
+@keyframes orb-drift-a{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-30px,15px) scale(1.04)}}
+@keyframes orb-drift-b{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(20px,-10px) scale(1.03)}}
+@keyframes orb-drift-c{0%,100%{transform:translate(0,0) scale(1);opacity:1}50%{transform:translate(-15px,-8px) scale(1.05);opacity:.75}}
+@media(prefers-reduced-motion:reduce){.atmos-orb{animation:none!important}}
+
+/* Wordmark */
+.center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10}
+.logo{display:flex;align-items:center;gap:12px;margin-bottom:28px}
+.logo svg{width:48px;height:40px}
+.logo span{font-size:32px;font-weight:900;letter-spacing:-.08em;transform:skew(-10deg);text-shadow:0 0 40px rgba(91,156,245,.35)}
+.brand{font-size:16px;font-weight:800;letter-spacing:.22em;color:rgba(255,255,255,.45);text-transform:uppercase;text-shadow:0 1px 12px rgba(0,0,0,.5)}
+/* PS prompt — subtle pulsing glow */
+.prompt{margin-top:48px;display:flex;align-items:center;gap:10px;font-size:14px;font-weight:700;color:rgba(255,255,255,.28);letter-spacing:.04em;animation:pulse 3s ease-in-out infinite}
+.prompt svg{width:28px;height:28px;opacity:.5}
+@keyframes pulse{0%,100%{opacity:.45}50%{opacity:.85}}
+/* Floating constellation */
+.star{position:absolute;width:1.5px;height:1.5px;border-radius:50%;background:rgba(255,255,255,.25);animation:twinkle 4s ease-in-out infinite}
+.star:nth-child(1){left:22%;top:28%}.star:nth-child(2){left:74%;top:18%;animation-delay:-1s}
+.star:nth-child(3){left:48%;top:62%;animation-delay:-2s}.star:nth-child(4){left:82%;top:44%;animation-delay:-3s}
+.star:nth-child(5){left:12%;top:52%}.star:nth-child(6){left:62%;top:72%;animation-delay:-1.5s}
+.star:nth-child(7){left:34%;top:14%;animation-delay:-2.5s}.star:nth-child(8){left:90%;top:78%;animation-delay:-.5s}
+@keyframes twinkle{0%,100%{opacity:.15}50%{opacity:.5}}
+
+/* Status bar */
+.status-bar{position:absolute;bottom:36px;left:50%;transform:translateX(-50%);display:flex;gap:20px;z-index:20}
+.status-bar span{font-size:11px;font-weight:600;color:rgba(255,255,255,.22);letter-spacing:.04em;display:flex;align-items:center;gap:6px}
+.status-bar .dot{width:5px;height:5px;border-radius:50%;background:rgba(26,255,132,.5);box-shadow:0 0 6px rgba(26,255,132,.3)}
+</style>
+</head>
+<body>
+<div class="hero">
+  <div class="base"></div>
+  <div class="atmos-orb a"></div>
+  <div class="atmos-orb b"></div>
+  <div class="atmos-orb c"></div>
+  <div class="scrim"></div>
+  <div class="vignette"></div>
+  <div class="star"></div><div class="star"></div><div class="star"></div><div class="star"></div>
+  <div class="star"></div><div class="star"></div><div class="star"></div><div class="star"></div>
+</div>
+
+<div class="center">
+  <div class="logo">
+    <svg viewBox="0 0 64 54" fill="none" stroke="#e4ecff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" opacity=".7">
+      <path d="M8 12h48c4 0 4 4 4 4v8c0 16-4 22-14 22-6 0-12-4-14-12-2 8-8 12-14 12C8 46 4 40 4 24v-8c0 0 0-4 4-4Z"/>
+      <rect x="22" y="14" width="20" height="12" rx="4"/>
+      <line x1="24" y1="6" x2="40" y2="6" stroke="#5b9cf5" stroke-width="2.5"/>
+      <circle cx="29" cy="32" r="4"/>
+      <circle cx="35" cy="32" r="4"/>
+    </svg>
+    <span>LM</span>
+  </div>
+  <div class="brand">Press controller button to wake</div>
+  <div class="prompt">
+    <svg viewBox="0 0 64 54" fill="none" stroke="#e4ecff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M8 12h48c4 0 4 4 4 4v8c0 16-4 22-14 22-6 0-12-4-14-12-2 8-8 12-14 12C8 46 4 40 4 24v-8c0 0 0-4 4-4Z"/>
+      <rect x="22" y="14" width="20" height="12" rx="4"/>
+      <line x1="24" y1="6" x2="40" y2="6" stroke="#5b9cf5" stroke-width="2.5"/>
+      <circle cx="29" cy="32" r="4"/>
+      <circle cx="35" cy="32" r="4"/>
+    </svg>
+    <span>Press PS to enter</span>
+  </div>
+</div>
+
+<div class="status-bar">
+  <span><span class="dot"></span> Controller connected</span>
+  <span>02:48 AM</span>
+</div>
+</body>
+</html>
