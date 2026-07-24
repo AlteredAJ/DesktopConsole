@@ -274,6 +274,12 @@ fn input_loop(app: AppHandle) {
                 rearm_after_yield = true;
                 last_emitted = None;
                 prev_touch = None;
+                // While yielded with no overlay visible, the PS/Share gesture
+                // windows (420ms) don't need sub-ms poll rates. Throttling here
+                // drops the launcher HID thread from 600-1400Hz to ~25Hz when
+                // the console is hidden, keeping the listener as the sole
+                // high-rate reader while a game plays.
+                thread::sleep(Duration::from_millis(40));
                 continue;
             }
             #[cfg(windows)]

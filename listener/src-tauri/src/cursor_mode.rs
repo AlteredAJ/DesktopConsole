@@ -23,6 +23,7 @@
 #![cfg(windows)]
 
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Mutex;
 use std::time::{Duration, Instant};
 
 use crate::triple_click::ClickTracker;
@@ -220,10 +221,19 @@ impl State {
 
 /// True if ps5-launcher.exe currently owns the foreground window (the
 /// fullscreen grid is up) — in that case the touchpad stays swipe-nav and
-/// this module's gestures are inert. Re-checked every poll rather than cached
-/// since foreground focus can change between HID reads at any time.
+/// this module's gestures are inert. Cached for 100ms to avoid 5 Win32
+/// syscalls per HID poll tick (~7000/sec during gameplay).
 pub fn foreground_is_launcher() -> bool {
-    unsafe {
+    static CACHE: Mutex<Option<(bool, Instant)>> = Mutex::new(None);
+    {
+        let guard = CACHE.lock().unwrap_or_else(|e| e.into_inner());
+        if let Some((val, ts)) = *guard {
+            if ts.elapsed() < Duration::from_millis(100) {
+                return val;
+            }
+        }
+    }
+    let result = unsafe {
         let hwnd = GetForegroundWindow();
         if hwnd == 0 {
             return false;
@@ -249,5 +259,9 @@ pub fn foreground_is_launcher() -> bool {
             .next()
             .map(|name| name.eq_ignore_ascii_case("ps5-launcher.exe"))
             .unwrap_or(false)
+    };
+    if let Ok(mut guard) = CACHE.lock() {
+        *guard = Some((result, Instant::now()));
     }
+    result
 }

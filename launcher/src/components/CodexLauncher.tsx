@@ -145,7 +145,36 @@ export function CodexLauncher({ onOpen, onReady, onRest, inputEnabled }: { onOpe
   useEffect(() => setFocus(0), [tabIndex, setFocus]);
   useEffect(() => () => { if (outgoingTimer.current) window.clearTimeout(outgoingTimer.current); if (copyDirTimer.current) window.clearTimeout(copyDirTimer.current); }, []);
   useEffect(() => { const dock = dockRef.current; const tile = tileRefs.current[focus]; if (!dock || !tile) return; scrollDockTo(tile.offsetLeft - (dock.clientWidth - tile.offsetWidth) / 2); }, [focus, tabIndex, tiles.length, scrollDockTo]);
-  useEffect(() => { if (!tileIds.length) return; let stopped = false; const poll = () => void invoke<string[]>("running_tile_ids", { tileIds }).then((ids) => { if (!stopped) setRunningIds(new Set(ids)); }); poll(); const interval = window.setInterval(poll, 4000); return () => { stopped = true; window.clearInterval(interval); }; }, [tileIds]);
+  const runningInterval = useRef<number | null>(null);
+  useEffect(() => {
+    if (!tileIds.length) return;
+    let stopped = false;
+    const poll = () => void invoke<string[]>("running_tile_ids", { tileIds }).then((ids) => {
+      if (!stopped) setRunningIds(new Set(ids));
+    });
+    const startPolling = () => {
+      if (runningInterval.current !== null) return;
+      poll();
+      runningInterval.current = window.setInterval(poll, 4000);
+    };
+    const stopPolling = () => {
+      if (runningInterval.current !== null) {
+        window.clearInterval(runningInterval.current);
+        runningInterval.current = null;
+      }
+    };
+    const onVis = () => {
+      if (document.visibilityState === "hidden") stopPolling();
+      else startPolling();
+    };
+    startPolling();
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      stopped = true;
+      stopPolling();
+      document.removeEventListener("visibilitychange", onVis);
+    };
+  }, [tileIds]);
   useEffect(() => {
     const tileId = activeTile?.id;
     if (!tileId || !runningIds.has(tileId)) { setLiveBackdrop(null); return; }
