@@ -111,6 +111,13 @@ export function CodexLauncher({ onOpen, onReady, onRest, inputEnabled }: { onOpe
   // analog stick still needs a local previous-direction ref (it's derived from
   // axis thresholds, not a button state).
   const edges = useEdges(); const prevStick = useRef<Direction | null>(null); const dragStartFocus = useRef(0); const dragging = useRef(false); const dragLastDx = useRef(0); const dragLastT = useRef(0); const dragVel = useRef(0); const shareTap = useRef<number | null>(null);
+  // Block Cross launches for the first 500ms after this component mounts.
+  // The HID rearm-after-yield logic discards held-input-on-return at the Rust
+  // level, but the timing is multi-thread (HID → overlay JS → invoke → Rust
+  // handler → window-restore → React remount → next HID frame). One stray
+  // Cross edge leaking across that seam is what makes "Console Home" in the
+  // Quick Menu open YouTube instead of the dashboard.
+  const mountGuardUntil = useRef(Date.now() + 500);
   useEffect(() => {
     let cancelled = false;
     const applyConfig = (config: RawAppConfig | null | undefined) => {
@@ -310,7 +317,15 @@ export function CodexLauncher({ onOpen, onReady, onRest, inputEnabled }: { onOpe
     if (hat !== null) { const direction: Direction | null = hat === 0 ? "up" : hat === 2 ? "right" : hat === 4 ? "down" : hat === 6 ? "left" : null; if (direction) navigate(direction); }
     const stick: Direction | null = stickAt(pad.lx) !== 0 ? (stickAt(pad.lx) === 1 ? "right" : "left") : stickAt(pad.ly) !== 0 ? (stickAt(pad.ly) === 1 ? "down" : "up") : null;
     if (stick !== prevStick.current) { prevStick.current = stick; if (stick) navigate(stick); }
-    if (edge.rising("cross")) { if (topFocus === "wifi") { selectFeedback(); onOpen("settings"); } else if (topFocus === "search") { selectFeedback(); onOpen("search"); } else if (topFocus === "settings") { selectFeedback(); onOpen("settings"); } else if (topFocus === "power") { selectFeedback(); setPowerOpen(true); } else if (activeTile?.category === "games") { selectFeedback(); setActionIndex(0); setExpandedTile(activeTile); } else launch(activeTile); }
+    if (edge.rising("cross")) { if (topFocus === "wifi") { selectFeedback(); onOpen("settings"); } else if (topFocus === "search") { selectFeedback(); onOpen("search"); } else if (topFocus === "settings") { selectFeedback(); onOpen("settings"); } else if (topFocus === "power") { selectFeedback(); setPowerOpen(true); } else if (activeTile) {
+      // Guard: ignore the first Cross rising edge within 500ms of mount.
+      // On a restore-from-yield the same physical press that selected
+      // "Console Home" in the Quick Menu can arrive here as a rising edge
+      // before the controller state resets — without this, it silently
+      // launches whatever tile was under the overlay.
+      if (Date.now() < mountGuardUntil.current) return;
+      if (activeTile.category === "games") { selectFeedback(); setActionIndex(0); setExpandedTile(activeTile); } else launch(activeTile);
+    } }
     if (edge.rising("square") && activeTile && runningIds.has(activeTile.id)) setConfirmClose(activeTile);
     if (shoulderEdge & L1) setTab(tabIndex - 1); if (shoulderEdge & R1) setTab(tabIndex + 1);
   });
