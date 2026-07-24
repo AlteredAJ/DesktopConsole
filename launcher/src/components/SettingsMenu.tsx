@@ -614,16 +614,16 @@ export function SettingsMenu({ initialTab = "Appearance", networkNotice, onReque
   });
   return (
     <CodexPanelShell eyebrow="SYSTEM" title="Settings" subtitle="Tune the room, the controller, and this PC."><div style={{ height: "100%", overflow: "hidden", display: "flex", gap: 0 }}>
-      {/* A1 sidebar */}
-      <aside style={{ width: "280px", flexShrink: 0, padding: "2.4cqh 1.4cqw", display: "flex", flexDirection: "column", gap: "3px", overflowY: "auto" }}>
+      {/* A1 sidebar — fixed px to avoid CodexPanelShell's container-type:cq interference */}
+      <aside style={{ width: "240px", flexShrink: 0, padding: "28px 16px", display: "flex", flexDirection: "column", gap: "3px", overflowY: "auto" }}>
         {TABS.map((t, i) => (
           <div
             key={t}
             data-tab={t}
             style={{
-              padding: "1.1cqh 1.4cqw",
-              borderRadius: "1.1cqh",
-              fontSize: "1.2cqh",
+              padding: "10px 16px",
+              borderRadius: "12px",
+              fontSize: "14px",
               fontWeight: 600,
               color: i === tabIndex ? "#fff" : "rgba(255,255,255,.45)",
               background: i === tabIndex ? "rgba(91,156,245,.12)" : "transparent",
@@ -631,11 +631,11 @@ export function SettingsMenu({ initialTab = "Appearance", networkNotice, onReque
               cursor: "pointer",
               display: "flex",
               alignItems: "center",
-              gap: "1cqw",
+              gap: "10px",
               transition: "background .15s, color .15s",
             }}
           >
-            <span style={{ fontSize: "1.4cqh", fontStyle: "normal", width: "2cqw", textAlign: "center" }}>
+            <span style={{ fontSize: "16px", fontStyle: "normal", width: "22px", textAlign: "center" }}>
               {t === "Appearance" ? "\u2699" : t === "Feedback" ? "\u2668" : t === "Controller" ? "\u25CE" : t === "Audio" ? "\u266B" : t === "Performance" ? "\u26A1" : t === "Display" ? "\u2622" : t === "Lighting" ? "\u2726" : t === "System" ? "\u25A0" : t === "Bluetooth" ? "\u2934" : t === "About" ? "\u2139" : ""}
             </span>
             {t}
@@ -643,7 +643,7 @@ export function SettingsMenu({ initialTab = "Appearance", networkNotice, onReque
         ))}
       </aside>
       {/* Content */}
-      <main ref={panelRef} style={{ flex: 1, overflow: "hidden auto", padding: "2.4cqh 3.2cqw 2.4cqh 0" }}>
+      <main ref={panelRef} style={{ flex: 1, overflow: "hidden auto", padding: "28px 32px 28px 0" }}>
         {tab === "Appearance" && (
           <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
             <Row focused={focus === 0} icon={<IconTheme />} label="Theme" value={theme.mode === "dark" ? "Dark" : "Light"} />
