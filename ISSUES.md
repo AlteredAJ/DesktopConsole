@@ -22,12 +22,12 @@ Generated 2026-07-23. Work through top-to-bottom. Cross off as fixed.
 
 | # | Item | Location | Notes |
 |---|------|----------|-------|
-| 8 | **A1 redesign** | `demo/` → `launcher/src/` | Top-dock layout still in mockup phase. Not implemented in React/Tauri. |
-| 9 | **Settings rework** | `SettingsMenu.tsx` | Current Settings uses old codex-glass panel. A1 mockup has sidebar + cards layout. |
-| 10 | **Power menu rework** | `CodexLauncher.tsx` | Current Power is center overlay. A1 mockup is right-edge slide panel. |
-| 11 | **Quick Menu visual refresh** | `QuickOverlay.tsx` | Keep functional code, restyle to match A1 glass depth. |
-| 12 | **Keyboard overlay restyle** | `KeyboardOverlay.tsx` / `VirtualKeyboard.tsx` | Match A1 keyboard mockup visual style. |
-| 13 | **Startup/idle screen** | `StartupScreen.tsx` / `IdleScreen.tsx` | A1 idle has wordmark, pulsing prompt, constellation. |
+| 8 | **A1 redesign** | `CodexLauncher.tsx` | ~~Mockup only~~ Done — top-dock layout, nav bar, game detail slide-up, combined header. `55da3d2` `4bb9d50` |
+| 9 | **Settings rework** | `SettingsMenu.tsx` | ~~Old pill tabs~~ Done — A1 sidebar (280px, icons, accent highlight) + card content area. `16f11d7` |
+| 10 | **Power menu rework** | `CodexLauncher.tsx` | ~~Center overlay~~ Done — right-edge slide panel with icon tiles. `55da3d2` |
+| 11 | **Quick Menu visual refresh** | `QuickOverlay.tsx` | Done — LM branding in header. `55da3d2` |
+| 12 | **Keyboard overlay restyle** | `KeyboardOverlay.tsx` | Already matched A1 visual. No change needed. |
+| 13 | **Startup/idle screen** | `IdleScreen.tsx` | Done — LM wordmark + DualSense SVG icon. `55da3d2` |
 
 ---
 
