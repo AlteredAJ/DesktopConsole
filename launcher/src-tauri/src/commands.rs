@@ -208,22 +208,15 @@ pub fn yield_focus(app: &AppHandle) {
 /// Bring the launcher back to the foreground after a triple-click while a
 /// session is already active (see hid.rs's local triple-click tracker).
 pub fn restore_focus(app: &AppHandle) {
-    if !YIELDED.swap(false, Ordering::AcqRel) {
-        return;
-    }
+    let was_yielded = YIELDED.swap(false, Ordering::AcqRel);
     hide_quick_overlay(app);
     if let Some(win) = app.get_webview_window("main") {
         let _ = win.show();
         let _ = win.set_focus();
     }
-    // Frontend replays its entrance animation on this Ã¢â‚¬â€ the webview itself
-    // never unmounts across minimize/restore (it's the same live process),
-    // so without an explicit signal there's nothing to hook a "just opened"
-    // animation off of.
-    let _ = app.emit("window-restored", ());
-    // Whatever external app had cursor mode on, it no longer has focus Ã¢â‚¬â€ always
-    // clear it on return to the grid so a stray cursor-mode flag never lingers
-    // and fights swipe-nav once we're back.
+    if was_yielded {
+        let _ = app.emit("window-restored", ());
+    }
     #[cfg(windows)]
     crate::mouse_inject::CURSOR_MODE.store(false, Ordering::Relaxed);
 }
