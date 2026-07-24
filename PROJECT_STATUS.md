@@ -349,5 +349,12 @@ Format per entry: Intent · Changed · Files · Verified · Next/limits.
 - **Verified:** tsc + vite build + cargo check green.
 - **Next:** rebuild and test keyboard typing doesn't kill launcher; verify Quick Menu never triggers RGB in background.
 
+### 2026-07-23 — Cross-leak guard + overlay prewarm COM fix
+- **Intent:** fix "Console Home" returning to YouTube instead of dashboard, and fix crash on restore from minimize.
+- **Changed:** `CodexLauncher.tsx`: `mountGuardUntil` ref blocks Cross-launch for 500ms after mount (the same physical press that selects "Console Home" in Quick Menu can leak to the freshly mounted dashboard). `commands.rs` + `lib.rs` + `App.tsx`: moved `prewarm_quick_overlay` from `std::thread::spawn` (Phase 2.2) to frontend `setTimeout` on the main COM thread — WebView2 creation from a background thread corrupts COM state and causes crashes when the overlay is later hidden/shown.
+- **Files:** `CodexLauncher.tsx`, `commands.rs`, `lib.rs`, `App.tsx`.
+- **Verified:** tsc + vite build + cargo check green.
+- **Next:** rebuild and test minimize → Quick Menu → Console Home flow on device.
+
 *Earlier change-log entries (2026-07-15 baseline, Power glass, native benchmark,
 Unreal subsystem) are preserved in `docs/archive/AI_CONTINUATION_PROTOCOL.md`.*

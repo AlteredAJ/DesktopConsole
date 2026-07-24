@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=1920">
+<title>A3 — Full-Bleed Game Overlay (hybrid)</title>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{background:#05060a;color:#f4f6fb;font-family:"Open Sans",system-ui,sans-serif}
+body{width:1920px;height:1080px;margin:0 auto;position:relative;overflow:hidden;--accent:#6ea8ff}
+
+/* Full-bleed game hero */
+.hero{position:absolute;inset:0;z-index:1}
+.hero img{position:absolute;inset:-2%;width:104%;height:104%;object-fit:cover;opacity:.65;filter:saturate(.6) contrast(1.08)}
+.hero-float{position:absolute;inset:-5%;background:radial-gradient(ellipse at 70% 30%,transparent 30%,rgba(4,7,14,.55) 65%,rgba(3,5,10,.92));z-index:2}
+.hero-texture{position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Crect width='4' height='4' fill='%23fff' fill-opacity='.012'/%3E%3C/svg%3E");z-index:3}
+
+/* Overlay panel — semi-transparent glass fills screen from below dock area */
+.panel{position:absolute;inset:0;z-index:10;display:flex;flex-direction:column;padding:8.1cqw 8.1cqw 11cqh;pointer-events:none}
+.panel>*{pointer-events:auto}
+
+/* Layout: two-column grid */
+.grid{display:flex;gap:3.6cqw;flex:1;padding-top:2.4cqh}
+.left{flex:1;display:flex;flex-direction:column}
+.right{width:32cqw;flex-shrink:0;display:flex;flex-direction:column;gap:2cqh}
+
+/* Game title block */
+.title-block{margin-bottom:2.8cqh}
+.eyebrow{display:flex;align-items:center;gap:.7cqw;font-size:1.02cqh;font-weight:800;letter-spacing:.18em;color:rgba(255,255,255,.64);margin-bottom:1.2cqh}
+.eyebrow i{width:.66cqh;height:.66cqh;border-radius:50%;background:var(--accent);box-shadow:0 0 1.2cqh var(--accent)}
+.title-block h1{font-size:8cqh;font-weight:900;line-height:.92;letter-spacing:-.06em;text-shadow:0 4px 36px rgba(0,0,0,.7)}
+.title-block .vars{display:flex;gap:8px;margin-top:1.4cqh}
+.title-block .vars span{padding:.4cqh 1.1cqw;border-radius:1.2cqh;font-size:1.02cqh;font-weight:600;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.55);cursor:pointer}
+.title-block .vars span.on{background:rgba(255,255,255,.16);color:#fff;border-color:rgba(255,255,255,.22)}
+
+/* Description */
+.desc{font-size:1.8cqh;font-weight:560;line-height:1.4;color:rgba(255,255,255,.62);max-width:48cqw;text-shadow:0 2px 10px rgba(0,0,0,.5)}
+
+/* Screenshots row */
+.screens{margin-top:auto;display:flex;gap:1.2cqw;overflow-x:auto;padding-bottom:.8cqh}
+.screens::-webkit-scrollbar{height:4px}
+.screens::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:2px}
+.scr{min-width:22cqw;height:13cqh;border-radius:1.4cqh;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:1.1cqh;letter-spacing:.08em;color:rgba(255,255,255,.14);text-transform:uppercase;flex-shrink:0;transition:transform .15s;cursor:pointer}
+.scr:hover{transform:scale(1.03);border-color:rgba(255,255,255,.2)}
+
+/* Right column — glass card */
+.card{background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.04));backdrop-filter:blur(42px) saturate(175%);-webkit-backdrop-filter:blur(42px) saturate(175%);border:1px solid rgba(255,255,255,.16);border-radius:2.2cqh;padding:2.6cqh 2.1cqw;box-shadow:0 24px 70px rgba(0,0,0,.55),inset 0 1px rgba(255,255,255,.36)}
+.card::before{content:"";position:absolute;z-index:-1;inset:0;border-radius:inherit;background:radial-gradient(130% 90% at 20% 5%,rgba(255,255,255,.16),transparent 55%)}
+.card .boxart{width:100%;aspect-ratio:1;border-radius:1.4cqh;background:linear-gradient(145deg,rgba(255,255,255,.04),rgba(0,0,0,.25));border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-size:5cqh;color:rgba(255,255,255,.06)}
+.card .stat-row{display:flex;gap:1.6cqw;margin:1.8cqh 0;padding:1.4cqh 0;border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.06)}
+.card .stat-row .st{text-align:center;flex:1}
+.card .stat-row .st b{display:block;font-size:1.6cqh;font-weight:700}
+.card .stat-row .st sm{font-size:.85cqh;color:rgba(255,255,255,.42)}
+.card .btn{width:100%;height:7cqh;border-radius:1.4cqh;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.08);color:#fff;font:600 1.6cqh "Open Sans",sans-serif;cursor:pointer;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);transition:background .14s;margin-bottom:.8cqh}
+.card .btn.primary{background:linear-gradient(105deg,color-mix(in srgb,var(--accent) 38%,rgba(255,255,255,.16)),rgba(255,255,255,.1));border-color:rgba(255,255,255,.22);box-shadow:0 0 1.4cqh color-mix(in srgb,var(--accent) 28%,transparent)}
+
+/* Bottom glass dock — same as current codex */
+.dock-bar{position:absolute;left:8.1cqw;right:8.1cqw;bottom:11cqh;z-index:12}
+.dock-inner{padding:2cqh 1.6cqw 1.8cqh;border-radius:2.2cqh;background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.03));backdrop-filter:blur(28px) saturate(180%);-webkit-backdrop-filter:blur(28px) saturate(180%);border:1px solid rgba(255,255,255,.14);box-shadow:0 24px 60px -22px rgba(0,0,0,.6),inset 0 1px rgba(255,255,255,.35);overflow:hidden;overflow-x:auto;scrollbar-width:none}
+.dock-inner::-webkit-scrollbar{display:none}
+.tiles{display:flex;gap:.52cqw;width:max-content}
+.tile{width:11cqw;height:11cqw;border-radius:1.4cqh;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.8cqh;cursor:pointer;flex-shrink:0;transition:.28s cubic-bezier(.22,1,.36,1)}
+.tile.focus{width:13.5cqw;height:13.5cqw;transform:translateY(-.6cqh);background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.24);box-shadow:0 0 2.4cqh color-mix(in srgb,var(--accent) 40%,transparent),0 .8cqh 2.4cqh rgba(0,0,0,.5)}
+.tile i{font-size:3.2cqh;font-style:normal}
+.tile s{font-size:1.1cqh;font-weight:600;color:rgba(255,255,255,.65);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="hero">
+  <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1920 1080'%3E%3Cdefs%3E%3CradialGradient id='a' cx='62%25' cy='35%25' r='60%25'%3E%3Cstop offset='0%25' stop-color='%23264a70'/%3E%3Cstop offset='50%25' stop-color='%230e182c'/%3E%3Cstop offset='100%25' stop-color='%23040810'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='1920' height='1080' fill='url(%23a)'/%3E%3C/svg%3E" alt="">
+  <div class="hero-float"></div>
+  <div class="hero-texture"></div>
+</div>
+
+<div class="panel">
+  <div class="grid">
+    <div class="left">
+      <div class="title-block">
+        <div class="eyebrow"><i></i>NOW PLAYING</div>
+        <h1>God of War<br>Ragnarök</h1>
+        <div class="vars"><span class="on">Standard Edition</span><span>Deluxe Edition</span></div>
+      </div>
+      <p class="desc">Embark on an epic and heartfelt journey as Kratos and Atreus struggle with holding on and letting go. The Fimbulwinter is well underway — enemies are stronger, realms are colder.</p>
+      <div class="screens">
+        <div class="scr">Screenshot 1</div>
+        <div class="scr">Screenshot 2</div>
+        <div class="scr">Screenshot 3</div>
+        <div class="scr">Screenshot 4</div>
+        <div class="scr">Screenshot 5</div>
+      </div>
+    </div>
+    <div class="right">
+      <div class="card">
+        <div class="boxart">&#9654;</div>
+        <div class="stat-row">
+          <div class="st"><span style="color:#FFE125;font-size:1.5cqh">&#9733;</span><b>11</b><sm>Gold</sm></div>
+          <div class="st"><span style="color:#C0C0C0;font-size:1.5cqh">&#9733;</span><b>24</b><sm>Silver</sm></div>
+          <div class="st"><span style="color:#CD7F32;font-size:1.5cqh">&#9733;</span><b>36</b><sm>Bronze</sm></div>
+        </div>
+        <div style="font-size:.9cqh;text-align:center;color:rgba(255,255,255,.35);margin-bottom:1.4cqh;letter-spacing:.06em">24% COMPLETE</div>
+        <button class="btn primary">Play Game</button>
+        <button class="btn">Close Game</button>
+        <button class="btn">Trainer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="dock-bar">
+  <div class="dock-inner">
+    <div class="tiles">
+      <div class="tile"><i>&#9654;</i><s>Netflix</s></div>
+      <div class="tile"><i>&#9670;</i><s>Hulu</s></div>
+      <div class="tile"><i>&#9632;</i><s>Steam</s></div>
+      <div class="tile focus"><i>&#9650;</i><s>GOW</s></div>
+      <div class="tile"><i>&#9679;</i><s>Epic</s></div>
+      <div class="tile"><i>&#9711;</i><s>Spotify</s></div>
+      <div class="tile"><i>&#9733;</i><s>Battlenet</s></div>
+      <div class="tile"><i>&#9830;</i><s>Disney+</s></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

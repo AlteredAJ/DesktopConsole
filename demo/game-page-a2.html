@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=1920">
+<title>A2 — Apple Glass Side Panel (current system language)</title>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{background:#05060a;color:#f4f6fb;font-family:"Open Sans",system-ui,sans-serif}
+body{width:1920px;height:1080px;margin:0 auto;position:relative;overflow:hidden;container-type:size}
+
+.bg{position:absolute;inset:-5cqw;overflow:hidden;pointer-events:none}
+.bg-img{position:absolute;inset:0;background:radial-gradient(ellipse at 62% 28%,#16284a,#070c18 55%,#030508);transform:translate3d(1.2cqw,0,0);transition:transform .55s cubic-bezier(.22,1,.36,1)}
+.bg-scrim{position:absolute;inset:0;background:linear-gradient(66deg,rgba(5,8,14,.88) 0%,transparent 39%),linear-gradient(180deg,transparent 44%,rgba(5,8,14,.5) 72%,rgba(5,8,14,.92) 100%)}
+
+/* ── TOP BAR (current codex style) ── */
+.top{position:absolute;top:5.1cqh;left:8.1cqw;right:8.1cqw;display:flex;justify-content:flex-end;align-items:center;z-index:10}
+.glass{position:relative;overflow:hidden;background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.03));backdrop-filter:blur(28px) saturate(180%);-webkit-backdrop-filter:blur(28px) saturate(180%);border:1px solid rgba(255,255,255,.14);box-shadow:0 24px 60px -22px rgba(0,0,0,.6),inset 0 1px rgba(255,255,255,.35)}
+.glass::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(120% 82% at 15% 0%,rgba(255,255,255,.19),transparent 56%)}
+.pills{display:flex;align-items:center;gap:.65cqw}
+.tbtn{position:relative;z-index:1;height:3.86cqh;padding:0 1.1cqw;border:none;background:none;color:inherit;font:inherit;font-size:1.2cqh;font-weight:700;display:flex;align-items:center;gap:.55cqw;cursor:pointer;border-right:1px solid rgba(255,255,255,.1)}
+.tbtn:last-child{border-right:none}
+.tbtn svg{width:1.8cqh;height:1.8cqh;fill:none;stroke:#fff;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.tbtn span{font-size:1.05cqh;font-weight:600}
+.clock{font-size:1.05cqh;font-weight:300;color:#c4d0e4}
+.av{width:2.4cqh;height:2.4cqh;border-radius:50%;background:linear-gradient(135deg,#3a4f7a,#18223a);position:relative;margin-left:.8cqw}
+.av .d{position:absolute;bottom:0;right:0;width:.7cqh;height:.7cqh;border-radius:50%;background:#1AFF84;box-shadow:0 0 4px #1AFF84}
+.status{display:flex;align-items:center;gap:.5cqw;padding:0 .7cqw;border-left:1px solid rgba(255,255,255,.1);margin-left:.5cqw}
+
+/* ── TABS ── */
+.tabs{position:absolute;left:8.1cqw;top:5.1cqh;display:flex;gap:.65cqw;z-index:10}
+.tab{height:4.5cqh;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.045);color:rgba(238,241,246,.72);padding:0 1.1cqw;border-radius:1.45cqh;font:700 1.2cqh inherit;cursor:pointer}
+.tab.on{color:#fff;background:transparent;border-color:transparent;text-shadow:0 1px 8px #000}
+
+/* ── DOCK ── */
+.dock{position:absolute;left:8.1cqw;right:8.1cqw;bottom:11cqh;overflow:hidden;z-index:5}
+.dock-inner{padding:2cqh 1.6cqw 1.8cqh;border-radius:2.2cqh;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}
+.dock-inner::-webkit-scrollbar{display:none}
+.tiles{display:flex;gap:.52cqw;width:max-content}
+.tile{width:11cqw;height:11cqw;border-radius:1.4cqh;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.8cqh;cursor:pointer;transition:.28s cubic-bezier(.22,1,.36,1);flex-shrink:0}
+.tile.focus{width:13.5cqw;height:13.5cqw;transform:translateY(-.6cqh);background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.24);box-shadow:0 0 2.4cqh var(--accent, #6ea8ff40),0 .8cqh 2.4cqh rgba(0,0,0,.5)}
+.tile i{font-size:3.2cqh;font-style:normal}
+.tile s{font-size:1.1cqh;font-weight:600;color:rgba(255,255,255,.65);text-decoration:none;text-align:center;max-width:90%}
+.running{width:.7cqh;height:.7cqh;border-radius:50%;background:#1AFF84;position:absolute;top:.8cqh;right:.8cqh}
+
+/* ── COPY (title) ── */
+.copy{position:absolute;left:8.1cqw;bottom:30cqh;max-width:48cqw;z-index:3;text-shadow:0 3px 24px rgba(0,0,0,.65)}
+.copy .eyebrow{display:flex;align-items:center;gap:.7cqw;font-size:1.02cqh;font-weight:800;letter-spacing:.18em;color:rgba(255,255,255,.72);margin-bottom:.8cqh}
+.copy .eyebrow i{width:.66cqh;height:.66cqh;border-radius:50%;background:var(--accent,#6ea8ff);box-shadow:0 0 1.2cqh var(--accent,#6ea8ff)}
+.copy h1{font-size:5.2cqh;font-weight:800;line-height:.96;letter-spacing:-.05em}
+.copy p{font-size:1.8cqh;font-weight:560;color:rgba(255,255,255,.78);max-width:42cqw;margin-top:.6cqh;line-height:1.4}
+.copy .rule{width:5.2cqw;height:.38cqh;border-radius:2px;background:var(--accent,#6ea8ff);margin-top:1.6cqh;box-shadow:0 0 1.8cqh var(--accent,#6ea8ff)}
+
+/* ── SIDE PANEL (slides in from right) ── */
+.side-panel{position:absolute;right:8.1cqw;top:18cqh;bottom:24cqh;width:34cqw;z-index:8;
+  background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.04));
+  backdrop-filter:blur(42px) saturate(170%);-webkit-backdrop-filter:blur(42px) saturate(170%);
+  border:1px solid rgba(255,255,255,.16);border-radius:2.4cqh;
+  box-shadow:0 32px 90px rgba(0,0,0,.65),inset 0 1px rgba(255,255,255,.4),inset 0 -18px 44px rgba(0,4,18,.3);
+  padding:3.2cqh 2.8cqw;
+  display:flex;flex-direction:column;
+  animation:slide-in .28s cubic-bezier(.22,1,.36,1) both;
+  overflow:hidden;
+}
+.side-panel::before{content:"";position:absolute;z-index:-1;inset:0;border-radius:inherit;background:radial-gradient(110% 82% at 12% 0%,rgba(255,255,255,.18),transparent 50%)}
+@keyframes slide-in{from{opacity:0;transform:translateX(3cqw) scale(.98)}to{opacity:1;transform:none}}
+
+.side-panel .box{width:100%;aspect-ratio:1;border-radius:1.4cqh;background:linear-gradient(145deg,rgba(255,255,255,.05),rgba(0,0,0,.25));border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:5cqh;color:rgba(255,255,255,.06)}
+.side-panel h3{font-size:2.4cqh;font-weight:700;margin:2.2cqh 0 .8cqh;letter-spacing:-.02em}
+.side-panel .actions{display:flex;flex-direction:column;gap:.8cqh;margin-top:auto}
+.side-panel .act{width:100%;height:6.8cqh;border-radius:1.4cqh;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.08);color:#fff;font:600 1.6cqh "Open Sans",sans-serif;cursor:pointer;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);transition:background .14s}
+.side-panel .act.primary{background:linear-gradient(105deg,color-mix(in srgb,var(--accent,#6ea8ff) 38%,rgba(255,255,255,.16)),rgba(255,255,255,.1));border-color:rgba(255,255,255,.22);box-shadow:0 0 1.4cqh color-mix(in srgb,var(--accent,#6ea8ff) 28%,transparent)}
+.side-panel .trophies{display:flex;gap:2cqw;padding:1.4cqh 0;margin:1.6cqh 0;border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.06)}
+.side-panel .trophies .t{text-align:center}
+.side-panel .trophies .t b{display:block;font-size:1.4cqh;font-weight:700}
+.side-panel .trophies .t sm{font-size:.85cqh;color:rgba(255,255,255,.45)}
+</style>
+</head>
+<body style="--accent:#6ea8ff">
+<div class="bg"><div class="bg-img"></div><div class="bg-scrim"></div></div>
+
+<div class="top">
+  <div class="glass pills">
+    <button class="tbtn"><svg viewBox="0 0 24 24"><path d="M3.5 9.7a12.8 12.8 0 0 1 17 0M6.8 13a8 8 0 0 1 10.4 0M10.1 16.3a3.2 3.2 0 0 1 3.8 0M12 19.3h.01"/></svg><span>Wi-Fi</span></button>
+    <button class="tbtn"><span style="width:1.4cqh;height:1.4cqh;border:2px solid #fff;border-radius:50%;position:relative;display:inline-block"></span><span>Search</span></button>
+    <button class="tbtn"><svg viewBox="0 0 24 24"><path d="M19.4 13.5a7.7 7.7 0 0 0 .05-1.5l-2 1.55 2-3.46 2.38-.96a7.45 7.45 0 0 0-2.58-1.5L14.1 2.4h-4l-.35 2.5a7.45 7.45 0 0 0-2.58 1.5l-2.38-.96-2 3.46 2 1.55a7.7 7.7 0 0 0-.05 1.5l-2 1.55 2 3.46 2.38-.96a7.45 7.45 0 0 0 2.58 1.5l.35 2.5h4l.35-2.5a7.45 7.45 0 0 0 2.58-1.5l2.38.96 2-3.46-2-1.55Z"/><circle cx="12" cy="12" r="2.65"/></svg><span>Settings</span></button>
+    <button class="tbtn"><svg viewBox="0 0 24 24"><path d="M12 2.6v8.1"/><path d="M7.1 5.5a8.1 8.1 0 1 0 9.8 0"/></svg><span>Power</span></button>
+  </div>
+  <div class="glass pills status">
+    <div class="clock">02:48 PM</div>
+    <div class="av"><div class="d"></div></div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab">Continue</button>
+  <button class="tab">Apps</button>
+  <button class="tab on">Games</button>
+  <button class="tab">Launchers</button>
+</div>
+
+<div class="copy">
+  <div class="eyebrow"><i></i>NOW SELECTED</div>
+  <h1>God of War Ragnarök</h1>
+  <p>Embark on an epic journey as Kratos and Atreus struggle with holding on and letting go.</p>
+  <div class="rule"></div>
+</div>
+
+<div class="side-panel">
+  <div class="box">&#9654;</div>
+  <h3>God of War Ragnarök</h3>
+  <div class="trophies">
+    <div class="t"><span style="color:#FFE125;font-size:1.6cqh">&#9733;</span><b>11</b><sm>Gold</sm></div>
+    <div class="t"><span style="color:#C0C0C0;font-size:1.6cqh">&#9733;</span><b>24</b><sm>Silver</sm></div>
+    <div class="t"><span style="color:#CD7F32;font-size:1.6cqh">&#9733;</span><b>36</b><sm>Bronze</sm></div>
+  </div>
+  <div class="actions">
+    <button class="act primary">Play Game</button>
+    <button class="act">Close Game</button>
+    <button class="act">Trainer</button>
+  </div>
+</div>
+
+<div class="dock">
+  <div class="dock-inner glass">
+    <div class="tiles">
+      <div class="tile"><i>&#9654;</i><s>Netflix</s></div>
+      <div class="tile"><i>&#9670;</i><s>Hulu</s></div>
+      <div class="tile"><i>&#9632;</i><s>Steam</s></div>
+      <div class="tile focus"><i>&#9650;</i><s>GOW</s><span class="running"></span></div>
+      <div class="tile"><i>&#9679;</i><s>Epic</s></div>
+      <div class="tile"><i>&#9711;</i><s>Spotify</s></div>
+      <div class="tile"><i>&#9733;</i><s>Battlenet</s></div>
+      <div class="tile"><i>&#9830;</i><s>Disney+</s></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
