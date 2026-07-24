@@ -136,6 +136,11 @@ pub fn hide_quick_overlay_command(app: AppHandle) {
     hide_quick_overlay(&app);
 }
 
+#[tauri::command]
+pub fn prewarm_overlay(app: AppHandle) {
+    prewarm_quick_overlay(&app);
+}
+
 /// Frontend calls this when the keyboard overlay opens, so the HID loop can
 /// suppress exit combos (PS+Options / triple-Options) while the user is typing.
 #[tauri::command]

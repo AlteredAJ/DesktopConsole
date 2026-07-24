@@ -64,9 +64,17 @@ export function App() {
 
   // Keep the native window hidden through WebView2's blank first frame, then
   // reveal it only after React has painted the entry screen twice.
+  // Also prewarm the hidden quick menu here (on the main COM thread) so
+  // opening it in-game is a cheap visibility change instead of a second
+  // WebView2 cold start.
   useEffect(() => {
     const first = requestAnimationFrame(() => {
-      requestAnimationFrame(() => void invoke("show_console_window"));
+      requestAnimationFrame(() => {
+        void invoke("show_console_window");
+        // Delay prewarm 600ms after first paint — the overlay won't be
+        // summoned before the user enters the dashboard and launches an app.
+        window.setTimeout(() => void invoke("prewarm_overlay"), 600);
+      });
     });
     return () => cancelAnimationFrame(first);
   }, []);

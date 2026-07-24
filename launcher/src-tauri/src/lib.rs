@@ -69,6 +69,7 @@ pub fn run() {
             commands::minimize_console,
             commands::show_console_window,
             commands::hide_quick_overlay_command,
+            commands::prewarm_overlay,
             commands::notify_keyboard_open,
             commands::notify_keyboard_closed,
             commands::open_console_home,
@@ -146,15 +147,11 @@ pub fn run() {
                 ),
             }
 
-            // Prewarm the hidden quick menu so opening it in-game is a cheap
-            // visibility change rather than a second WebView2 startup. Deferred
-            // 500ms so the main window paints first — the overlay won't be
-            // summoned before the user triple-clicks PS and launches an app.
-            let handle = app.handle().clone();
-            std::thread::spawn(move || {
-                std::thread::sleep(std::time::Duration::from_millis(500));
-                commands::prewarm_quick_overlay(&handle);
-            });
+            // Prewarm now runs on the frontend side (App.tsx first-paint effect)
+            // instead of here. WebView2 window creation requires the main thread's
+            // COM apartment — a background thread (Phase 2.2 deferred-prewarm
+            // attempt) silently violates this and causes later crashes when the
+            // overlay window is hidden/shown from restore_focus / open_console_home.
 
             hid::spawn_input_thread(app.handle().clone());
             Ok(())
