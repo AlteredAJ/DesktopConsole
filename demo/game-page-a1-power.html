@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=1920">
+<title>A1 — Power Menu</title>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,600;0,700;0,800;1,800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{background:#040810;color:#f4f6fb;font-family:"Open Sans",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{width:1920px;height:1080px;margin:0 auto;position:relative;overflow:hidden;--accent:#5b9cf5}
+.overlay{position:absolute;inset:0;z-index:50;background:rgba(2,4,8,.78);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center}
+.panel{width:min(42cqw,620px);border-radius:24px;background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.03));backdrop-filter:blur(42px) saturate(175%);-webkit-backdrop-filter:blur(42px) saturate(175%);border:1px solid rgba(255,255,255,.18);box-shadow:0 42px 130px rgba(0,0,0,.72),0 0 0 1px color-mix(in srgb,var(--accent) 14%,transparent),inset 0 1px rgba(255,255,255,.46),inset 0 -24px 54px rgba(0,4,18,.35);padding:34px 36px;position:relative;overflow:hidden;animation:pop-in .24s cubic-bezier(.22,1,.36,1) both}
+@keyframes pop-in{from{opacity:0;transform:scale(.96) translateY(16px)}to{opacity:1;transform:none}}
+.panel::before{content:"";position:absolute;z-index:-1;inset:0;border-radius:inherit;background:radial-gradient(130% 90% at 20% 5%,rgba(255,255,255,.16),transparent 55%)}
+.eyebrow{display:flex;align-items:center;gap:9px;font-size:10px;font-weight:800;letter-spacing:.18em;color:rgba(255,255,255,.6);text-transform:uppercase;margin-bottom:14px}
+.eyebrow i{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent)}
+.panel h2{font-size:28px;font-weight:800;letter-spacing:-.02em;margin-bottom:6px}
+.actions{display:flex;flex-direction:column;gap:6px;margin-top:18px}
+.action{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-radius:14px;cursor:pointer;transition:.15s;border:1px solid transparent}
+.action:hover{background:rgba(255,255,255,.06)}
+.action.sel{background:linear-gradient(105deg,color-mix(in srgb,var(--accent) 34%,rgba(255,255,255,.16)),rgba(255,255,255,.1));border-color:rgba(255,255,255,.14);box-shadow:0 0 14px color-mix(in srgb,var(--accent) 22%,transparent),inset 0 1px rgba(255,255,255,.3)}
+.action .left{display:flex;align-items:center;gap:14px}
+.action .left i{font-size:22px;font-style:normal;opacity:.7;width:28px;text-align:center}
+.action .left b{font-size:16px;font-weight:700}
+.action .left s{font-size:11px;color:rgba(255,255,255,.4);text-decoration:none;display:block;margin-top:1px;font-weight:400}
+.action .right{font-size:12px;color:rgba(255,255,255,.35)}
+.confirm{display:flex;flex-direction:column;align-items:center;gap:16px;padding:10px 0}
+.confirm p{font-size:14px;color:rgba(255,255,255,.6);text-align:center;max-width:320px;line-height:1.5}
+.confirm .btns{display:flex;gap:12px}
+.confirm .btns button{padding:12px 28px;border-radius:12px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.08);color:#fff;font:700 14px "Open Sans",sans-serif;cursor:pointer;transition:background .15s}
+.confirm .btns button.primary{background:linear-gradient(105deg,color-mix(in srgb,var(--accent) 42%,rgba(255,255,255,.16)),rgba(255,255,255,.14));border-color:rgba(255,255,255,.22)}
+.footer{display:flex;justify-content:center;gap:18px;margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,.06)}
+.footer span{font-size:11px;color:rgba(255,255,255,.38);font-weight:600}
+.footer span b{color:rgba(255,255,255,.7)}
+</style>
+</head>
+<body>
+<div class="overlay">
+  <div class="panel">
+    <div class="eyebrow"><i></i>Power</div>
+    <h2>End your session</h2>
+    <div class="actions">
+      <div class="action"><div class="left"><i>&#9646;</i><div><b>Minimize console</b><s>Hide and return to Windows</s></div></div><div class="right">&#x2715;</div></div>
+      <div class="action"><div class="left"><i>&#10005;</i><div><b>Close console</b><s>Exit console mode, re-arm the launcher</s></div></div><div class="right">&#x2715;</div></div>
+      <div class="action"><div class="left"><i>&#128274;</i><div><b>Lock console</b><s>Require Windows sign-in to resume</s></div></div><div class="right">&#x2715;</div></div>
+      <div class="action sel"><div class="left"><i>&#9790;</i><div><b>Rest mode</b><s>Animated idle screen, lower power use</s></div></div><div class="right">&#x2715;</div></div>
+      <div class="action"><div class="left"><i>&#9211;</i><div><b>Turn off</b><s>Close Windows and power down this PC</s></div></div><div class="right">&#x2715;</div></div>
+    </div>
+    <div class="footer">
+      <span><b>&#8593;&#8595;</b> Choose</span>
+      <span><b>&#x2715;</b> Select</span>
+      <span><b>&#x25CB;</b> Cancel</span>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=1920">
+<title>A1 — Quick Menu</title>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,600;0,700;0,800;1,800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{background:#040810;color:#f8fbff;font-family:"Open Sans",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{width:1920px;height:1080px;margin:0 auto;position:relative;overflow:hidden;--accent:#5b9cf5}
+.scrim{position:absolute;inset:0;background:radial-gradient(ellipse 62% 54% at 50% 96%,rgba(70,149,255,.35),transparent 70%),radial-gradient(ellipse at 12% 5%,rgba(184,224,255,.1),transparent 41%),linear-gradient(180deg,rgba(3,8,17,.06),rgba(3,8,17,.42));backdrop-filter:blur(6px) saturate(120%);-webkit-backdrop-filter:blur(6px) saturate(120%)}
+.panel{position:absolute;bottom:5.4vh;left:50%;transform:translateX(-50%);width:min(94vw,1160px);padding:28px 32px 22px;border:1px solid rgba(224,242,255,.42);border-radius:32px;background:linear-gradient(120deg,rgba(255,255,255,.14),rgba(89,145,226,.1) 31%,rgba(13,23,52,.72) 68%,rgba(8,11,25,.84));backdrop-filter:blur(42px) saturate(165%);-webkit-backdrop-filter:blur(42px) saturate(165%);box-shadow:0 36px 110px rgba(0,0,0,.62),0 0 0 1px rgba(105,186,255,.1),inset 0 1px rgba(255,255,255,.6),inset 0 -18px 40px rgba(0,10,38,.3);animation:qm-in .24s cubic-bezier(.22,1,.36,1) both;overflow:hidden}
+@keyframes qm-in{from{opacity:0;transform:translateX(-50%) translateY(26px) scale(.97)}to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}
+.panel::before{content:"";position:absolute;z-index:-1;inset:-50% -10% auto;height:115%;background:radial-gradient(ellipse at 28% 15%,rgba(255,255,255,.38),transparent 25%),radial-gradient(ellipse at 69% 4%,rgba(123,202,255,.28),transparent 27%),linear-gradient(105deg,transparent 27%,rgba(255,255,255,.14) 42%,transparent 55%);filter:blur(10px);opacity:.9}
+.panel::after{content:"";position:absolute;z-index:-1;inset:auto -11% -72% 33%;height:125%;border-radius:50%;background:radial-gradient(circle,rgba(70,123,255,.28),transparent 62%);filter:blur(16px)}
+.head{display:flex;align-items:center;gap:11px;letter-spacing:.22em;font-weight:800;font-size:12px;color:rgba(244,250,255,.9);text-shadow:0 1px 12px rgba(0,0,0,.5)}
+.ps-badge{font-size:18px;font-weight:950;letter-spacing:-.12em;transform:skew(-12deg);filter:drop-shadow(0 0 9px rgba(255,255,255,.4))}
+.badge{padding:0 6px;font-size:10px;font-weight:700;color:rgba(91,156,245,.9);letter-spacing:.06em}
+.head small{margin-left:auto;font-size:11px;font-weight:650;letter-spacing:.02em;color:rgba(229,243,255,.62)}
+.status-row{display:flex;align-items:center;gap:10px;padding:7px 10px;border:1px solid rgba(255,255,255,.18);border-radius:13px;background:rgba(255,255,255,.08);letter-spacing:0;font-size:11px;box-shadow:inset 0 1px rgba(255,255,255,.22)}
+.status-row b{font-size:13px}.status-row span{color:#d7eeff}
+.items{display:grid;grid-template-columns:repeat(7,1fr);gap:13px;margin-top:22px}
+.item{position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.18);min-height:142px;border-radius:20px;color:#fff;background:linear-gradient(145deg,rgba(255,255,255,.12),rgba(255,255,255,.03));backdrop-filter:blur(18px) saturate(145%);-webkit-backdrop-filter:blur(18px) saturate(145%);padding:17px 13px;text-align:left;font:inherit;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;transition:transform .22s cubic-bezier(.22,1,.36,1),background .2s,border-color .2s,box-shadow .2s}
+.item::before{content:"";position:absolute;inset:0;background:linear-gradient(145deg,rgba(255,255,255,.22),transparent 32%);opacity:.7}
+.item i,.item span{position:relative}
+.item i{font-style:normal;font-size:27px;line-height:1;color:#d9efff;filter:drop-shadow(0 0 9px rgba(135,211,255,.45))}
+.item b{display:block;font-size:14px}
+.item em{display:block;margin-top:4px;color:rgba(235,243,255,.58);font-size:10px;font-style:normal;line-height:1.3}
+.item.sel{transform:translateY(-8px) scale(1.045);background:linear-gradient(145deg,color-mix(in srgb,var(--accent) 78%,white),var(--accent) 54%,rgba(32,42,94,.65));border-color:rgba(255,255,255,.9);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 34%,transparent),0 17px 42px color-mix(in srgb,var(--accent) 44%,transparent),inset 0 1px rgba(255,255,255,.7)}
+.footer{display:flex;justify-content:center;gap:22px;margin-top:18px;color:rgba(234,243,255,.52);font-size:11px}
+.footer b{color:#fff;margin-right:5px}
+</style>
+</head>
+<body>
+<div class="scrim"></div>
+<div class="panel">
+  <div class="head"><span class="ps-badge">LM</span> <span class="badge">GAME SESSION</span><small>Quick menu</small><span class="status-row" style="margin-left:16px"><b>02:48 PM</b></span><span class="status-row"><span>~80%</span></span></div>
+  <div class="items">
+    <div class="item"><i>&#9654;</i><span><b>Resume</b><em>Return to game</em></span></div>
+    <div class="item"><i>&#9681;</i><span><b>Sound</b><em>Quick audio controls</em></span></div>
+    <div class="item"><i>&#9711;</i><span><b>Controller</b><em>DualSense settings</em></span></div>
+    <div class="item sel"><i>&#9678;</i><span><b>Game Base</b><em>Friends &amp; parties</em></span></div>
+    <div class="item"><i>&#9634;</i><span><b>Capture</b><em>Clips &amp; screenshots</em></span></div>
+    <div class="item"><i>&#10022;</i><span><b>RGB</b><em>PC lighting controls</em></span></div>
+    <div class="item"><i>&#8962;</i><span><b>Console Home</b><em>Open dashboard</em></span></div>
+  </div>
+  <div class="footer"><span><b>&#x2715;</b> Select</span><span><b>&#x25CB;</b> Close</span><span><b>&#x25B2;</b> PS &#xd7;2</span> Toggle</span></div>
+</div>
+</body>
+</html>

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=1920">
+<title>A1 — Settings</title>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,600;0,700;0,800;1,800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{background:#040810;color:#f4f6fb;font-family:"Open Sans",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{width:1920px;height:1080px;margin:0 auto;position:relative;overflow:hidden}
+.hero{position:absolute;inset:0;z-index:-1;overflow:hidden}
+.hero .base{position:absolute;inset:0;background:#040810}
+.atmos-orb{position:absolute;border-radius:50%;will-change:transform,opacity;pointer-events:none}
+.atmos-orb.a{width:820px;height:820px;top:-18%;left:42%;background:radial-gradient(circle,rgba(50,100,200,.45),rgba(30,60,140,.18) 40%,transparent 68%);animation:orb-drift-a 18s ease-in-out infinite}
+.atmos-orb.b{width:640px;height:640px;top:22%;left:-8%;background:radial-gradient(circle,rgba(120,80,180,.32),rgba(60,30,120,.12) 38%,transparent 66%);animation:orb-drift-b 22s ease-in-out infinite}
+.atmos-orb.c{width:560px;height:560px;bottom:-12%;right:-6%;background:radial-gradient(circle,rgba(40,120,220,.35),rgba(20,60,140,.14) 36%,transparent 64%);animation:orb-drift-c 20s ease-in-out infinite}
+.hero .scrim{position:absolute;inset:0;background:linear-gradient(180deg,transparent 28%,rgba(5,7,12,.2) 54%,rgba(4,6,11,.58) 74%,rgba(4,6,11,.9) 100%)}
+@keyframes orb-drift-a{0%,100%{transform:translate(0,0) scale(1)}25%{transform:translate(-40px,20px) scale(1.06)}50%{transform:translate(-18px,-14px) scale(.97)}75%{transform:translate(28px,8px) scale(1.04)}}
+@keyframes orb-drift-b{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(32px,-18px) scale(1.05)}66%{transform:translate(-22px,14px) scale(.96)}}
+@keyframes orb-drift-c{0%,100%{transform:translate(0,0) scale(1);opacity:1}50%{transform:translate(-24px,-10px) scale(1.07);opacity:.8}}
+@media(prefers-reduced-motion:reduce){.atmos-orb{animation:none!important}}
+.nav{position:absolute;top:0;left:0;right:0;height:108px;display:flex;align-items:center;justify-content:space-between;padding:0 48px;z-index:20}
+.nav-left{display:flex;align-items:center;gap:28px}
+.ps-tile{width:86px;height:86px;border-radius:16px;background:radial-gradient(circle at 42% 38%,#2a3d6e,#0f1830);display:flex;align-items:center;justify-content:center;box-shadow:0 0 22px rgba(50,70,140,.35);border:1px solid rgba(255,255,255,.1)}
+.ps-tile svg{width:56px;height:56px}
+.nav-tabs{display:flex;overflow:hidden;border-radius:10px}
+.nav-tab{padding:8px 20px;border:none;background:rgba(255,255,255,.06);color:#BFBFBF;font:400 15px "Open Sans",sans-serif;cursor:pointer}
+.nav-tab:first-child{border-radius:10px 0 0 10px}.nav-tab:last-child{border-radius:0 10px 10px 0}
+.nav-tab.on{background:rgba(255,255,255,.15);color:#FBFBFB;font-weight:600}
+.nav-tabs .settings-badge{padding:6px 14px;background:rgba(91,156,245,.14);border-left:1px solid rgba(255,255,255,.06);color:#5b9cf5;font-size:12px;font-weight:700;letter-spacing:.03em;display:flex;align-items:center}
+.nav-right{display:flex;align-items:center;gap:14px}
+.nav-btn{width:38px;height:38px;border:none;background:none;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:.78}
+.nav-btn svg{fill:none;stroke:#e4ecf8;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.nav-btn.on{opacity:1}.nav-btn.on svg{stroke:#5b9cf5}
+.nav-clock{font-size:13px;font-weight:300;color:#bcc8de;padding:6px 10px;letter-spacing:.02em}
+.nav-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#4a6090,#1a2644);position:relative;border:1.5px solid rgba(255,255,255,.12)}
+.nav-avatar .dot{position:absolute;bottom:0;right:0;width:12px;height:12px;border-radius:50%;background:#1AFF84;border:2px solid #0c1222;box-shadow:0 0 7px rgba(26,255,132,.45)}
+
+/* Layout */
+.layout{position:absolute;top:108px;left:0;right:0;bottom:0;display:flex;padding:0}
+.sidebar{width:280px;flex-shrink:0;padding:32px 20px;display:flex;flex-direction:column;gap:4px;overflow-y:auto}
+.sidebar::-webkit-scrollbar{width:3px}.sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,.06);border-radius:2px}
+.side-title{font-size:10px;font-weight:700;letter-spacing:.14em;color:rgba(255,255,255,.3);text-transform:uppercase;padding:0 14px;margin:14px 0 6px}
+.side-item{padding:11px 16px;border-radius:12px;font-size:14px;font-weight:600;color:rgba(255,255,255,.5);cursor:pointer;transition:.15s;border:1px solid transparent;display:flex;align-items:center;gap:10px}
+.side-item:hover{background:rgba(255,255,255,.05);color:rgba(255,255,255,.75)}
+.side-item.on{background:rgba(91,156,245,.12);color:#fff;border-color:rgba(91,156,245,.25)}
+.side-item i{font-style:normal;font-size:16px;width:22px;text-align:center}
+.content{flex:1;padding:32px 48px 32px 0;overflow-y:auto;display:flex;flex-direction:column;gap:24px}
+.content::-webkit-scrollbar{width:4px}.content::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:2px}
+.page-title{font-size:36px;font-weight:800;letter-spacing:-.03em;margin-bottom:4px}
+.page-sub{font-size:14px;color:rgba(255,255,255,.45);font-weight:500}
+.card{background:rgba(255,255,255,.04);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:16px}
+.card h3{font-size:16px;font-weight:700;letter-spacing:-.01em;margin-bottom:2px}
+.card h3 small{font-size:12px;font-weight:500;color:rgba(255,255,255,.38);display:block;margin-top:3px}
+.row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.row:last-child{border-bottom:none}
+.row .label{font-size:14px;font-weight:600}
+.row .label s{font-size:11px;color:rgba(255,255,255,.35);text-decoration:none;display:block;margin-top:2px;font-weight:400}
+.toggle{width:44px;height:24px;border-radius:12px;background:rgba(255,255,255,.12);position:relative;cursor:pointer;transition:background .2s;flex-shrink:0}
+.toggle:after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.toggle.on{background:#5b9cf5}.toggle.on:after{left:22px}
+.option-pills{display:flex;gap:8px}
+.option-pill{padding:8px 18px;border-radius:12px;font-size:13px;font-weight:600;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.5);cursor:pointer}
+.option-pill.on{background:rgba(91,156,245,.14);color:#fff;border-color:rgba(91,156,245,.3)}
+.slider{display:flex;align-items:center;gap:12px;flex:1;max-width:300px}
+.slider input[type=range]{flex:1;height:4px;-webkit-appearance:none;appearance:none;background:rgba(255,255,255,.1);border-radius:2px;outline:none}
+.slider input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#5b9cf5;cursor:pointer}
+.slider .val{font-size:13px;font-weight:700;min-width:36px;text-align:right}
+.hue-row{display:flex;gap:4px;height:28px;border-radius:6px;overflow:hidden;cursor:pointer;max-width:320px;position:relative;border:1px solid rgba(255,255,255,.08)}
+.hue-row .swatch{flex:1}
+.hue-marker{position:absolute;top:-3px;width:4px;height:34px;border-radius:2px;background:#fff;box-shadow:0 0 4px rgba(0,0,0,.4)}
+.spec-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.spec-item{padding:14px;border-radius:12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05)}
+.spec-item b{display:block;font-size:18px;font-weight:700}
+.spec-item s{font-size:11px;color:rgba(255,255,255,.35);text-decoration:none}
+.btn-row{display:flex;gap:10px;margin-top:8px}
+.btn{padding:8px 18px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#fff;font:600 13px "Open Sans",sans-serif;cursor:pointer;transition:background .15s}
+.btn:hover{background:rgba(255,255,255,.12)}
+.btn.danger{background:rgba(220,60,60,.08);border-color:rgba(220,60,60,.2);color:#f08080}
+.btn.danger:hover{background:rgba(220,60,60,.16)}
+.hints{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);display:flex;gap:10px;z-index:20}
+.hint{padding:8px 16px;border-radius:12px;background:rgba(255,255,255,.06);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.06);font-size:11px;font-weight:600;color:rgba(255,255,255,.45);display:flex;align-items:center;gap:7px}
+.hint b{color:rgba(255,255,255,.75);font-weight:700;font-size:13px}
+.hint i{font-style:normal;opacity:.55}
+</style>
+</head>
+<body>
+<div class="hero"><div class="base"></div><div class="atmos-orb a"></div><div class="atmos-orb b"></div><div class="atmos-orb c"></div><div class="scrim"></div></div>
+<nav class="nav">
+  <div class="nav-left">
+    <div class="ps-tile" aria-label="Controller"><svg viewBox="0 0 64 54" fill="none" stroke="#e4ecff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 12h48c4 0 4 4 4 4v8c0 16-4 22-14 22-6 0-12-4-14-12-2 8-8 12-14 12C8 46 4 40 4 24v-8c0 0 0-4 4-4Z"/><rect x="22" y="14" width="20" height="12" rx="4"/><line x1="24" y1="6" x2="40" y2="6" stroke="#5b9cf5" stroke-width="2.5"/><circle cx="29" cy="32" r="4"/><circle cx="35" cy="32" r="4"/></svg></div>
+    <div class="nav-tabs">
+      <button class="nav-tab">Continue</button><button class="nav-tab">Apps</button><button class="nav-tab">Games</button><button class="nav-tab">Launchers</button>
+      <span class="settings-badge">SETTINGS</span>
+    </div>
+  </div>
+  <div class="nav-right">
+    <button class="nav-btn"><svg width="20" height="20" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="7"/><line x1="16" y1="16" x2="21" y2="21"/></svg></button>
+    <button class="nav-btn on"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M19.4 13.5a7.7 7.7 0 0 0 .05-1.5l-2 1.55 2-3.46 2.38-.96a7.45 7.45 0 0 0-2.58-1.5L14.1 2.4h-4l-.35 2.5a7.45 7.45 0 0 0-2.58 1.5l-2.38-.96-2 3.46 2 1.55a7.7 7.7 0 0 0-.05 1.5l-2 1.55 2 3.46 2.38-.96a7.45 7.45 0 0 0 2.58 1.5l.35 2.5h4l.35-2.5a7.45 7.45 0 0 0 2.58-1.5l2.38.96 2-3.46-2-1.55Z"/><circle cx="12" cy="12" r="2.65"/></svg></button>
+    <button class="nav-btn"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M12 2.6v8.1"/><path d="M7.1 5.5a8.1 8.1 0 1 0 9.8 0"/></svg></button>
+    <div class="nav-clock">02:48 PM</div>
+    <div class="nav-avatar"><div class="dot"></div></div>
+  </div>
+</nav>
+
+<div class="layout">
+  <aside class="sidebar">
+    <span class="side-title">General</span>
+    <div class="side-item on"><i>&#9881;</i> Appearance</div>
+    <div class="side-item"><i>&#9711;</i> Controller</div>
+    <div class="side-item"><i>&#9783;</i> Audio</div>
+    <span class="side-title">System</span>
+    <div class="side-item"><i>&#9889;</i> Performance</div>
+    <div class="side-item"><i>&#9729;</i> Network &amp; Bluetooth</div>
+    <div class="side-item"><i>&#9762;</i> Display</div>
+    <div class="side-item"><i>&#10022;</i> Lighting (RGB)</div>
+    <div class="side-item"><i>&#9632;</i> System</div>
+    <span class="side-title">Info</span>
+    <div class="side-item"><i>&#9432;</i> About</div>
+  </aside>
+  <main class="content">
+    <div><div class="page-title">Appearance</div><div class="page-sub">Accent colour, motion, and transparency.</div></div>
+
+    <div class="card">
+      <h3>Accent <small>Changes the highlight colour across the console</small></h3>
+      <div class="option-pills">
+        <span class="option-pill on">Blue</span><span class="option-pill">Purple</span><span class="option-pill">Green</span><span class="option-pill">Amber</span><span class="option-pill">Rose</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Motion <small>Animation and transition effects</small></h3>
+      <div class="row"><span class="label">Reduce motion<s>Disable all animations and transitions</s></span><div class="toggle"></div></div>
+      <div class="row"><span class="label">Motion blur on tab switch<s>Subtle blur streak when changing tabs</s></span><div class="toggle on"></div></div>
+      <div class="row"><span class="label">Hero art rotation<s>Slowly cycle through game poster art</s></span><div class="toggle on"></div></div>
+      <div class="row"><span class="label">Idle screensaver<s>Ken Burns slideshow on idle screen</s></span><div class="toggle on"></div></div>
+    </div>
+
+    <div class="card">
+      <h3>Transparency <small>Glass and blur effects</small></h3>
+      <div class="row"><span class="label">Glass materials<s>Frosted glass panels and dock</s></span><div class="toggle on"></div></div>
+      <div class="row"><span class="label">Atmosphere depth<s>Animated background orbs</s></span><div class="toggle on"></div></div>
+    </div>
+
+    <div class="card">
+      <h3>Keyboard <small>On-screen keyboard behaviour</small></h3>
+      <div class="row"><span class="label">Keyboard sensitivity<s>Lower = less twitchy swipe-to-type</s></span><div class="slider"><input type="range" min="0.5" max="2" step="0.1" value="1.2"><span class="val">1.2x</span></div></div>
+    </div>
+  </main>
+</div>
+
+<div class="hints">
+  <span class="hint"><b>&#x2715;</b> Select</span>
+  <span class="hint"><i>&#8592;&#8593;&#8595;&#8594;</i> Navigate</span>
+  <span class="hint"><b>&#x25CB;</b> Back to Home</span>
+</div>
+</body>
+</html>

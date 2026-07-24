@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=1920">
+<title>A1 — Keyboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,600;0,700;0,800;1,800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{background:#040810;color:#f4f6fb;font-family:"Open Sans",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{width:1920px;height:1080px;margin:0 auto;position:relative;overflow:hidden;--accent:#5b9cf5}
+.scrim{position:absolute;inset:0;background:rgba(2,4,9,.72);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:flex;flex-direction:column;align-items:center;justify-content:center}
+.panel{width:min(82cqw,1180px);border-radius:24px;background:linear-gradient(180deg,rgba(255,255,255,.13),rgba(255,255,255,.025));backdrop-filter:blur(38px) saturate(170%);-webkit-backdrop-filter:blur(38px) saturate(170%);border:1px solid rgba(255,255,255,.14);box-shadow:0 36px 110px rgba(0,0,0,.62),inset 0 1px rgba(255,255,255,.4);padding:28px 32px 22px;animation:pop-in .24s cubic-bezier(.22,1,.36,1) both}
+@keyframes pop-in{from{opacity:0;transform:scale(.96) translateY(16px)}to{opacity:1;transform:none}}
+.head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.head b{font-size:15px;font-weight:700;letter-spacing:.01em}.head s{font-size:11px;color:rgba(255,255,255,.38);text-decoration:none}
+.input-row{display:flex;align-items:center;gap:10px;padding:10px 16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:14px;margin-bottom:16px;min-height:44px}
+.input-row .cursor{width:1.5px;height:20px;background:var(--accent);animation:blink .8s step-end infinite}@keyframes blink{50%{opacity:0}}
+.input-row .text{font-size:18px;color:rgba(255,255,255,.8);font-weight:500;flex:1;letter-spacing:.01em}
+.keys{display:grid;grid-template-columns:repeat(12,1fr);gap:6px}
+.key{height:48px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center;font:600 15px "Open Sans",sans-serif;cursor:pointer;transition:.1s;user-select:none}
+.key:hover{background:rgba(255,255,255,.12);color:#fff}
+.key.sel{background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 55%,transparent),rgba(255,255,255,.08));border-color:color-mix(in srgb,var(--accent) 35%,transparent);color:#fff;transform:scale(1.08);box-shadow:0 0 12px color-mix(in srgb,var(--accent) 30%,transparent)}
+.key.special{font-size:11px;letter-spacing:.03em;text-transform:uppercase;color:rgba(255,255,255,.45)}
+.key.special.sel{color:#fff}
+.key.space{grid-column:span 6}
+.key.accent{background:rgba(91,156,245,.1);border-color:rgba(91,156,245,.2);color:#5b9cf5;font-weight:700}
+.footer{display:flex;justify-content:center;gap:20px;margin-top:18px;font-size:11px;color:rgba(255,255,255,.38)}
+.footer b{color:rgba(255,255,255,.65)}
+</style>
+</head>
+<body>
+<div class="scrim"><div class="panel">
+  <div class="head"><b>On-Screen Keyboard</b><s>D-pad, left stick, or touchpad to choose a key</s></div>
+  <div class="input-row"><span class="text">God of War</span><span class="cursor"></span></div>
+  <div class="keys">
+    <span class="key">1</span><span class="key">2</span><span class="key">3</span><span class="key">4</span><span class="key">5</span><span class="key">6</span><span class="key">7</span><span class="key">8</span><span class="key">9</span><span class="key">0</span><span class="key special">-</span><span class="key special">=</span>
+    <span class="key">Q</span><span class="key">W</span><span class="key">E</span><span class="key">R</span><span class="key">T</span><span class="key">Y</span><span class="key">U</span><span class="key">I</span><span class="key">O</span><span class="key">P</span><span class="key special">[</span><span class="key special">]</span><span class="key special">\</span>
+    <span class="key">A</span><span class="key">S</span><span class="key sel">D</span><span class="key">F</span><span class="key">G</span><span class="key">H</span><span class="key">J</span><span class="key">K</span><span class="key">L</span><span class="key special">;</span><span class="key special">'</span><span class="key accent">Enter</span>
+    <span class="key special">Shift</span><span class="key">Z</span><span class="key">X</span><span class="key">C</span><span class="key">V</span><span class="key">B</span><span class="key">N</span><span class="key">M</span><span class="key special">,</span><span class="key special">.</span><span class="key special">/</span><span class="key special">Shift</span>
+    <span class="key special">Ctrl</span><span class="key special">Alt</span><span class="key space"></span><span class="key special">&#8592;</span><span class="key special">&#8594;</span><span class="key special">Del</span>
+  </div>
+  <div class="footer"><span><b>&#x25B2;/&#x25BC;</b> Navigate</span><span><b>&#x2715;</b> Type</span><span><b>Share &#xd7;2</b> Toggle</span><span><b>&#x25CB;</b> Close</span></div>
+</div></div>
+</body>
+</html>

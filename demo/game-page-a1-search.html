@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=1920">
+<title>A1 — Search</title>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,600;0,700;0,800;1,800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{background:#040810;color:#f4f6fb;font-family:"Open Sans",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{width:1920px;height:1080px;margin:0 auto;position:relative;overflow:hidden}
+.hero{position:absolute;inset:0;z-index:-1;overflow:hidden}
+.hero .base{position:absolute;inset:0;background:#040810}
+.atmos-orb{position:absolute;border-radius:50%;will-change:transform,opacity;pointer-events:none}
+.atmos-orb.a{width:820px;height:820px;top:-18%;left:42%;background:radial-gradient(circle,rgba(50,100,200,.45),rgba(30,60,140,.18) 40%,transparent 68%);animation:orb-drift-a 18s ease-in-out infinite}
+.atmos-orb.b{width:640px;height:640px;top:22%;left:-8%;background:radial-gradient(circle,rgba(120,80,180,.32),rgba(60,30,120,.12) 38%,transparent 66%);animation:orb-drift-b 22s ease-in-out infinite}
+.atmos-orb.c{width:560px;height:560px;bottom:-12%;right:-6%;background:radial-gradient(circle,rgba(40,120,220,.35),rgba(20,60,140,.14) 36%,transparent 64%);animation:orb-drift-c 20s ease-in-out infinite}
+.hero .scrim{position:absolute;inset:0;background:linear-gradient(180deg,transparent 28%,rgba(5,7,12,.2) 54%,rgba(4,6,11,.58) 74%,rgba(4,6,11,.9) 100%)}
+@keyframes orb-drift-a{0%,100%{transform:translate(0,0) scale(1)}25%{transform:translate(-40px,20px) scale(1.06)}50%{transform:translate(-18px,-14px) scale(.97)}75%{transform:translate(28px,8px) scale(1.04)}}
+@keyframes orb-drift-b{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(32px,-18px) scale(1.05)}66%{transform:translate(-22px,14px) scale(.96)}}
+@keyframes orb-drift-c{0%,100%{transform:translate(0,0) scale(1);opacity:1}50%{transform:translate(-24px,-10px) scale(1.07);opacity:.8}}
+@media(prefers-reduced-motion:reduce){.atmos-orb{animation:none!important}}
+/* Nav */
+.nav{position:absolute;top:0;left:0;right:0;height:108px;display:flex;align-items:center;justify-content:space-between;padding:0 48px;z-index:20}
+.nav-left{display:flex;align-items:center;gap:28px}
+.ps-tile{width:86px;height:86px;border-radius:16px;background:radial-gradient(circle at 42% 38%,#2a3d6e,#0f1830);display:flex;align-items:center;justify-content:center;box-shadow:0 0 22px rgba(50,70,140,.35);border:1px solid rgba(255,255,255,.1)}
+.ps-tile svg{width:56px;height:56px}
+.nav-tabs{display:flex;overflow:hidden;border-radius:10px}
+.nav-tab{padding:8px 20px;border:none;background:rgba(255,255,255,.06);color:#BFBFBF;font:400 15px "Open Sans",sans-serif;cursor:pointer}
+.nav-tab:first-child{border-radius:10px 0 0 10px}.nav-tab:last-child{border-radius:0 10px 10px 0}
+.nav-tab.on{background:rgba(255,255,255,.15);color:#FBFBFB;font-weight:600}
+.nav-right{display:flex;align-items:center;gap:14px}
+.nav-btn{width:38px;height:38px;border:none;background:none;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:.78}
+.nav-btn svg{fill:none;stroke:#e4ecf8;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.nav-btn.on{opacity:1}.nav-btn.on svg{stroke:#5b9cf5}
+.nav-clock{font-size:13px;font-weight:300;color:#bcc8de;padding:6px 10px;letter-spacing:.02em}
+.nav-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#4a6090,#1a2644);position:relative;border:1.5px solid rgba(255,255,255,.12)}
+.nav-avatar .dot{position:absolute;bottom:0;right:0;width:12px;height:12px;border-radius:50%;background:#1AFF84;border:2px solid #0c1222;box-shadow:0 0 7px rgba(26,255,132,.45)}
+
+/* Search panel */
+.panel{position:absolute;top:108px;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding-bottom:14%}
+.search-wrap{width:min(68cqw,960px);display:flex;flex-direction:column;gap:20px}
+.search-box{display:flex;align-items:center;gap:0;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:4px 18px;backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);transition:border-color .2s,background .2s}
+.search-box:focus-within{border-color:rgba(91,156,245,.45);background:rgba(255,255,255,.12)}
+.search-box svg{width:22px;height:22px;fill:none;stroke:rgba(255,255,255,.45);stroke-width:2;flex-shrink:0}
+.search-box input{flex:1;height:56px;border:none;background:none;color:#fff;font:400 28px "Open Sans",sans-serif;letter-spacing:-.01em;outline:none;padding:0 12px}
+.search-box input::placeholder{color:rgba(255,255,255,.22);font-weight:300}
+.search-box .kb-hint{font-size:11px;font-weight:600;color:rgba(255,255,255,.25);padding:4px 10px;border-radius:6px;background:rgba(255,255,255,.04);white-space:nowrap}
+/* Results */
+.results{width:min(68cqw,960px);display:flex;flex-direction:column;gap:6px;max-height:44cqh;overflow-y:auto}
+.results::-webkit-scrollbar{width:4px}.results::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:2px}
+.result{display:flex;align-items:center;gap:16px;padding:14px 18px;border-radius:14px;cursor:pointer;transition:background .15s;border:1px solid transparent}
+.result:hover,.result.sel{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.08)}
+.result .icon{width:48px;height:48px;border-radius:12px;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.result .info{flex:1;min-width:0}
+.result .info b{display:block;font-size:17px;font-weight:700;letter-spacing:-.01em}
+.result .info s{font-size:12px;color:rgba(255,255,255,.38);text-decoration:none;display:block;margin-top:2px}
+.result .tag{font-size:10px;font-weight:700;padding:3px 10px;border-radius:8px;background:rgba(255,255,255,.06);color:rgba(255,255,255,.4);letter-spacing:.04em;text-transform:uppercase}
+/* Hint bar */
+.hints{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);display:flex;gap:10px;z-index:20}
+.hint{padding:8px 16px;border-radius:12px;background:rgba(255,255,255,.06);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.06);font-size:11px;font-weight:600;color:rgba(255,255,255,.45);display:flex;align-items:center;gap:7px}
+.hint b{color:rgba(255,255,255,.75);font-weight:700;font-size:13px}
+</style>
+</head>
+<body>
+<div class="hero"><div class="base"></div><div class="atmos-orb a"></div><div class="atmos-orb b"></div><div class="atmos-orb c"></div><div class="scrim"></div></div>
+<nav class="nav">
+  <div class="nav-left">
+    <div class="ps-tile" aria-label="Controller"><svg viewBox="0 0 64 54" fill="none" stroke="#e4ecff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 12h48c4 0 4 4 4 4v8c0 16-4 22-14 22-6 0-12-4-14-12-2 8-8 12-14 12C8 46 4 40 4 24v-8c0 0 0-4 4-4Z"/><rect x="22" y="14" width="20" height="12" rx="4"/><line x1="24" y1="6" x2="40" y2="6" stroke="#5b9cf5" stroke-width="2.5"/><circle cx="29" cy="32" r="4"/><circle cx="35" cy="32" r="4"/></svg></div>
+    <div class="nav-tabs"><button class="nav-tab">Continue</button><button class="nav-tab">Apps</button><button class="nav-tab">Games</button><button class="nav-tab">Launchers</button></div>
+  </div>
+  <div class="nav-right">
+    <button class="nav-btn on"><svg width="20" height="20" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="7"/><line x1="16" y1="16" x2="21" y2="21"/></svg></button>
+    <button class="nav-btn"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M19.4 13.5a7.7 7.7 0 0 0 .05-1.5l-2 1.55 2-3.46 2.38-.96a7.45 7.45 0 0 0-2.58-1.5L14.1 2.4h-4l-.35 2.5a7.45 7.45 0 0 0-2.58 1.5l-2.38-.96-2 3.46 2 1.55a7.7 7.7 0 0 0-.05 1.5l-2 1.55 2 3.46 2.38-.96a7.45 7.45 0 0 0 2.58 1.5l.35 2.5h4l.35-2.5a7.45 7.45 0 0 0 2.58-1.5l2.38.96 2-3.46-2-1.55Z"/><circle cx="12" cy="12" r="2.65"/></svg></button>
+    <button class="nav-btn"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M12 2.6v8.1"/><path d="M7.1 5.5a8.1 8.1 0 1 0 9.8 0"/></svg></button>
+    <div class="nav-clock">02:48 PM</div>
+    <div class="nav-avatar"><div class="dot"></div></div>
+  </div>
+</nav>
+<div class="panel">
+  <div class="search-wrap">
+    <div class="search-box">
+      <svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="7"/><line x1="16" y1="16" x2="21" y2="21"/></svg>
+      <input type="text" placeholder="Search games, apps, and settings..." value="God of War">
+      <span class="kb-hint">&#x25B2; KB</span>
+    </div>
+    <div class="results">
+      <div class="result sel">
+        <div class="icon">&#9650;</div>
+        <div class="info"><b>God of War Ragnarök</b><s>Santa Monica Studio · PS5</s></div>
+        <div class="tag">Running</div>
+      </div>
+      <div class="result">
+        <div class="icon">&#9670;</div>
+        <div class="info"><b>Forza Horizon 6</b><s>Playground Games · Launcher</s></div>
+        <div class="tag">Game</div>
+      </div>
+      <div class="result">
+        <div class="icon">&#9711;</div>
+        <div class="info"><b>Netflix</b><s>Streaming · Browser App</s></div>
+        <div class="tag">App</div>
+      </div>
+      <div class="result">
+        <div class="icon">&#9776;</div>
+        <div class="info"><b>Display Settings</b><s>System — Resolution &amp; refresh rate</s></div>
+        <div class="tag">Settings</div>
+      </div>
+      <div class="result">
+        <div class="icon">&#9881;</div>
+        <div class="info"><b>Controller Settings</b><s>System — DualSense sensitivity &amp; haptics</s></div>
+        <div class="tag">Settings</div>
+      </div>
+      <div class="result">
+        <div class="icon">&#9654;</div>
+        <div class="info"><b>YouTube</b><s>Video · Browser App</s></div>
+        <div class="tag">App</div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="hints">
+  <span class="hint"><b>&#x2715;</b> Select</span>
+  <span class="hint"><b>&#x25B2;</b> Keyboard</span>
+  <span class="hint"><b>&#x25CB;</b> Back</span>
+</div>
+</body>
+</html>
