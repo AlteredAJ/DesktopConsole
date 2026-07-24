@@ -37,7 +37,8 @@ body{width:1920px;height:1080px;margin:0 auto;position:relative;overflow:hidden}
 .nav{position:absolute;top:0;left:0;right:0;height:108px;display:flex;align-items:center;justify-content:space-between;padding:0 48px;z-index:20;pointer-events:none}
 .nav>*{pointer-events:auto}
 .nav-left{display:flex;align-items:center;gap:28px}
-.ps-tile{width:86px;height:86px;border-radius:16px;background:radial-gradient(circle at 42% 38%,#003791,#001a4d);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:22px;letter-spacing:-.08em;color:#fff;transform:skewX(-10deg);box-shadow:0 0 22px rgba(0,55,145,.45)}.ps-tile span{transform:skewX(10deg)}
+.ps-tile{width:86px;height:86px;border-radius:16px;background:radial-gradient(circle at 42% 38%,#2a3d6e,#0f1830);display:flex;align-items:center;justify-content:center;box-shadow:0 0 22px rgba(50,70,140,.35);border:1px solid rgba(255,255,255,.1)}
+.ps-tile svg{width:56px;height:56px}
 .nav-tabs{display:flex;overflow:hidden;border-radius:10px}
 .nav-tab{padding:8px 20px;border:none;background:rgba(255,255,255,.06);color:#BFBFBF;font:400 15px "Open Sans",sans-serif;cursor:pointer;transition:background .15s,color .15s}
 .nav-tab:first-child{border-radius:10px 0 0 10px}.nav-tab:last-child{border-radius:0 10px 10px 0}
@@ -176,7 +177,20 @@ h1 em{font-style:italic;font-weight:800;opacity:.55}
 
 <nav class="nav">
   <div class="nav-left">
-    <div class="ps-tile"><span>PS</span></div>
+    <div class="ps-tile" aria-label="DualSense Controller">
+      <svg viewBox="0 0 64 54" fill="none" stroke="#e4ecff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+        <!-- body: wide bar at top, angled grips -->
+        <path d="M8 12h48c4 0 4 4 4 4v8c0 16-4 22-14 22-6 0-12-4-14-12-2 8-8 12-14 12C8 46 4 40 4 24v-8c0 0 0-4 4-4Z"/>
+        <!-- touchpad -->
+        <rect x="22" y="14" width="20" height="12" rx="4"/>
+        <!-- lightbar -->
+        <line x1="24" y1="6" x2="40" y2="6" stroke="#5b9cf5" stroke-width="2.5"/>
+        <!-- left stick -->
+        <circle cx="29" cy="32" r="4"/>
+        <!-- right stick -->
+        <circle cx="35" cy="32" r="4"/>
+      </svg>
+    </div>
     <div class="nav-tabs">
       <button class="nav-tab">Continue</button>
       <button class="nav-tab">Apps</button>
