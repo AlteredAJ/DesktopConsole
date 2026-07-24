@@ -21,20 +21,21 @@ const HERO_ART: Record<string, () => JSX.Element> = {
   discord: DiscordHero,
   steam: SteamHero,
   battlenet: BattlenetHero,
-  // Disney+ and Epic used to live here (a logo-on-plate PosterHero and a
-  // hand-drawn EpicHero) because no wide key art existed for them. Both now
-  // have real rotating art sets, resolved from the registry below.
 };
 
 export function heroArtFor(id: string): (() => JSX.Element) | undefined {
   const app = identityFor(id);
 
   // Rotating set wins, then a single wide hero. Both render through KeyArtHero.
-  if (app && (app.artSet?.length || app.art)) {
+  // Lazy sets trigger async resolution; the component shows static art as a
+  // fallback until the set is ready.
+  if (app && (app.artSetLazy?.length || app.artSet?.length || app.art)) {
     return () => (
       <KeyArtHero
-        arts={app.artSet?.length ? app.artSet : undefined}
+        arts={app.artSet}
+        lazyArts={app.artSetLazy}
         art={app.art}
+        appKey={app.key}
         logo={app.lockup}
         cycle={!!app.cycleLogo}
         logoPosition={app.logoPosition ?? "left"}

@@ -9,7 +9,10 @@
 import { useEffect, useRef, useState } from "react";
 import { getPerformanceSettings, subscribePerformanceSettings } from "../../settings";
 import { currentFromBag, nextFromBag } from "./shuffleBag";
+import { resolveArtSet } from "../../appRegistry";
 import { MOTION } from "../../motion";
+
+type LazyArt = () => Promise<string>;
 
 // How long each image in a rotating set holds before the slow crossfade.
 const ROTATE_MS = MOTION.heroArt.holdMs;
@@ -17,24 +20,40 @@ const ROTATE_MS = MOTION.heroArt.holdMs;
 export function KeyArtHero({
   art,
   arts,
+  lazyArts,
+  appKey,
   logo,
   logoWidth = "26%",
   cycle = false,
   logoPosition = "left",
 }: {
   art?: string;
-  /** Optional set of hero images to slowly rotate through (crossfade). When
-   * given (length > 1) it supersedes `art`; a single-element set is static. */
+  /** Resolved rotating set — populated asynchronously from lazyArts. When
+   *   undefined while lazyArts exists, the component shows `art` as fallback
+   *   and resolves the set in the background. */
   arts?: string[];
+  /** Lazy importers that populate `arts`. Resolved once on first mount. */
+  lazyArts?: LazyArt[];
+  /** Key used to cache the resolved set (so re-mounts are instant). */
+  appKey?: string;
   logo?: string;
   logoWidth?: string;
   cycle?: boolean;
-  /** "left" (Fortnite-style title card) or "right" (streaming-app style —
-   * logo centered in the right-hand two-thirds, over the content it's
-   * fronting, not competing with the grid's own bottom-left title text). */
   logoPosition?: "left" | "right";
 }) {
   const [showLogo, setShowLogo] = useState(true);
+  const [resolvedArts, setResolvedArts] = useState<string[] | undefined>(arts);
+  // Resolve lazy art set on first mount. The cache in appRegistry ensures this
+  // runs once per app key per session — subsequent remounts are instant.
+  useEffect(() => {
+    if (!lazyArts || !lazyArts.length || !appKey) return;
+    let cancelled = false;
+    resolveArtSet(appKey, lazyArts).then((urls) => {
+      if (!cancelled) setResolvedArts(urls);
+    });
+    return () => { cancelled = true; };
+  }, [lazyArts, appKey]);
+
   useEffect(() => {
     if (!logo || !cycle) return;
     const id = setInterval(() => setShowLogo((s) => !s), MOTION.heroArt.logoCycleMs);
@@ -52,7 +71,7 @@ export function KeyArtHero({
   //     every focus change).
   // Reduced motion still draws from the bag on mount — picking a different
   // still image per visit isn't motion — it just doesn't run the timer.
-  const pool = arts && arts.length ? arts : art ? [art] : [];
+  const pool = resolvedArts && resolvedArts.length ? resolvedArts : art ? [art] : [];
   const reduced = useRef(
     typeof window !== "undefined" &&
       window.matchMedia?.("(prefers-reduced-motion: reduce)").matches,

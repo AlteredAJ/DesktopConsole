@@ -144,9 +144,15 @@ pub fn run() {
                 ),
             }
 
-            // Prewarm the hidden quick menu now so opening it in-game is a
-            // cheap visibility change rather than a second WebView2 startup.
-            commands::prewarm_quick_overlay(&app.handle().clone());
+            // Prewarm the hidden quick menu so opening it in-game is a cheap
+            // visibility change rather than a second WebView2 startup. Deferred
+            // 500ms so the main window paints first — the overlay won't be
+            // summoned before the user triple-clicks PS and launches an app.
+            let handle = app.handle().clone();
+            std::thread::spawn(move || {
+                std::thread::sleep(std::time::Duration::from_millis(500));
+                commands::prewarm_quick_overlay(&handle);
+            });
 
             hid::spawn_input_thread(app.handle().clone());
             Ok(())
