@@ -2,119 +2,251 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=1920">
-<title>A1 — PS5 Reference Layout (top dock)</title>
-<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<title>A1 Refined — PS5 Reference Layout (top dock)</title>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,600;0,700;0,800;1,800&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-html{background:#0a0b12;color:#f4f6fb;font-family:"Open Sans",system-ui,sans-serif}
+html{background:#05080f;color:#f4f6fb;font-family:"Open Sans",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
 body{width:1920px;height:1080px;margin:0 auto;position:relative;overflow:hidden}
 
-/* Hero backdrop */
-.bg{position:absolute;inset:-1%}
-.bg-img{position:absolute;inset:0;background:radial-gradient(ellipse at 62% 38%,#1a3a5c,#0a1220 60%,#040710)}
-.bg-gradient{position:absolute;inset:0;background:linear-gradient(72deg,rgba(6,7,10,.88) 0%,transparent 42%),linear-gradient(180deg,transparent 44%,rgba(6,7,10,.5) 72%,rgba(6,7,10,.9) 100%)}
+/* ── HERO BACKDROP ── */
+.hero{position:absolute;inset:0;z-index:-1}
+.hero .base{position:absolute;inset:0;background:
+  radial-gradient(ellipse 62% 42% at 68% 28%,#1b3358 0%,#0c1a30 28%,#060c18 58%,#030509 100%)}
+.hero .accent{position:absolute;inset:0;background:
+  radial-gradient(circle 420px at 78% 16%,rgba(70,110,180,.38),transparent 60%),
+  radial-gradient(circle 240px at 24% 72%,rgba(140,100,60,.18),transparent 55%),
+  radial-gradient(circle 180px at 56% 88%,rgba(50,60,90,.22),transparent 60%)}
+.hero .texture{position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='6' height='6'%3E%3Crect width='6' height='6' fill='%23fff' fill-opacity='.007'/%3E%3Crect x='3' y='3' width='1' height='1' fill='%23fff' fill-opacity='.004'/%3E%3C/svg%3E");opacity:.6}
+.hero .scrim{position:absolute;inset:0;background:
+  linear-gradient(68deg,rgba(5,7,12,.92) 0%,rgba(7,9,16,.55) 24%,transparent 38%),
+  linear-gradient(184deg,transparent 26%,rgba(5,7,12,.25) 52%,rgba(4,6,11,.62) 72%,rgba(4,6,11,.92) 100%)}
+.hero .sheen{position:absolute;inset:0;background:
+  radial-gradient(ellipse 28% 8% at 76% 8%,rgba(255,255,255,.06),transparent 100%),
+  radial-gradient(ellipse 18% 5% at 22% 12%,rgba(180,200,255,.04),transparent 100%)}
+.hero .particle{position:absolute;border-radius:50%;background:rgba(255,255,255,.15);animation:drift 12s linear infinite}
+.hero .particle:nth-child(1){width:2px;height:2px;left:14%;top:22%;animation-duration:14s;animation-delay:0s}
+.hero .particle:nth-child(2){width:3px;height:3px;left:72%;top:8%;animation-duration:18s;animation-delay:-4s}
+.hero .particle:nth-child(3){width:1.5px;height:1.5px;left:42%;top:18%;animation-duration:16s;animation-delay:-8s}
+.hero .particle:nth-child(4){width:2px;height:2px;left:88%;top:32%;animation-duration:20s;animation-delay:-2s}
+.hero .particle:nth-child(5){width:1px;height:1px;left:6%;top:42%;animation-duration:15s;animation-delay:-6s}
+.hero .particle:nth-child(6){width:2.5px;height:2.5px;left:56%;top:14%;animation-duration:17s;animation-delay:-10s}
+@keyframes drift{to{transform:translate(40px,-30px);opacity:0}}
 
-/* ── TOP NAV ── */
-.nav{position:absolute;top:0;left:0;right:0;height:108px;display:flex;align-items:center;padding:0 48px;z-index:10}
-.nav-l{display:flex;align-items:center;gap:24px}
-.ps{width:86px;height:86px;border-radius:16px;background:radial-gradient(circle at 42% 38%,#003791,#001a4d);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:22px;transform:skewX(-10deg);box-shadow:0 0 18px rgba(0,55,145,.4)}
-.ps span{transform:skewX(10deg)}
+/* ── TOP NAV BAR ── 108px ── */
+.nav{position:absolute;top:0;left:0;right:0;height:108px;display:flex;align-items:center;justify-content:space-between;padding:0 48px;z-index:20;pointer-events:none}
+.nav>*{pointer-events:auto}
+.nav-left{display:flex;align-items:center;gap:28px}
+.ps-tile{width:86px;height:86px;border-radius:16px;background:radial-gradient(circle at 42% 38%,#003791,#001a4d);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:22px;letter-spacing:-.08em;color:#fff;transform:skewX(-10deg);box-shadow:0 0 22px rgba(0,55,145,.45)}.ps-tile span{transform:skewX(10deg)}
 .nav-tabs{display:flex;overflow:hidden;border-radius:10px}
-.nav-tab{padding:8px 20px;border:none;background:rgba(255,255,255,.06);color:#BFBFBF;font:400 15px "Open Sans",sans-serif;cursor:pointer}
-.nav-tab.on{background:rgba(255,255,255,.14);color:#FBFBFB;font-weight:600}
-.nav-r{display:flex;align-items:center;gap:18px;margin-left:auto}
-.nav-r svg{fill:none;stroke:#e8f0fe;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.clock{font-size:14px;font-weight:300;color:#c4d0e4}
-.avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#3a4f7a,#18223a);position:relative}
-.avatar .dot{position:absolute;bottom:1px;right:1px;width:11px;height:11px;border-radius:50%;background:#1AFF84;box-shadow:0 0 6px #1AFF84}
+.nav-tab{padding:8px 22px;border:none;background:rgba(255,255,255,.06);color:#BFBFBF;font:400 15px "Open Sans",sans-serif;cursor:pointer;transition:background .15s,color .15s}
+.nav-tab:first-child{border-radius:10px 0 0 10px}.nav-tab:last-child{border-radius:0 10px 10px 0}
+.nav-tab.on{background:rgba(255,255,255,.15);color:#FBFBFB;font-weight:600}
+.nav-tab:hover:not(.on){background:rgba(255,255,255,.1)}
 
-/* ── DOCK (top-aligned, PS5 reference style) ── */
-.dock{position:absolute;top:114px;left:48px;right:48px;height:178px;display:flex;align-items:center;gap:14px;padding-left:138px;z-index:5}
-.tile{width:106px;height:106px;border-radius:16px;flex-shrink:0;background:rgba(0,0,22,.7);display:flex;align-items:center;justify-content:center;font-size:38px;color:rgba(255,255,255,.35);transition:.28s cubic-bezier(.22,1,.36,1);cursor:pointer;user-select:none}
+.nav-right{display:flex;align-items:center;gap:16px}
+.nav-btn{width:38px;height:38px;border:none;background:none;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:.78;transition:opacity .15s}
+.nav-btn:hover{opacity:1}
+.nav-btn svg{fill:none;stroke:#e4ecf8;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.nav-clock{font-size:13px;font-weight:300;color:#bcc8de;padding:6px 10px;letter-spacing:.02em}
+.nav-wishlist svg{fill:rgba(255,255,255,.08);stroke:#e4ecf8}
+.nav-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#4a6090,#1a2644);position:relative;flex-shrink:0;border:1.5px solid rgba(255,255,255,.12)}
+.nav-avatar .dot{position:absolute;bottom:0;right:0;width:12px;height:12px;border-radius:50%;background:#1AFF84;border:2px solid #0c1222;box-shadow:0 0 7px rgba(26,255,132,.45),0 1px 2px #6734A160}
+
+/* ── TILE DOCK ── 178px ── */
+.dock{position:absolute;top:114px;left:48px;right:48px;height:178px;display:flex;align-items:center;gap:12px;padding-left:186px;z-index:15}
+.tile{position:relative;width:106px;height:106px;border-radius:16px;flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none;overflow:hidden;transition:.3s cubic-bezier(.22,1,.36,1)}
+.tile .bg{position:absolute;inset:0;transition:.3s cubic-bezier(.22,1,.36,1)}
+.tile .icon{z-index:1;font-size:34px;font-style:normal;transition:.3s cubic-bezier(.22,1,.36,1)}
 .tile:hover{width:118px;height:118px;border-radius:20px;transform:translateY(-5px)}
-.tile.focus{width:180px;height:178px;border-radius:32px;border:3px solid rgba(255,255,255,.45);transform:translateY(-6px);background:linear-gradient(135deg,#1a2b4a,#0d1629);font-size:56px;color:rgba(255,255,255,.85);box-shadow:0 0 22px rgba(100,160,255,.3),0 12px 34px rgba(0,0,0,.5)}
-.tile.ghost{background:rgba(0,0,22,.25);border:1px dashed rgba(255,255,255,.05)}
+.tile:hover .icon{font-size:38px}
+.tile.focus{width:182px;height:179px;border-radius:32px;border:3px solid rgba(255,255,255,.52);transform:translateY(-6px);box-shadow:0 0 28px rgba(90,150,230,.32),0 14px 38px rgba(0,0,0,.55)}
+.tile.focus .icon{font-size:52px;color:rgba(255,255,255,.92)}
+.tile.empty{background:rgba(0,0,22,.22);border:1px dashed rgba(255,255,255,.04)}
+.tile.running::after{content:"";position:absolute;top:10px;right:10px;width:8px;height:8px;border-radius:50%;background:#1AFF84;z-index:2;box-shadow:0 0 5px rgba(26,255,132,.5)}
+/* Game tile backgrounds */
+.tile.fortnite .bg{background:linear-gradient(135deg,#1a2768,#0d1640)}.tile.fortnite .icon{color:rgba(255,255,255,.55)}
+.tile.fortnite.focus .bg{background:linear-gradient(135deg,#2540a0,#142060)}
+.tile.forza .bg{background:linear-gradient(135deg,#0a2e2e,#051818)}.tile.forza .icon{color:rgba(255,255,255,.45)}
+.tile.forza.focus .bg{background:linear-gradient(135deg,#0e4747,#072a2a)}
+.tile.gow .bg{background:linear-gradient(135deg,#1e1a3a,#0f0d20)}.tile.gow .icon{color:rgba(255,255,255,.6)}
+.tile.gow.focus .bg{background:linear-gradient(135deg,#333060,#1a1650)}
+.tile.sifu .bg{background:linear-gradient(135deg,#2a1518,#1a0c0e)}.tile.sifu .icon{color:rgba(255,255,255,.55)}
+.tile.sifu.focus .bg{background:linear-gradient(135deg,#4a2028,#2a1014)}
+.tile.netflix .bg{background:linear-gradient(135deg,#1a0a0a,#0c0406)}.tile.netflix .icon{color:rgba(220,40,40,.6)}
+.tile.netflix.focus .bg{background:linear-gradient(135deg,#2e1010,#180608)}
+.tile.spotify .bg{background:linear-gradient(135deg,#0a1a0a,#040c04)}.tile.spotify .icon{color:rgba(30,215,96,.55)}
+.tile.spotify.focus .bg{background:linear-gradient(135deg,#102e10,#061a06)}
+.tile.app .bg{background:linear-gradient(135deg,#121830,#080c1c)}.tile.app .icon{color:rgba(255,255,255,.3)}
 
-/* ── DETAIL (slides up under dock) ── */
-.panel{position:absolute;top:308px;left:48px;right:48px;bottom:0;display:flex;padding:24px 138px;gap:44px;background:linear-gradient(180deg,transparent 0%,rgba(3,6,12,.55) 15%,rgba(5,8,15,.92) 100%);z-index:4}
-.main{flex:1;display:flex;flex-direction:column;justify-content:flex-end;padding-bottom:22px}
-.side{width:370px;flex-shrink:0;display:flex;flex-direction:column;justify-content:flex-end;gap:18px;padding-bottom:22px}
+/* ── GAME DETAIL PANEL ── */
+.panel{position:absolute;top:309px;left:0;right:0;bottom:0;display:flex;padding:18px 48px 0 48px;gap:0;z-index:14;pointer-events:none}
+.panel>*{pointer-events:auto}
+.panel .bg-fade{position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(180deg,transparent 0%,rgba(3,5,10,.45) 14%,rgba(4,7,13,.88) 36%)}
 
-/* Title */
-.eyebrow{display:flex;align-items:center;gap:.8cqw;font-size:13px;font-weight:800;letter-spacing:.18em;color:rgba(255,255,255,.7);margin-bottom:10px}
-.eyebrow i{width:9px;height:9px;border-radius:50%;background:#6ea8ff;box-shadow:0 0 10px #6ea8ff}
-h1{font-size:52px;font-weight:800;line-height:.98;letter-spacing:-.04em;text-shadow:0 3px 24px rgba(0,0,0,.65);margin-bottom:12px}
-.lead{font-size:19px;font-weight:560;color:rgba(255,255,255,.75);max-width:640px;line-height:1.4;text-shadow:0 2px 12px rgba(0,0,0,.5)}
+.panel-left{flex:1;display:flex;flex-direction:column;padding:0 0 36px 186px;justify-content:flex-end}
+.panel-right{width:440px;flex-shrink:0;display:flex;flex-direction:column;justify-content:flex-end;padding:0 48px 36px 38px;gap:18px}
 
-/* Variant tags */
-.variants{display:flex;gap:8px;margin-top:16px}
-.vtag{padding:5px 14px;border-radius:14px;font-size:12px;font-weight:600;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.5);cursor:pointer}
-.vtag.on{background:rgba(255,255,255,.14);color:#fff;border-color:rgba(255,255,255,.2)}
+/* ── GAME INFO LEFT ── */
+.variants{display:flex;gap:10px;margin-bottom:16px}
+.vtag{padding:5px 16px;border-radius:14px;font-size:12px;font-weight:600;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.09);color:rgba(255,255,255,.48);cursor:pointer;letter-spacing:.01em;transition:.15s}
+.vtag.on{background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.2)}
+.vtag:hover:not(.on){background:rgba(255,255,255,.1)}
+.eyebrow{display:flex;align-items:center;gap:9px;font-size:9px;font-weight:800;letter-spacing:.2em;color:rgba(255,255,255,.55);text-transform:uppercase;margin-bottom:10px}
+.eyebrow i{width:7px;height:7px;border-radius:50%;background:#5b9cf5;box-shadow:0 0 8px rgba(91,156,245,.5)}
+h1{font-size:58px;font-weight:900;line-height:.95;letter-spacing:-.05em;text-shadow:0 4px 32px rgba(0,0,0,.7);margin-bottom:12px;max-width:680px}
+h1 em{font-style:italic;font-weight:800;opacity:.55}
+.meta{display:flex;gap:28px;margin-bottom:10px;font-size:13px;font-weight:600;color:rgba(255,255,255,.48);letter-spacing:.02em}
+.meta span{display:flex;align-items:center;gap:6px}
+.meta span:before{content:"";width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,.3)}
+.meta span:first-child:before{display:none}
+.lead{font-size:18px;font-weight:500;color:rgba(255,255,255,.66);max-width:580px;line-height:1.45;text-shadow:0 2px 10px rgba(0,0,0,.45);margin-bottom:8px}
 
 /* Screenshot */
-.screen{margin-top:24px;max-width:580px;height:172px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:14px;letter-spacing:.08em;color:rgba(255,255,255,.15);text-transform:uppercase;box-shadow:0 6px 24px rgba(0,0,0,.35)}
+.screen-card{margin-top:10px;max-width:580px;height:172px;border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,.1);box-shadow:0 8px 28px rgba(0,0,0,.4);position:relative}
+.screen-card .img{width:100%;height:100%;background:linear-gradient(160deg,#1a2848 0%,#0e182e 30%,#162038 60%,#0b1222 100%);display:flex;align-items:center;justify-content:center}
+.screen-card .img:after{content:"Screenshot Gallery";font-size:12px;font-weight:600;letter-spacing:.1em;color:rgba(255,255,255,.12);text-transform:uppercase}
+.screen-card .badge{position:absolute;bottom:12px;right:14px;padding:3px 10px;border-radius:8px;background:rgba(0,0,0,.55);font-size:10px;font-weight:600;color:rgba(255,255,255,.55);letter-spacing:.04em;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
 
-/* Box art */
-.boxart{width:370px;height:370px;border-radius:10px;background:linear-gradient(145deg,rgba(255,255,255,.04),rgba(0,0,0,.3));border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-size:64px;color:rgba(255,255,255,.06);box-shadow:0 8px 32px rgba(0,0,0,.45)}
+/* CTA pill row */
+.cta-row{display:flex;align-items:center;gap:14px;margin-top:22px}
+.cta-play{width:371px;height:78px;border-radius:39px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.12);backdrop-filter:blur(18px) saturate(160%);-webkit-backdrop-filter:blur(18px) saturate(160%);color:#fff;font:700 20px "Open Sans",sans-serif;letter-spacing:-.01em;cursor:pointer;box-shadow:0 10px 34px rgba(0,0,0,.45),inset 0 1px rgba(255,255,255,.36);transition:background .15s,transform .1s}
+.cta-play:hover{background:rgba(255,255,255,.18);transform:scale(1.01)}
+.cta-more{width:84px;height:78px;border-radius:50%;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.12);backdrop-filter:blur(18px) saturate(160%);-webkit-backdrop-filter:blur(18px) saturate(160%);display:flex;align-items:center;justify-content:center;gap:7px;cursor:pointer;box-shadow:0 10px 34px rgba(0,0,0,.45),inset 0 1px rgba(255,255,255,.36);transition:background .15s}
+.cta-more:hover{background:rgba(255,255,255,.18)}
+.cta-more b{width:6px;height:6px;border-radius:50%;background:#fff}
 
-/* CTA row */
-.ctas{display:flex;align-items:center;gap:14px;margin-top:22px}
-.play{width:371px;height:78px;border-radius:39px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.11);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);color:#fff;font:600 21px "Open Sans",sans-serif;cursor:pointer;box-shadow:0 8px 28px rgba(0,0,0,.4),inset 0 1px rgba(255,255,255,.28);transition:background .15s}
-.play:hover{background:rgba(255,255,255,.18)}
-.dots{width:84px;height:78px;border-radius:50%;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.11);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);display:flex;align-items:center;justify-content:center;gap:7px;cursor:pointer;box-shadow:0 8px 28px rgba(0,0,0,.4),inset 0 1px rgba(255,255,255,.28)}
-.dots span{width:7px;height:7px;border-radius:50%;background:#fff}
+/* ── RIGHT COLUMN ── */
+.boxart{width:100%;aspect-ratio:1;border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,.12);box-shadow:0 12px 40px rgba(0,0,0,.5);position:relative}
+.boxart .img{width:100%;height:100%;background:linear-gradient(155deg,#242050,#120e2e 40%,#1a1030 70%,#0e0a1e);display:flex;align-items:center;justify-content:center}
+.boxart .img:after{content:"GOW";font-size:52px;font-weight:900;font-style:italic;letter-spacing:-.06em;color:rgba(255,255,255,.06)}
+.boxart .stamp{position:absolute;top:14px;left:14px;padding:4px 10px;border-radius:8px;background:rgba(0,0,0,.5);font-size:10px;font-weight:700;color:rgba(255,255,255,.55);letter-spacing:.06em;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
 
 /* Trophy card */
-.trophy{width:370px;height:124px;border-radius:10px;background:rgba(0,0,0,.43);border:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-evenly;padding:0 24px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 6px 24px rgba(0,0,0,.35)}
-.ti{text-align:center}
-.ti .ic{font-size:24px;display:block;margin-bottom:4px}
-.ti b{display:block;font-size:17px;font-weight:700}
-.ti s{font-size:10px;font-weight:400;color:rgba(255,255,255,.5);text-decoration:none}
+.trophy-card{width:100%;padding:20px 22px;border-radius:14px;background:rgba(0,0,0,.48);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.07);box-shadow:0 8px 28px rgba(0,0,0,.4);display:flex;align-items:center;gap:8px}
+.trophy-card .head{font-size:9px;font-weight:700;letter-spacing:.14em;color:rgba(255,255,255,.38);text-transform:uppercase;writing-mode:vertical-rl;text-orientation:mixed;padding:0 4px}
+.trophy-card .items{display:flex;align-items:center;gap:22px;flex:1;justify-content:center}
+.trophy-item{text-align:center;min-width:52px}
+.trophy-item .ico{font-size:18px;display:block;line-height:1;margin-bottom:3px}
+.trophy-item b{display:block;font-size:16px;font-weight:700}
+.trophy-item s{font-size:9px;font-weight:500;color:rgba(255,255,255,.40);text-decoration:none;letter-spacing:.03em}
+.trophy-card .pct{text-align:right;padding-left:8px;border-left:1px solid rgba(255,255,255,.06)}
+.trophy-card .pct b{font-size:22px;font-weight:800;display:block;line-height:1}
+.trophy-card .pct s{font-size:8px;font-weight:600;color:rgba(255,255,255,.32);text-decoration:none;letter-spacing:.08em;text-transform:uppercase}
+
+/* ── BOTTOM HINT BAR ── */
+.hints{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);display:flex;gap:10px;z-index:20}
+.hint{padding:8px 16px;border-radius:12px;background:rgba(255,255,255,.06);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.06);font-size:11px;font-weight:600;color:rgba(255,255,255,.45);display:flex;align-items:center;gap:7px}
+.hint b{color:rgba(255,255,255,.75);font-weight:700;font-size:13px}
+.hint i{font-style:normal;font-size:13px;opacity:.6}
 </style>
 </head>
 <body>
-<div class="bg"><div class="bg-img"></div><div class="bg-gradient"></div></div>
+<div class="hero">
+  <div class="base"></div>
+  <div class="accent"></div>
+  <div class="texture"></div>
+  <div class="scrim"></div>
+  <div class="sheen"></div>
+  <div class="particle"></div><div class="particle"></div><div class="particle"></div>
+  <div class="particle"></div><div class="particle"></div><div class="particle"></div>
+</div>
 
 <nav class="nav">
-  <div class="nav-l">
-    <div class="ps"><span>PS</span></div>
-    <div class="nav-tabs"><button class="nav-tab on">Games</button><button class="nav-tab">Media</button></div>
+  <div class="nav-left">
+    <div class="ps-tile"><span>PS</span></div>
+    <div class="nav-tabs">
+      <button class="nav-tab on">Games</button>
+      <button class="nav-tab">Media</button>
+    </div>
   </div>
-  <div class="nav-r">
-    <svg width="22" height="22" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="7"/><line x1="16" y1="16" x2="21" y2="21"/></svg>
-    <svg width="22" height="22" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-    <div class="clock">02:48 PM</div>
-    <svg width="22" height="22" viewBox="0 0 24 24"><path d="M19.4 13.5a7.7 7.7 0 0 0 .05-1.5l-2 1.55 2-3.46 2.38-.96a7.45 7.45 0 0 0-2.58-1.5L14.1 2.4h-4l-.35 2.5a7.45 7.45 0 0 0-2.58 1.5l-2.38-.96-2 3.46 2 1.55a7.7 7.7 0 0 0-.05 1.5l-2 1.55 2 3.46 2.38-.96a7.45 7.45 0 0 0 2.58 1.5l.35 2.5h4l.35-2.5a7.45 7.45 0 0 0 2.58-1.5l2.38.96 2-3.46-2-1.55Z"/><circle cx="12" cy="12" r="2.65"/></svg>
-    <div class="avatar"><div class="dot"></div></div>
+  <div class="nav-right">
+    <button class="nav-btn" aria-label="Search">
+      <svg width="20" height="20" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="7"/><line x1="16" y1="16" x2="21" y2="21"/></svg>
+    </button>
+    <button class="nav-btn nav-wishlist" aria-label="Wishlist">
+      <svg width="20" height="20" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+    </button>
+    <button class="nav-btn" aria-label="Cart">
+      <svg width="20" height="20" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+    </button>
+    <div class="nav-clock">02:48 PM</div>
+    <button class="nav-btn" aria-label="Settings">
+      <svg width="20" height="20" viewBox="0 0 24 24"><path d="M19.4 13.5a7.7 7.7 0 0 0 .05-1.5l-2 1.55 2-3.46 2.38-.96a7.45 7.45 0 0 0-2.58-1.5L14.1 2.4h-4l-.35 2.5a7.45 7.45 0 0 0-2.58 1.5l-2.38-.96-2 3.46 2 1.55a7.7 7.7 0 0 0-.05 1.5l-2 1.55 2 3.46 2.38-.96a7.45 7.45 0 0 0 2.58 1.5l.35 2.5h4l.35-2.5a7.45 7.45 0 0 0 2.58-1.5l2.38.96 2-3.46-2-1.55Z"/><circle cx="12" cy="12" r="2.65"/></svg>
+    </button>
+    <div class="nav-avatar"><div class="dot"></div></div>
   </div>
 </nav>
 
 <div class="dock">
-  <div class="tile">&#9654;</div><div class="tile">&#9881;</div><div class="tile">&#9670;</div>
-  <div class="tile focus">&#9650;</div>
-  <div class="tile">&#9632;</div><div class="tile">&#9679;</div><div class="tile">&#9711;</div>
-  <div class="tile">&#9733;</div><div class="tile">&#9830;</div><div class="tile ghost"></div><div class="tile ghost"></div>
+  <div class="tile app"><span class="icon">&#9654;</span></div>
+  <div class="tile app"><span class="icon">&#9881;</span></div>
+  <div class="tile fortnite"><span class="icon">&#9670;</span></div>
+  <div class="tile gow focus running"><span class="icon">&#9650;</span></div>
+  <div class="tile forza"><span class="icon">&#9632;</span></div>
+  <div class="tile sifu"><span class="icon">&#9679;</span></div>
+  <div class="tile netflix"><span class="icon">&#9711;</span></div>
+  <div class="tile spotify"><span class="icon">&#9733;</span></div>
+  <div class="tile app"><span class="icon">&#9830;</span></div>
+  <div class="tile empty"></div>
+  <div class="tile empty"></div>
 </div>
 
 <div class="panel">
-  <div class="main">
-    <div class="variants"><span class="vtag on">Standard Edition</span><span class="vtag">Deluxe Edition</span></div>
-    <h1>God of War Ragnarök</h1>
-    <p class="lead">Embark on an epic journey as Kratos and Atreus. The Fimbulwinter is well underway — enemies are stronger, realms are colder, and the prophecy of Ragnarök looms over all nine realms.</p>
-    <div class="screen">Screenshot Gallery</div>
-    <div class="ctas">
-      <button class="play">Play Game</button>
-      <button class="dots"><span></span><span></span><span></span></button>
+  <div class="bg-fade"></div>
+  <div class="panel-left">
+    <div class="variants">
+      <span class="vtag on">Standard Edition</span>
+      <span class="vtag">Deluxe Edition</span>
+      <span class="vtag">Launch Edition</span>
+    </div>
+    <div class="eyebrow"><i></i>Now Playing</div>
+    <h1>God of War <em>Ragnarök</em></h1>
+    <div class="meta">
+      <span>Santa Monica Studio</span>
+      <span>PS5 &middot; PS4</span>
+      <span>84 GB</span>
+      <span>ESRB M</span>
+    </div>
+    <p class="lead">Embark on an epic and heartfelt journey as Kratos and Atreus struggle with holding on and letting go. The Fimbulwinter is well underway — enemies are stronger, realms are colder, and the prophecy of Ragnarök looms over all nine realms.</p>
+    <div class="screen-card">
+      <div class="img"></div>
+      <div class="badge">1 / 5</div>
+    </div>
+    <div class="cta-row">
+      <button class="cta-play">Play Game</button>
+      <button class="cta-more"><b></b><b></b><b></b></button>
     </div>
   </div>
-  <div class="side">
-    <div class="boxart">&#9654;</div>
-    <div class="trophy">
-      <div class="ti"><span class="ic" style="color:#FFE125;filter:drop-shadow(0 0 6px rgba(255,225,37,.4))">&#9733;</span><b>11</b><s>Gold</s></div>
-      <div class="ti"><span class="ic" style="color:#C0C0C0">&#9733;</span><b>24</b><s>Silver</s></div>
-      <div class="ti"><span class="ic" style="color:#CD7F32">&#9733;</span><b>36</b><s>Bronze</s></div>
+  <div class="panel-right">
+    <div class="boxart">
+      <div class="img"></div>
+      <div class="stamp">PS5</div>
+    </div>
+    <div class="trophy-card">
+      <div class="head">TROPHIES</div>
+      <div class="items">
+        <div class="trophy-item">
+          <span class="ico" style="color:#FFE125;filter:drop-shadow(0 0 6px rgba(255,225,37,.4))">&#9733;</span><b>11</b><s>Gold</s>
+        </div>
+        <div class="trophy-item">
+          <span class="ico" style="color:#C0C0C0;filter:drop-shadow(0 0 4px rgba(192,192,192,.3))">&#9733;</span><b>24</b><s>Silver</s>
+        </div>
+        <div class="trophy-item">
+          <span class="ico" style="color:#CD7F32;filter:drop-shadow(0 0 4px rgba(205,127,50,.3))">&#9733;</span><b>36</b><s>Bronze</s>
+        </div>
+      </div>
+      <div class="pct"><b>24<small>%</small></b><s>Complete</s></div>
     </div>
   </div>
+</div>
+
+<div class="hints">
+  <span class="hint"><b>✕</b> Select</span>
+  <span class="hint"><i>&#8592;&#8593;&#8595;&#8594;</i> Navigate</span>
+  <span class="hint"><b>L1 / R1</b> Switch tab</span>
+  <span class="hint"><b>&#9632;</b> Close app</span>
+  <span class="hint"><b>OPTIONS</b> Menu</span>
 </div>
 </body>
 </html>
