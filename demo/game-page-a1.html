@@ -39,7 +39,7 @@ body{width:1920px;height:1080px;margin:0 auto;position:relative;overflow:hidden}
 .nav-left{display:flex;align-items:center;gap:28px}
 .ps-tile{width:86px;height:86px;border-radius:16px;background:radial-gradient(circle at 42% 38%,#003791,#001a4d);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:22px;letter-spacing:-.08em;color:#fff;transform:skewX(-10deg);box-shadow:0 0 22px rgba(0,55,145,.45)}.ps-tile span{transform:skewX(10deg)}
 .nav-tabs{display:flex;overflow:hidden;border-radius:10px}
-.nav-tab{padding:8px 22px;border:none;background:rgba(255,255,255,.06);color:#BFBFBF;font:400 15px "Open Sans",sans-serif;cursor:pointer;transition:background .15s,color .15s}
+.nav-tab{padding:8px 20px;border:none;background:rgba(255,255,255,.06);color:#BFBFBF;font:400 15px "Open Sans",sans-serif;cursor:pointer;transition:background .15s,color .15s}
 .nav-tab:first-child{border-radius:10px 0 0 10px}.nav-tab:last-child{border-radius:0 10px 10px 0}
 .nav-tab.on{background:rgba(255,255,255,.15);color:#FBFBFB;font-weight:600}
 .nav-tab:hover:not(.on){background:rgba(255,255,255,.1)}
@@ -156,8 +156,10 @@ h1 em{font-style:italic;font-weight:800;opacity:.55}
   <div class="nav-left">
     <div class="ps-tile"><span>PS</span></div>
     <div class="nav-tabs">
+      <button class="nav-tab">Continue</button>
+      <button class="nav-tab">Apps</button>
       <button class="nav-tab on">Games</button>
-      <button class="nav-tab">Media</button>
+      <button class="nav-tab">Launchers</button>
     </div>
   </div>
   <div class="nav-right">
