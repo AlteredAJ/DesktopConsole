@@ -14,20 +14,20 @@ body{width:1920px;height:1080px;margin:0 auto;position:relative;overflow:hidden}
 .hero .base{position:absolute;inset:0;background:#040810}
 /* Animated orbs — transform + opacity only, no paint/layout. GPU-composited. */
 .atmos-orb{position:absolute;border-radius:50%;will-change:transform,opacity;pointer-events:none}
-.atmos-orb.a{width:820px;height:820px;top:-18%;left:42%;background:radial-gradient(circle,rgba(35,70,140,.22),transparent 68%);
+.atmos-orb.a{width:820px;height:820px;top:-18%;left:42%;background:radial-gradient(circle,rgba(50,100,200,.45),rgba(30,60,140,.18) 40%,transparent 68%);
   animation:orb-drift-a 18s ease-in-out infinite}
-.atmos-orb.b{width:640px;height:640px;top:22%;left:-8%;background:radial-gradient(circle,rgba(90,60,140,.16),transparent 66%);
+.atmos-orb.b{width:640px;height:640px;top:22%;left:-8%;background:radial-gradient(circle,rgba(120,80,180,.32),rgba(60,30,120,.12) 38%,transparent 66%);
   animation:orb-drift-b 22s ease-in-out infinite}
 .atmos-orb.c{width:560px;height:560px;bottom:-12%;right:-6%;
-  background:radial-gradient(circle,rgba(30,80,160,.18),transparent 64%);
+  background:radial-gradient(circle,rgba(40,120,220,.35),rgba(20,60,140,.14) 36%,transparent 64%);
   animation:orb-drift-c 20s ease-in-out infinite}
-.atmos-orb.sheen{width:900px;height:320px;top:0;left:56%;
-  background:radial-gradient(ellipse 60% 50% at 50% 50%,rgba(255,255,255,.03),transparent 70%);
+.atmos-orb.sheen{width:900px;height:320px;top:-4%;left:56%;
+  background:radial-gradient(ellipse 60% 50% at 50% 50%,rgba(255,255,255,.08),transparent 70%);
   animation:orb-sheen 16s ease-in-out infinite}
 /* Scrim + legibility gradient over the atmosphere */
 .hero .scrim{position:absolute;inset:0;background:
-  linear-gradient(68deg,rgba(5,7,12,.92) 0%,rgba(7,9,16,.55) 24%,transparent 38%),
-  linear-gradient(184deg,transparent 26%,rgba(5,7,12,.25) 52%,rgba(4,6,11,.62) 72%,rgba(4,6,11,.92) 100%)}
+  linear-gradient(68deg,rgba(5,7,12,.82) 0%,rgba(7,9,16,.42) 24%,transparent 42%),
+  linear-gradient(184deg,transparent 28%,rgba(5,7,12,.2) 54%,rgba(4,6,11,.58) 74%,rgba(4,6,11,.9) 100%)}
 /* Subtle screen-space specular bloom */
 .hero .bloom{position:absolute;inset:0;background:
   radial-gradient(ellipse 28% 8% at 76% 8%,rgba(255,255,255,.05),transparent 100%),
