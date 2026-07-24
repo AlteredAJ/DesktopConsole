@@ -126,19 +126,22 @@ export function IdleScreen({ message = "Press the PS button to wake", startup = 
         style={{
           position: "relative",
           display: "flex",
-          alignItems: "baseline",
-          gap: "0.82rem",
+          alignItems: "center",
+          gap: "0.72rem",
           color: "#f7fbff",
           textShadow: "0 0 22px rgba(180, 220, 255, 0.25)",
           animation: "idleWordmarkIn 620ms cubic-bezier(.22,1,.36,1) both",
         }}
       >
-        {/* Established PS5 Mode identity: typographic rather than a generic glyph. */}
-        <span style={{ fontFamily: "system-ui, sans-serif", fontSize: "2rem", fontWeight: 900, fontStyle: "italic", letterSpacing: "-0.17em", transform: "skew(-10deg) translateY(0.08em)" }}>PS</span>
-        <span style={{ fontSize: "1.02rem", fontWeight: 800, letterSpacing: "0.31em", paddingLeft: "0.18em" }}>5 MODE</span>
+        <svg viewBox="0 0 64 54" fill="none" stroke="#e4ecff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ width: "2.2rem", height: "1.9rem", filter: "drop-shadow(0 0 8px rgba(91,156,245,0.5))" }} aria-hidden="true">
+          <path d="M8 12h48c4 0 4 4 4 4v8c0 16-4 22-14 22-6 0-12-4-14-12-2 8-8 12-14 12C8 46 4 40 4 24v-8c0 0 0-4 4-4Z"/><rect x="22" y="14" width="20" height="12" rx="4"/><line x1="24" y1="6" x2="40" y2="6" stroke="#5b9cf5" strokeWidth="2.5"/><circle cx="29" cy="32" r="4"/><circle cx="35" cy="32" r="4"/>
+        </svg>
+        <span style={{ fontSize: "1.32rem", fontWeight: 900, letterSpacing: "-0.06em", transform: "skew(-10deg)" }}>LM</span>
       </div>
-      <div style={{ position: "relative", display: "flex", alignItems: "center", gap: "0.55rem", color: "rgba(231, 240, 252, 0.72)", fontSize: "0.92rem", fontWeight: 620, letterSpacing: "0.035em", animation: "idlePrompt 2.2s ease-in-out infinite" }}>
-        <span style={{ width: "0.36rem", height: "0.36rem", borderRadius: "50%", background: "#bde2ff", boxShadow: "0 0 12px rgba(120, 190, 255, 0.94)", animation: "idleGateLight 2.2s ease-in-out infinite" }} />
+      <div style={{ position: "relative", display: "flex", alignItems: "center", gap: "0.6rem", color: "rgba(231, 240, 252, 0.68)", fontSize: "0.92rem", fontWeight: 620, letterSpacing: "0.035em", animation: "idlePrompt 2.2s ease-in-out infinite" }}>
+        <svg viewBox="0 0 64 54" fill="none" stroke="#bde2ff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ width: "1.5rem", height: "1.3rem", opacity: 0.9, animation: "idleGateLight 2.2s ease-in-out infinite" }} aria-hidden="true">
+          <path d="M8 12h48c4 0 4 4 4 4v8c0 16-4 22-14 22-6 0-12-4-14-12-2 8-8 12-14 12C8 46 4 40 4 24v-8c0 0 0-4 4-4Z"/><rect x="22" y="14" width="20" height="12" rx="4"/><line x1="24" y1="6" x2="40" y2="6" stroke="#5b9cf5" strokeWidth="2.5"/><circle cx="29" cy="32" r="4"/><circle cx="35" cy="32" r="4"/>
+        </svg>
         {message}
       </div>
     </div>
