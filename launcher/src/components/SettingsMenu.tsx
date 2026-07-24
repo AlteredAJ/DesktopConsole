@@ -613,26 +613,37 @@ export function SettingsMenu({ initialTab = "Appearance", networkNotice, onReque
     setFocus(nextFocus);
   });
   return (
-    <CodexPanelShell eyebrow="SYSTEM" title="Settings" subtitle="Tune the room, the controller, and this PC."><div style={{ height: "100%", overflow: "hidden", display: "flex", flexDirection: "column" }}>
-      <div style={{ display: "flex", gap: "0.5rem", marginBottom: "2rem", flexWrap: "wrap" }}>
+    <CodexPanelShell eyebrow="SYSTEM" title="Settings" subtitle="Tune the room, the controller, and this PC."><div style={{ height: "100%", overflow: "hidden", display: "flex", gap: 0 }}>
+      {/* A1 sidebar */}
+      <aside style={{ width: "280px", flexShrink: 0, padding: "2.4cqh 1.4cqw", display: "flex", flexDirection: "column", gap: "3px", overflowY: "auto" }}>
         {TABS.map((t, i) => (
           <div
             key={t}
+            data-tab={t}
             style={{
-              padding: "0.4rem 1.2rem",
-              borderRadius: "999px",
-              background: i === tabIndex ? "var(--tile-focus)" : "transparent",
-              color: i === tabIndex ? "var(--accent)" : "var(--muted)",
-              fontSize: "1.1rem",
+              padding: "1.1cqh 1.4cqw",
+              borderRadius: "1.1cqh",
+              fontSize: "1.2cqh",
               fontWeight: 600,
+              color: i === tabIndex ? "#fff" : "rgba(255,255,255,.45)",
+              background: i === tabIndex ? "rgba(91,156,245,.12)" : "transparent",
+              border: i === tabIndex ? "1px solid rgba(91,156,245,.25)" : "1px solid transparent",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "1cqw",
+              transition: "background .15s, color .15s",
             }}
           >
+            <span style={{ fontSize: "1.4cqh", fontStyle: "normal", width: "2cqw", textAlign: "center" }}>
+              {t === "Appearance" ? "\u2699" : t === "Feedback" ? "\u2668" : t === "Controller" ? "\u25CE" : t === "Audio" ? "\u266B" : t === "Performance" ? "\u26A1" : t === "Display" ? "\u2622" : t === "Lighting" ? "\u2726" : t === "System" ? "\u25A0" : t === "Bluetooth" ? "\u2934" : t === "About" ? "\u2139" : ""}
+            </span>
             {t}
           </div>
         ))}
-      </div>
-
-      <div ref={panelRef} style={{ flex: 1, overflow: "hidden" }}>
+      </aside>
+      {/* Content */}
+      <main ref={panelRef} style={{ flex: 1, overflow: "hidden auto", padding: "2.4cqh 3.2cqw 2.4cqh 0" }}>
         {tab === "Appearance" && (
           <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
             <Row focused={focus === 0} icon={<IconTheme />} label="Theme" value={theme.mode === "dark" ? "Dark" : "Light"} />
@@ -921,7 +932,7 @@ export function SettingsMenu({ initialTab = "Appearance", networkNotice, onReque
             </div>
           </>
         )}
-      </div>
+      </main>
 
       <ButtonHints
         hints={[
