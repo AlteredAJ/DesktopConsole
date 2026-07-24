@@ -321,5 +321,33 @@ Format per entry: Intent · Changed · Files · Verified · Next/limits.
 - **Next/limits:** activate the tray fix with a listener build; wire 4K hero art;
   touchpad momentum needs live controller testing.
 
+### 2026-07-23 — Phase 1: gaming-drain fixes (cache, throttle, pause)
+- **Intent:** stop the listener and launcher from burning CPU while a game plays.
+- **Changed:** `cursor_mode.rs`: cached `foreground_is_launcher()` for 100ms (was 5 Win32 syscalls at HID poll rate, ~7,000/sec). `hid.rs`: added 40ms sleep in yielded branch when overlay inactive (launcher HID thread drops to ~25Hz from 600-1400Hz). `CodexLauncher.tsx`: `running_tile_ids` interval pauses when `document.visibilityState === "hidden"` (stops full process enumeration every 4s while console hidden).
+- **Files:** `cursor_mode.rs`, `hid.rs`, `CodexLauncher.tsx`, `OPTIMIZATION_PLAN.md` (new — compiled 14-item roadmap).
+- **Verified:** tsc + vite build + cargo check (both crates) green.
+- **Next:** rebuild and test with a game running — Task Manager should show `ps5-listener.exe` ~0.1% and `ps5-launcher.exe` near-zero while hidden.
+
+### 2026-07-23 — Phase 2: lazy-load keyart + defer overlay prewarm
+- **Intent:** stop loading 76MB of hero art at module eval (was blocking first paint for 1.5-2s).
+- **Changed:** `appRegistry.ts`: removed `eager: true` from 5 `import.meta.glob` calls. Created `LazyArt` pipeline with `resolveArtSet()` cache — images load on first tile focus, not at startup. `KeyArtHero.tsx`: accepts `lazyArts`/`appKey`, resolves set on mount. `lib.rs`: `prewarm_quick_overlay()` deferred to background thread with 500ms delay. `IDLE_ART` now statics-only.
+- **Files:** `appRegistry.ts`, `KeyArtHero.tsx`, `heroArt/index.tsx`, `lib.rs`.
+- **Verified:** tsc + vite build + cargo check green. Build output now shows 55+ lazy chunks (0.06kB each) instead of one 76MB eager bundle.
+- **Next:** first tile focus loads art on demand. Static imports still bundle ~15MB for immediate defaults.
+
+### 2026-07-23 — restore_focus: always show window, never silently no-op
+- **Intent:** fix "Console Home" in Quick Menu not returning to dashboard after minimize.
+- **Changed:** `commands.rs`: `restore_focus()` removed early return (`if !YIELDED.swap(...) { return }`). Now always shows window and sets focus. Emits `window-restored` only when genuinely yielded (avoids jarring entrance-animation replay on spurious calls).
+- **Files:** `commands.rs`.
+- **Verified:** tsc + vite build + cargo check green.
+- **Next:** test minimize-via-power → Quick Menu → Console Home flow on device.
+
+### 2026-07-23 — Quick Menu dormant + keyboard exit guards
+- **Intent:** fix Quick Menu processing Cross in background (cycling RGB accidentally) and keyboard overlay being killed by PS+Options exit combo while typing.
+- **Changed:** `commands.rs`: added `KEYBOARD_OPEN` atomic + `notify_keyboard_open`/`notify_keyboard_closed` commands. `hide_quick_overlay` emits `quick-menu-active: false`. `toggle_quick_overlay` emits `quick-menu-active: true`. `hid.rs`: PS+Options and triple-Options exit combos suppressed when `KEYBOARD_OPEN` is true. `QuickOverlay.tsx`: controller input gated on `quickMenuActive` ref (default false, set true only by overlay-show event). `CodexLauncher.tsx`: keyboardOpen effect calls notify commands.
+- **Files:** `commands.rs`, `hid.rs`, `lib.rs`, `QuickOverlay.tsx`, `CodexLauncher.tsx`.
+- **Verified:** tsc + vite build + cargo check green.
+- **Next:** rebuild and test keyboard typing doesn't kill launcher; verify Quick Menu never triggers RGB in background.
+
 *Earlier change-log entries (2026-07-15 baseline, Power glass, native benchmark,
 Unreal subsystem) are preserved in `docs/archive/AI_CONTINUATION_PROTOCOL.md`.*
