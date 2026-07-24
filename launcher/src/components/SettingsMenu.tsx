@@ -279,6 +279,19 @@ function IconDpad() {
 function IconKeyboard() {
   return <svg viewBox="0 0 24 24" width="55%" height="55%"><rect x="3" y="6" width="18" height="12" rx="2" fill="none" stroke="currentColor" strokeWidth="1.8" /><path d="M6 10h1M9 10h1M12 10h1M15 10h1M18 10h0M6 14h8M16 14h2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>;
 }
+// Per-tab icon mapping — use the existing SVG icon components for proper sizing.
+const tabIcons: Record<string, () => JSX.Element> = {
+  Appearance: IconTheme,
+  Feedback: IconHaptics,
+  Controller: IconKeyboard,
+  Audio: IconSound,
+  Performance: IconGameMode,
+  Display: IconDisplay,
+  Lighting: function LightingIcon() { return <svg viewBox="0 0 24 24" width="60%" height="60%" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/><circle cx="12" cy="12" r="3"/></svg>; },
+  System: IconGameMode,
+  Bluetooth: function BluetoothIcon() { return <svg viewBox="0 0 24 24" width="60%" height="60%" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M7 7l10 10-6 4V3l6 4-10 10"/></svg>; },
+  About: function AboutIcon() { return <svg viewBox="0 0 24 24" width="60%" height="60%" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h0"/></svg>; },
+};
 
 export function SettingsMenu({ initialTab = "Appearance", networkNotice, onRequestWifiPassword }: { initialTab?: Tab; networkNotice?: string; onRequestWifiPassword?: (network: WifiNetwork) => void }) {
   const [tabIndex, setTabIndex] = useState(() => Math.max(0, TABS.indexOf(initialTab as (typeof TABS)[number])));
@@ -635,8 +648,8 @@ export function SettingsMenu({ initialTab = "Appearance", networkNotice, onReque
               transition: "background .15s, color .15s",
             }}
           >
-            <span style={{ fontSize: "16px", fontStyle: "normal", width: "22px", textAlign: "center" }}>
-              {t === "Appearance" ? "\u2699" : t === "Feedback" ? "\u2668" : t === "Controller" ? "\u25CE" : t === "Audio" ? "\u266B" : t === "Performance" ? "\u26A1" : t === "Display" ? "\u2622" : t === "Lighting" ? "\u2726" : t === "System" ? "\u25A0" : t === "Bluetooth" ? "\u2934" : t === "About" ? "\u2139" : ""}
+            <span style={{ width: "20px", height: "20px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              {(() => { const I = tabIcons[t as string]; return I ? <I /> : null; })()}
             </span>
             {t}
           </div>
