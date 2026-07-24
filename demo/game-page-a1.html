@@ -122,17 +122,39 @@ h1 em{font-style:italic;font-weight:800;opacity:.55}
 .boxart .img:after{content:"GOW";font-size:52px;font-weight:900;font-style:italic;letter-spacing:-.06em;color:rgba(255,255,255,.06)}
 .boxart .stamp{position:absolute;top:14px;left:14px;padding:4px 10px;border-radius:8px;background:rgba(0,0,0,.5);font-size:10px;font-weight:700;color:rgba(255,255,255,.55);letter-spacing:.06em;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
 
-/* Trophy card */
-.trophy-card{width:100%;padding:20px 22px;border-radius:14px;background:rgba(0,0,0,.48);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.07);box-shadow:0 8px 28px rgba(0,0,0,.4);display:flex;align-items:center;gap:8px}
-.trophy-card .head{font-size:9px;font-weight:700;letter-spacing:.14em;color:rgba(255,255,255,.38);text-transform:uppercase;writing-mode:vertical-rl;text-orientation:mixed;padding:0 4px}
-.trophy-card .items{display:flex;align-items:center;gap:22px;flex:1;justify-content:center}
-.trophy-item{text-align:center;min-width:52px}
-.trophy-item .ico{font-size:18px;display:block;line-height:1;margin-bottom:3px}
-.trophy-item b{display:block;font-size:16px;font-weight:700}
-.trophy-item s{font-size:9px;font-weight:500;color:rgba(255,255,255,.40);text-decoration:none;letter-spacing:.03em}
-.trophy-card .pct{text-align:right;padding-left:8px;border-left:1px solid rgba(255,255,255,.06)}
-.trophy-card .pct b{font-size:22px;font-weight:800;display:block;line-height:1}
-.trophy-card .pct s{font-size:8px;font-weight:600;color:rgba(255,255,255,.32);text-decoration:none;letter-spacing:.08em;text-transform:uppercase}
+/* Trophy card — multi-page carousel */
+.trophy-card{width:100%;padding:18px 20px;border-radius:14px;background:rgba(0,0,0,.48);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.07);box-shadow:0 8px 28px rgba(0,0,0,.4);position:relative;overflow:hidden;min-height:96px;display:flex;align-items:center}
+.trophy-page{display:flex;align-items:center;gap:0;width:100%;flex-shrink:0;transition:transform .32s cubic-bezier(.22,1,.36,1)}
+.trophy-track{display:flex;width:100%;overflow:hidden}
+.trophy-track .track{display:flex;width:100%;transition:transform .32s cubic-bezier(.22,1,.36,1)}
+.trophy-track .page{min-width:100%;display:flex;align-items:center;justify-content:center;gap:18px}
+/* Page dots */
+.trophy-dots{position:absolute;top:10px;right:14px;display:flex;gap:5px;z-index:2}
+.trophy-dots span{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.18);transition:background .2s}
+.trophy-dots span.on{background:rgba(255,255,255,.6)}
+
+/* Page 1: Playtime */
+.playtime-stat{text-align:center;min-width:64px}
+.playtime-stat b{display:block;font-size:20px;font-weight:800;line-height:1;letter-spacing:-.02em}
+.playtime-stat s{font-size:9px;font-weight:500;color:rgba(255,255,255,.38);text-decoration:none;letter-spacing:.04em;margin-top:3px;display:block}
+.playtime-divider{width:1px;height:38px;background:rgba(255,255,255,.06);margin:0 6px}
+
+/* Page 2: Install info */
+.install-row{display:flex;flex-direction:column;gap:6px;width:100%}
+.install-row .bar-track{width:100%;height:5px;border-radius:3px;background:rgba(255,255,255,.06);overflow:hidden}
+.install-row .bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,color-mix(in srgb,var(--accent,#6ea8ff) 60%,transparent),var(--accent,#6ea8ff));transition:width .4s ease}
+.install-row .detail{display:flex;justify-content:space-between;font-size:11px;font-weight:600}
+.install-row .detail span{color:rgba(255,255,255,.5)}
+.install-row .detail b{color:rgba(255,255,255,.78);font-weight:700}
+
+/* Page 3: Per-game settings */
+.quick-settings{display:flex;flex-wrap:wrap;gap:8px;width:100%}
+.quick-toggle{display:flex;align-items:center;gap:8px;padding:6px 12px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);font-size:11px;font-weight:600;color:rgba(255,255,255,.55);cursor:pointer;transition:.15s}
+.quick-toggle.on{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.18);color:#fff}
+.quick-toggle .tgl{width:26px;height:14px;border-radius:7px;background:rgba(255,255,255,.12);position:relative;transition:background .2s}
+.quick-toggle .tgl:after{content:"";position:absolute;top:2px;left:2px;width:10px;height:10px;border-radius:50%;background:#fff;transition:left .2s}
+.quick-toggle.on .tgl{background:var(--accent,#5b9cf5)}
+.quick-toggle.on .tgl:after{left:14px}
 
 /* ── BOTTOM HINT BAR ── */
 .hints{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);display:flex;gap:10px;z-index:20}
@@ -225,20 +247,41 @@ h1 em{font-style:italic;font-weight:800;opacity:.55}
       <div class="img"></div>
       <div class="stamp">PS5</div>
     </div>
-    <div class="trophy-card">
-      <div class="head">TROPHIES</div>
-      <div class="items">
-        <div class="trophy-item">
-          <span class="ico" style="color:#FFE125;filter:drop-shadow(0 0 6px rgba(255,225,37,.4))">&#9733;</span><b>11</b><s>Gold</s>
-        </div>
-        <div class="trophy-item">
-          <span class="ico" style="color:#C0C0C0;filter:drop-shadow(0 0 4px rgba(192,192,192,.3))">&#9733;</span><b>24</b><s>Silver</s>
-        </div>
-        <div class="trophy-item">
-          <span class="ico" style="color:#CD7F32;filter:drop-shadow(0 0 4px rgba(205,127,50,.3))">&#9733;</span><b>36</b><s>Bronze</s>
+    <div class="trophy-card" style="--accent:#5b9cf5">
+      <div class="trophy-dots">
+        <span class="on"></span><span></span><span></span>
+      </div>
+      <div class="trophy-track">
+        <div class="track">
+          <!-- Page 1: Playtime + recents -->
+          <div class="page">
+            <div class="playtime-stat"><b>12<small>h</small></b><s>Played</s></div>
+            <div class="playtime-divider"></div>
+            <div class="playtime-stat"><b>4<small>h</small></b><s>This Week</s></div>
+            <div class="playtime-divider"></div>
+            <div class="playtime-stat"><b>32</b><s>Sessions</s></div>
+            <div class="playtime-divider"></div>
+            <div class="playtime-stat"><b>Tue</b><s>Last Launch</s></div>
+          </div>
+          <!-- Page 2: Install info -->
+          <div class="page">
+            <div class="install-row">
+              <div class="detail"><span>Storage</span><b>E:\SteamLibrary</b></div>
+              <div class="bar-track"><div class="bar-fill" style="width:68%"></div></div>
+              <div class="detail"><span>84 GB used of 1.8 TB</span><b>v1.0.14</b></div>
+            </div>
+          </div>
+          <!-- Page 3: Per-game quick settings -->
+          <div class="page">
+            <div class="quick-settings">
+              <span class="quick-toggle on"><span class="tgl"></span>Cursor Mode</span>
+              <span class="quick-toggle"><span class="tgl"></span>RTSS Overlay</span>
+              <span class="quick-toggle"><span class="tgl"></span>Haptics</span>
+              <span class="quick-toggle on"><span class="tgl"></span>Game Mode</span>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="pct"><b>24<small>%</small></b><s>Complete</s></div>
     </div>
   </div>
 </div>
@@ -246,6 +289,7 @@ h1 em{font-style:italic;font-weight:800;opacity:.55}
 <div class="hints">
   <span class="hint"><b>✕</b> Select</span>
   <span class="hint"><i>&#8592;&#8593;&#8595;&#8594;</i> Navigate</span>
+  <span class="hint"><b>L1 / R1</b> Cycle info</span>
   <span class="hint"><b>L1 / R1</b> Switch tab</span>
   <span class="hint"><b>&#9632;</b> Close app</span>
   <span class="hint"><b>OPTIONS</b> Menu</span>
