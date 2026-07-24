@@ -16,6 +16,10 @@ pub static YIELDED: AtomicBool = AtomicBool::new(false);
 /// The compact quick menu lives in a second transparent window. It never owns
 /// keyboard/mouse focus; controller input continues through the HID stream.
 pub static OVERLAY_ACTIVE: AtomicBool = AtomicBool::new(false);
+/// True while the keyboard overlay is visible on the dashboard. Suppresses exit
+/// combos (PS+Options / triple-Options) so typing a key mapped to Options or
+/// accidentally pressing PS while reaching for Share doesn't kill the launcher.
+pub static KEYBOARD_OPEN: AtomicBool = AtomicBool::new(false);
 /// Serializes hide/show work from controller gestures. Window transitions are
 /// synchronous on Windows, but fast repeated buttons used to stack several
 /// fullscreen/minimize operations behind each other.
@@ -75,6 +79,8 @@ pub fn hide_quick_overlay(app: &AppHandle) {
     // Always fall back to the Quick Menu, so the next double-PS shows the menu
     // rather than whatever surface happened to be up last.
     let _ = app.emit_to("overlay", "overlay-mode", "quick");
+    // Also tell the overlay it's now dormant so it stops processing input.
+    let _ = app.emit_to("overlay", "quick-menu-active", false);
 }
 
 /// Show the overlay window as the Desktop Mode keyboard dock (double-Share
@@ -115,6 +121,7 @@ pub fn toggle_quick_overlay(app: &AppHandle) {
         Ok(window) => {
             // Explicit mode, in case the dock was the last surface shown.
             let _ = app.emit_to("overlay", "overlay-mode", "quick");
+            let _ = app.emit_to("overlay", "quick-menu-active", true);
             let _ = window.show();
             OVERLAY_ACTIVE.store(true, Ordering::Relaxed);
             crate::rumble::select();
@@ -127,6 +134,19 @@ pub fn toggle_quick_overlay(app: &AppHandle) {
 #[tauri::command]
 pub fn hide_quick_overlay_command(app: AppHandle) {
     hide_quick_overlay(&app);
+}
+
+/// Frontend calls this when the keyboard overlay opens, so the HID loop can
+/// suppress exit combos (PS+Options / triple-Options) while the user is typing.
+#[tauri::command]
+pub fn notify_keyboard_open() {
+    KEYBOARD_OPEN.store(true, Ordering::Relaxed);
+}
+
+/// Frontend calls this when the keyboard overlay closes.
+#[tauri::command]
+pub fn notify_keyboard_closed() {
+    KEYBOARD_OPEN.store(false, Ordering::Relaxed);
 }
 
 #[tauri::command]

@@ -172,15 +172,25 @@ fn input_loop(app: AppHandle) {
 
             // PS + Options (hold both) exits, OR triple-click Options alone —
             // whichever's easier to land reliably (restores display either way).
-            if s.ps && s.options {
-                commands::request_exit(&app);
-                return;
-            }
-            let options_edge = s.options && !prev_options;
-            prev_options = s.options;
-            if exit_tracker.feed(options_edge) {
-                commands::request_exit(&app);
-                return;
+            // Suppressed while the keyboard overlay is visible so typing never
+            // accidentally kills the launcher.
+            if !commands::KEYBOARD_OPEN.load(Ordering::Relaxed) {
+                if s.ps && s.options {
+                    commands::request_exit(&app);
+                    return;
+                }
+                let options_edge = s.options && !prev_options;
+                prev_options = s.options;
+                if exit_tracker.feed(options_edge) {
+                    commands::request_exit(&app);
+                    return;
+                }
+            } else {
+                let options_edge = s.options && !prev_options;
+                prev_options = s.options;
+                // Still feed the tracker so we don't get a phantom triple-click
+                // when the keyboard closes. Just don't act on its result.
+                exit_tracker.feed(options_edge);
             }
 
 

@@ -1,5 +1,6 @@
 import { type CSSProperties, useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 import { useController } from "../hooks/useController";
 import { useEdges } from "../hooks/useEdges";
 import { navFeedback, selectFeedback, errorFeedback } from "../feedback";
@@ -58,6 +59,18 @@ export function QuickOverlay() {
   const previousStick = useRef<"left" | "right" | null>(null);
 
   const items = context.startsWith("game:") ? GAME_ITEMS : APP_ITEMS;
+  // Controller input is only valid when the Rust backend explicitly shows the
+  // overlay. Without this, a prewarmed-but-hidden overlay that somehow receives
+  // a stray pad-state frame (e.g. after a crash/recovery cycle) would process
+  // Cross presses in the background — cycling RGB, opening YouTube, etc.
+  const quickMenuActive = useRef(false);
+  useEffect(() => {
+    const un = listen<boolean>("quick-menu-active", (event) => {
+      quickMenuActive.current = event.payload;
+    });
+    return () => { void un.then((f) => f()); };
+  }, []);
+
   const move = (delta: number) => {
     setSelected((current) => (current + delta + items.length) % items.length);
     navFeedback();
@@ -79,6 +92,7 @@ export function QuickOverlay() {
   };
 
   useController((pad) => {
+    if (!quickMenuActive.current) return; // dormant — ignore all input
     const edge = edges.sync(pad); // always sample first — never behind a return
     if (typeof pad.battery_percent === "number") setBattery(pad.battery_percent);
     if (typeof pad.charging === "boolean") setCharging(pad.charging);

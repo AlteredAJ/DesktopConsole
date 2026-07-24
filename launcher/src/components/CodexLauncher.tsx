@@ -70,6 +70,12 @@ export function CodexLauncher({ onOpen, onReady, onRest, inputEnabled }: { onOpe
   const [expandedTile, setExpandedTile] = useState<Tile | null>(null); const [actionIndex, setActionIndex] = useState(0);
   const [powerOpen, setPowerOpen] = useState(false); const [powerIndex, setPowerIndex] = useState(0); const [powerConfirm, setPowerConfirm] = useState(false);
   const [keyboardOpen, setKeyboardOpen] = useState(false);
+  // Tell the HID loop to suppress exit combos while the keyboard overlay is
+  // visible — the user is trying to type, not kill the launcher.
+  useEffect(() => {
+    if (keyboardOpen) void invoke("notify_keyboard_open");
+    else void invoke("notify_keyboard_closed");
+  }, [keyboardOpen]);
   const [battery, setBattery] = useState<number | null>(null); const [charging, setCharging] = useState(false);
   const [liveBackdrop, setLiveBackdrop] = useState<LiveBackdropFrame | null>(null);
   const [recents, setRecents] = useState<string[]>(() => getRecents());

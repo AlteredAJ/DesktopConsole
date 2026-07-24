@@ -69,6 +69,8 @@ pub fn run() {
             commands::minimize_console,
             commands::show_console_window,
             commands::hide_quick_overlay_command,
+            commands::notify_keyboard_open,
+            commands::notify_keyboard_closed,
             commands::open_console_home,
             commands::get_overlay_context,
             commands::open_rgb_controls,
