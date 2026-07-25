@@ -1,7 +1,6 @@
 import { type CSSProperties, Suspense, lazy, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { accentFor, GlyphCircle, GlyphCross, GlyphOptions, GlyphSquare, GlyphSwipe, ServiceIcon, taglineFor } from "./icons";
-import { identityFor } from "../appRegistry";
 import { heroArtFor } from "./heroArt";
 import { Clock } from "./Clock";
 import { Atmosphere } from "./Atmosphere";

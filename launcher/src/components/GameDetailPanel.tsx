@@ -6,6 +6,7 @@
 
 import { type CSSProperties } from "react";
 import { GlyphCircle, GlyphCross, ServiceIcon } from "./icons";
+import { identityFor } from "../appRegistry";
 import { accentFor } from "./icons";
 
 interface Tile { id: string; label: string; category: string; needsCursor?: boolean; hasTrainer?: boolean; }
@@ -22,45 +23,24 @@ interface Props {
 
 /** Trophy stub — real data would come from a backend (local game index, PSN
  *  API, or a per-game trophy file). */
-interface TrophyStub {
-  gold: string;
-  silver: string;
-  bronze: string;
-  label: string;
-}
-const DEMO_TROPHY: Record<string, TrophyStub> = {
-  fortnite: { gold: "8", silver: "31", bronze: "42", label: "Save the World" },
-  forza: { gold: "4", silver: "11", bronze: "23", label: "Horizon Mexico" },
-  sifu: { gold: "2", silver: "9", bronze: "31", label: "The Club" },
-};
-const DEFAULT_TROPHY: TrophyStub = { gold: "1", silver: "4", bronze: "10", label: "Base Game" };
-
-function GameTrophyCard({ tile }: { tile: Tile }) {
-  const t = DEMO_TROPHY[tile.id] ?? DEFAULT_TROPHY;
+/** Info carousel — placeholder stub until we wire real playtime/install/settings data. */
+function InfoCarousel() {
   return (
-    <section className="gamedetail-trophies">
-      <div className="gamedetail-trophy-item">
-        <span className="gamedetail-trophy-icon" style={{ color: "#FFE125", filter: "drop-shadow(0 0 6px rgba(255,225,37,.35))" }}>&#9733;</span>
-        <b>{t.gold}</b>
-        <small>Gold</small>
+    <section className="gamedetail-info">
+      <div className="gamedetail-info-page">
+        <div className="gamedetail-stat"><b>--<small>h</small></b><s>Played</s></div>
+        <div className="gamedetail-stat"><b>--<small>h</small></b><s>This Week</s></div>
+        <div className="gamedetail-stat"><b>--</b><s>Sessions</s></div>
+        <div className="gamedetail-stat"><b>--</b><s>Last Launch</s></div>
       </div>
-      <div className="gamedetail-trophy-item">
-        <span className="gamedetail-trophy-icon" style={{ color: "#C0C0C0", filter: "drop-shadow(0 0 4px rgba(192,192,192,.3))" }}>&#9733;</span>
-        <b>{t.silver}</b>
-        <small>Silver</small>
-      </div>
-      <div className="gamedetail-trophy-item">
-        <span className="gamedetail-trophy-icon" style={{ color: "#CD7F32", filter: "drop-shadow(0 0 4px rgba(205,127,50,.3))" }}>&#9733;</span>
-        <b>{t.bronze}</b>
-        <small>Bronze</small>
-      </div>
-      <div className="gamedetail-trophy-summary">{t.label}</div>
     </section>
   );
 }
 
 export function GameDetailPanel({ tile, actions, actionIndex, isRunning, onAction, onClose }: Props) {
   const accent = accentFor(tile.id);
+  const identity = identityFor(tile.id);
+  const heroArt = identity?.art;
   const panelStyle: CSSProperties = {
     "--game-accent": accent,
     maxWidth: "min(76cqw,56rem)",
@@ -103,19 +83,18 @@ export function GameDetailPanel({ tile, actions, actionIndex, isRunning, onActio
         {/* Body: left column = screenshot + description, right column = box art */}
         <div className="gamedetail-body">
           <div className="gamedetail-body-left">
-            <div className="gamedetail-screenshot">
-              <span className="gamedetail-screenshot-placeholder">Screenshot Gallery</span>
+            <div className="gamedetail-screenshot" style={heroArt ? { backgroundImage: `url("${heroArt}")`, backgroundSize: "cover", backgroundPosition: "center" } : undefined}>
+              {!heroArt && <span className="gamedetail-screenshot-placeholder">Screenshot Gallery</span>}
             </div>
           </div>
           <div className="gamedetail-body-right">
-            <div className="gamedetail-boxart">
-              <ServiceIcon id={tile.id} />
+            <div className="gamedetail-boxart" style={heroArt ? { backgroundImage: `url("${heroArt}")`, backgroundSize: "cover", backgroundPosition: "center" } : undefined}>
+              {!heroArt && <ServiceIcon id={tile.id} />}
             </div>
           </div>
         </div>
 
-        {/* Trophy row */}
-        <GameTrophyCard tile={tile} />
+        <InfoCarousel />
 
         {/* CTA actions — same controller-driven selection as the old menu */}
         <div className="gamedetail-actions">
