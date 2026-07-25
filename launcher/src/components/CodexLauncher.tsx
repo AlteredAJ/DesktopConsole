@@ -1,6 +1,7 @@
 import { type CSSProperties, Suspense, lazy, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { accentFor, GlyphCircle, GlyphCross, GlyphOptions, GlyphSquare, GlyphSwipe, ServiceIcon, taglineFor } from "./icons";
+import { identityFor } from "../appRegistry";
 import { heroArtFor } from "./heroArt";
 import { Clock } from "./Clock";
 import { Atmosphere } from "./Atmosphere";
@@ -406,7 +407,7 @@ const CSS = `
 .codex-nav-tabs{position:relative;display:flex;overflow:hidden;border-radius:10px}
 .codex-tab-glow{position:absolute;top:0;height:4.4cqh;border-radius:1.45cqh;pointer-events:none;z-index:0;background:linear-gradient(180deg,color-mix(in srgb,var(--focus-bloom) 34%,rgba(255,255,255,.16)),color-mix(in srgb,var(--focus-bloom) 12%,rgba(255,255,255,.03)));box-shadow:0 0 2.6cqh color-mix(in srgb,var(--focus-bloom) 55%,transparent),inset 0 1px rgba(255,255,255,.4);transition:left .34s cubic-bezier(.22,1,.36,1),width .34s cubic-bezier(.22,1,.36,1)}
 .codex-tab-glow.is-moving{filter:blur(7px) saturate(150%);transform:scaleX(1.14)}
-.codex-tab{position:relative;z-index:1;height:4.4cqh;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.045);color:rgba(238,241,246,.72);padding:0 1.1cqw;border-radius:1.45cqh;font:700 1.2cqh inherit;cursor:pointer}
+.codex-tab{position:relative;z-index:1;height:4.4cqh;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.045);color:rgba(238,241,246,.72);padding:0 1.1cqw;font:700 1.2cqh inherit;cursor:pointer}
 .codex-tab:first-child{border-radius:10px 0 0 10px}.codex-tab:last-child{border-radius:0 10px 10px 0}
 .codex-tab.active{color:#fff;background:transparent;border-color:transparent;text-shadow:0 1px 8px #000}
 .codex-nav-right{display:flex;align-items:center;gap:1.1cqw}
@@ -428,7 +429,10 @@ const CSS = `
 .codex-shelf-ghost{position:absolute;inset:.4cqh .6cqw;animation:codex-shelf-out .3s ease both}
 @keyframes codex-shelf-in{from{opacity:0;transform:translateX(calc(var(--dir,1)*2cqw))}to{opacity:1;transform:none}}
 @keyframes codex-shelf-out{to{opacity:0;transform:translateX(calc(var(--dir,1)*-2.5cqw))}}
-.codex-tile{position:relative;width:10.6cqw;height:10.6cqw;border-radius:1.6cqh;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.6cqh;background:rgba(0,0,22,.65);border:1px solid rgba(255,255,255,.06);cursor:pointer;transition:width .28s cubic-bezier(.22,1,.36,1),height .28s cubic-bezier(.22,1,.36,1),border-radius .28s cubic-bezier(.22,1,.36,1),transform .28s cubic-bezier(.22,1,.36,1),background .2s,border-color .2s;user-select:none}
+.codex-tile{position:relative;width:10.6cqw;height:10.6cqw;border-radius:1.6cqh;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.6cqh;background:rgba(0,0,22,.65);border:1px solid rgba(255,255,255,.06);cursor:pointer;transition:width .28s cubic-bezier(.22,1,.36,1),height .28s cubic-bezier(.22,1,.36,1),border-radius .28s cubic-bezier(.22,1,.36,1),transform .28s cubic-bezier(.22,1,.36,1),background .2s,border-color .2s;user-select:none;overflow:hidden}
+.codex-tile-bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.55;transition:opacity .28s cubic-bezier(.22,1,.36,1)}
+.codex-tile.focused .codex-tile-bg{opacity:.82}
+.codex-tile-bg-fallback{position:absolute;inset:0;background:linear-gradient(135deg,rgba(18,26,48,.4),rgba(8,14,28,.5))}
 .codex-tile:hover{border-color:rgba(255,255,255,.12)}
 .codex-tile.focused{width:14cqw;height:14cqw;border-radius:2.4cqh;border:2px solid rgba(255,255,255,.38);transform:translateY(-.6cqh);background:linear-gradient(135deg,rgba(26,43,74,.8),rgba(13,22,41,.7));box-shadow:0 0 2.2cqh color-mix(in srgb,var(--focus-bloom) 26%,transparent),0 .8cqh 2.4cqh rgba(0,0,0,.5);color:rgba(255,255,255,.92)}
 .codex-tile-icon{font-size:3.2cqh;font-style:normal;display:flex;align-items:center;justify-content:center;flex:1;padding-top:.8cqh}
