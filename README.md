@@ -12,6 +12,7 @@
   <a href="#"><img src="https://img.shields.io/badge/platform-Windows%2011-blue" alt="Platform"></a>
   <a href="#"><img src="https://img.shields.io/badge/built%20with-Tauri%20v2-ffc131" alt="Tauri"></a>
   <a href="#"><img src="https://img.shields.io/badge/framework-React%2019-61dafb" alt="React"></a>
+  <img src="https://img.shields.io/github/stars/AlteredAJ/DesktopConsole?style=social" alt="stars">
 </p>
 
 <br>
@@ -191,6 +192,31 @@ DesktopConsole/
 - **Dual surface isolation** — Controller events never route to both Home and the Quick Menu at the same time. Each surface owns its own HID stream.
 - **Dark only** — The console is a living-room device. It never blasts white light at the viewer.
 - **No network ports** — Zero listeners on localhost or LAN. The launcher is a local app, not a server.
+
+<br>
+
+## Roadmap
+
+| Status | Item |
+|--------|------|
+| ✅ | DualSense HID — full input + haptics + lightbar |
+| ✅ | GPU fluid backgrounds (Midnight / Ember / Void) |
+| ✅ | Glass UI with specular bloom |
+| ✅ | Quick Menu overlay (in-game) |
+| ✅ | OpenRGB integration |
+| ✅ | On-screen keyboard (D-pad + touchpad) |
+| ✅ | Tauri v2 migration (Rust + React + WebView2) |
+| ✅ | Two-process architecture (listener + launcher) |
+| ✅ | Power menu with rest mode + shutdown |
+| 📋 | Keyboard + mouse navigation fallback |
+| 📋 | Steam Deck + Xbox controller support |
+| 📋 | Game cover art auto-fetch (SteamGridDB) |
+| 📋 | Media playback controls |
+| 📋 | Installer + auto-start on boot |
+
+## Contributing
+
+Issues and PRs welcome. Check `ISSUES.md` for known bugs and `OPTIMIZATION_PLAN.md` for the performance roadmap. Feature specs live in `docs/specs/`.
 
 <br>
 
