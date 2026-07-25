@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DesktopConsole — A controller-first, 10-foot Windows couch launcher</title>
+<meta name="description" content="Turn your Windows PC into a living-room console. DualSense-driven, GPU fluid backgrounds, WebGL glass UI. Pick up a controller and triple-tap PS — your full-screen game launcher appears.">
+<meta name="theme-color" content="#040810">
+<style>
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+  html{background:#040810;color:#f4f6fb;font-family:"Open Sans",system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;scroll-behavior:smooth}
+  body{min-height:100vh}
+
+  /* ── ATMOSPHERE ── */
+  .atmos{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
+  .atmos .orb{position:absolute;border-radius:50%;will-change:transform,opacity}
+  .atmos .a{width:820px;height:820px;top:-18%;left:42%;background:radial-gradient(circle,rgba(50,100,200,.35),rgba(30,60,140,.12) 40%,transparent 68%);animation:drift-a 18s ease-in-out infinite}
+  .atmos .b{width:640px;height:640px;top:22%;left:-8%;background:radial-gradient(circle,rgba(120,80,180,.25),rgba(60,30,120,.08) 38%,transparent 66%);animation:drift-b 22s ease-in-out infinite}
+  .atmos .c{width:560px;height:560px;bottom:-12%;right:-6%;background:radial-gradient(circle,rgba(40,120,220,.28),rgba(20,60,140,.10) 36%,transparent 64%);animation:drift-c 20s ease-in-out infinite}
+  .atmos .sheen{width:900px;height:320px;top:-4%;left:56%;background:radial-gradient(ellipse 60% 50% at 50% 50%,rgba(255,255,255,.06),transparent 70%);animation:sheen 16s ease-in-out infinite}
+  @keyframes drift-a{0%,100%{transform:translate(0,0) scale(1)}25%{transform:translate(-40px,20px) scale(1.06)}50%{transform:translate(-18px,-14px) scale(.97)}75%{transform:translate(28px,8px) scale(1.04)}}
+  @keyframes drift-b{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(32px,-18px) scale(1.05)}66%{transform:translate(-22px,14px) scale(.96)}}
+  @keyframes drift-c{0%,100%{transform:translate(0,0) scale(1);opacity:1}50%{transform:translate(-24px,-10px) scale(1.07);opacity:.8}}
+  @keyframes sheen{0%,100%{transform:translate(0,0);opacity:.8}50%{transform:translate(-30px,-6px);opacity:1}}
+  @media(prefers-reduced-motion:reduce){.atmos .orb{animation:none!important}}
+
+  /* ── NAV ── */
+  nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 48px;height:72px;display:flex;align-items:center;justify-content:space-between;background:rgba(4,8,16,.82);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);border-bottom:1px solid rgba(255,255,255,.06)}
+  .nav-logo{display:flex;align-items:center;gap:12px;font-size:16px;font-weight:700;letter-spacing:-.01em;color:#e4ecf8;text-decoration:none}
+  .nav-logo svg{width:32px;height:auto}
+  .nav-links{display:flex;gap:32px;align-items:center}
+  .nav-links a{font-size:14px;font-weight:600;color:rgba(255,255,255,.55);text-decoration:none;transition:color .15s}
+  .nav-links a:hover{color:#fff}
+
+  .container{max-width:1200px;margin:0 auto;padding:0 24px}
+
+  /* ── HERO ── */
+  .hero{padding:160px 0 100px;text-align:center;position:relative}
+  .hero-badge{display:inline-flex;align-items:center;gap:8px;padding:5px 16px;border-radius:999px;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.04);font-size:12px;font-weight:600;color:rgba(255,255,255,.48);margin-bottom:28px;letter-spacing:.01em}
+  .hero-badge i{width:8px;height:8px;border-radius:50%;background:#5b9cf5;box-shadow:0 0 8px rgba(91,156,245,.5)}
+  .hero h1{font-size:clamp(40px,6vw,68px);font-weight:800;line-height:1.06;letter-spacing:-.03em;max-width:820px;margin:0 auto 20px}
+  .hero h1 em{font-style:normal;color:#5b9cf5}
+  .hero p.sub{font-size:17px;color:rgba(255,255,255,.48);max-width:600px;margin:0 auto 40px;line-height:1.65}
+  .hero-actions{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:14px 32px;border-radius:999px;font-weight:700;font-size:15px;text-decoration:none;transition:all .2s;border:none;cursor:pointer;font-family:inherit}
+  .btn-primary{background:#5b9cf5;color:#040810;box-shadow:0 0 28px rgba(91,156,245,.25)}
+  .btn-primary:hover{box-shadow:0 0 42px rgba(91,156,245,.40);transform:translateY(-1px)}
+  .btn-outline{background:rgba(255,255,255,.06);color:#e4ecf8;border:1px solid rgba(255,255,255,.12)}
+  .btn-outline:hover{background:rgba(255,255,255,.10)}
+
+  /* ── DEMO MOCKUP ── */
+  .mockup-wrap{padding:0 0 60px}
+  .mockup{max-width:1100px;margin:0 auto;border-radius:20px;overflow:hidden;border:1px solid rgba(255,255,255,.10);box-shadow:0 24px 72px rgba(0,0,0,.5);background:#05080f;aspect-ratio:16/9;position:relative}
+  .mockup iframe{width:100%;height:100%;border:none;display:block}
+  .mockup-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;background:rgba(5,8,15,.3)}
+  .mockup-overlay svg{width:56px;height:auto;opacity:.7}
+  .mockup-overlay span{font-size:13px;font-weight:600;color:rgba(255,255,255,.45)}
+
+  section{padding:100px 0}
+  section.alt{background:rgba(255,255,255,.015);border-top:1px solid rgba(255,255,255,.05);border-bottom:1px solid rgba(255,255,255,.05)}
+  .section-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:#5b9cf5;margin-bottom:14px}
+  .section-heading{font-size:clamp(26px,4vw,42px);font-weight:800;line-height:1.12;letter-spacing:-.02em;margin-bottom:16px}
+  .section-sub{font-size:16px;color:rgba(255,255,255,.48);max-width:620px;line-height:1.65}
+
+  /* ── FEATURES ── */
+  .features-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;margin-top:40px}
+  .feature{background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:28px;transition:border-color .2s}
+  .feature:hover{border-color:rgba(255,255,255,.12)}
+  .feature .icon{width:40px;height:40px;border-radius:10px;background:rgba(91,156,245,.10);display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:16px;color:#5b9cf5}
+  .feature h3{font-size:16px;font-weight:700;letter-spacing:-.01em;margin-bottom:6px}
+  .feature p{font-size:13px;color:rgba(255,255,255,.42);line-height:1.6}
+
+  /* ── CONTROLS ── */
+  .controls-table{width:100%;margin-top:32px;border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,.06)}
+  .controls-table div{display:grid;grid-template-columns:1fr 1fr;padding:14px 22px;font-size:14px}
+  .controls-table div:nth-child(odd){background:rgba(255,255,255,.02)}
+  .controls-table div:nth-child(even){background:rgba(255,255,255,.04)}
+  .controls-table .gesture{font-weight:600;color:#e4ecf8}
+  .controls-table .action{color:rgba(255,255,255,.52)}
+
+  /* ── INSTALL ── */
+  .code-block{background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:20px 24px;font-family:"SF Mono","Cascadia Code","Fira Code",monospace;font-size:13px;line-height:1.7;margin-top:24px;overflow-x:auto;color:rgba(255,255,255,.65)}
+  .code-block span.cmd{color:#5b9cf5}
+  .code-block span.comment{color:rgba(255,255,255,.22)}
+
+  /* ── ARCHITECTURE ── */
+  .arch-diagram{background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:28px;margin-top:28px;font-family:"SF Mono","Cascadia Code","Fira Code",monospace;font-size:12px;line-height:1.8;color:rgba(255,255,255,.42);overflow-x:auto}
+  .arch-diagram span.high{color:#e4ecf8;font-weight:600}
+  .arch-diagram span.accent{color:#5b9cf5}
+
+  /* ── FOOTER ── */
+  footer{border-top:1px solid rgba(255,255,255,.06);padding:48px 0 32px}
+  footer .container{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}
+  footer p{font-size:13px;color:rgba(255,255,255,.28)}
+  .footer-links{display:flex;gap:24px}
+  .footer-links a{font-size:13px;color:rgba(255,255,255,.32);text-decoration:none;transition:color .15s}
+  .footer-links a:hover{color:rgba(255,255,255,.6)}
+
+  @media(max-width:768px){
+    nav{padding:0 20px}.hero{padding:120px 0 60px}.hero h1{font-size:32px}
+    section{padding:64px 0}.section-heading{font-size:26px}
+    .features-grid{grid-template-columns:1fr}
+    .controls-table div{grid-template-columns:1fr;gap:4px;padding:10px 16px}
+    footer .container{flex-direction:column;text-align:center}
+  }
+
+  @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+  .fade-up{animation:fadeUp .7s ease-out both}
+  .d1{animation-delay:.1s}.d2{animation-delay:.2s}.d3{animation-delay:.3s}
+  @media(prefers-reduced-motion:reduce){.fade-up{animation:none;opacity:1;transform:none}}
+</style>
+</head>
+<body>
+
+<div class="atmos">
+  <div class="orb a"></div>
+  <div class="orb b"></div>
+  <div class="orb c"></div>
+  <div class="orb sheen"></div>
+</div>
+
+<nav>
+  <a href="#" class="nav-logo">
+    <svg viewBox="0 0 64 54" fill="none" stroke="#e4ecff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M8 12h48c4 0 4 4 4 4v8c0 16-4 22-14 22-6 0-12-4-14-12-2 8-8 12-14 12C8 46 4 40 4 24v-8c0 0 0-4 4-4Z"/>
+      <rect x="22" y="14" width="20" height="12" rx="4"/>
+      <line x1="24" y1="6" x2="40" y2="6" stroke="#5b9cf5" stroke-width="2.5"/>
+      <circle cx="29" cy="32" r="4"/>
+      <circle cx="35" cy="32" r="4"/>
+    </svg>
+    DesktopConsole
+  </a>
+  <div class="nav-links">
+    <a href="#features">Features</a>
+    <a href="#controls">Controls</a>
+    <a href="#install">Install</a>
+    <a href="#architecture">Architecture</a>
+    <a href="https://github.com/AlteredAJ/DesktopConsole">GitHub</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="container">
+    <div class="hero-badge fade-up"><i></i> Windows 11 &middot; DualSense &middot; Tauri v2</div>
+    <h1 class="fade-up d1">Your Windows PC.<br>Now a <em>living-room console</em>.</h1>
+    <p class="sub fade-up d2">Pick up a DualSense. Triple-tap the PS button. Your full-screen game launcher appears — game tiles, streaming apps, system settings, all navigable by controller. GPU fluid backgrounds. Glass UI. Zero network ports.</p>
+    <div class="hero-actions fade-up d3">
+      <a href="https://github.com/AlteredAJ/DesktopConsole" class="btn btn-primary">View on GitHub</a>
+      <a href="https://github.com/AlteredAJ/DesktopConsole/blob/main/demo/game-page-a1.html" class="btn btn-outline">Live Demo Preview</a>
+    </div>
+  </div>
+</section>
+
+<section class="mockup-wrap">
+  <div class="mockup">
+    <div class="mockup-overlay">
+      <svg viewBox="0 0 64 54" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M8 12h48c4 0 4 4 4 4v8c0 16-4 22-14 22-6 0-12-4-14-12-2 8-8 12-14 12C8 46 4 40 4 24v-8c0 0 0-4 4-4Z"/>
+        <rect x="22" y="14" width="20" height="12" rx="4"/>
+        <circle cx="29" cy="32" r="3"/>
+        <circle cx="35" cy="32" r="3"/>
+      </svg>
+      <span>Console Dashboard &mdash; Run the app or open <code>demo/</code> in a browser</span>
+    </div>
+  </div>
+</section>
+
+<section id="features">
+  <div class="container">
+    <div class="section-label">Features</div>
+    <h2 class="section-heading">What it does.</h2>
+    <p class="section-sub">Controller-first navigation, GPU compositing, and deep system integration — from the couch.</p>
+    <div class="features-grid">
+      <div class="feature"><div class="icon">&#9675;</div><h3>Controller-First</h3><p>D-pad, left stick, touchpad gestures. Cross to select, Circle to back, L1/R1 to switch tabs. Zero mouse required.</p></div>
+      <div class="feature"><div class="icon">&#9889;</div><h3>DualSense Integration</h3><p>Haptic feedback, lightbar color sync, battery meter, trackpad-as-mouse mode. Triple-tap PS to open.</p></div>
+      <div class="feature"><div class="icon">&#10022;</div><h3>GPU Fluid Backgrounds</h3><p>Live WebGL simulations via Fluid by KrackedDevs. Three presets (Midnight, Ember, Void). Renders on viewer GPU.</p></div>
+      <div class="feature"><div class="icon">&#9632;</div><h3>Glass UI</h3><p>Deep frosted glass, specular bloom, accent-glow focus indicators. Apple- and console-inspired visual language.</p></div>
+      <div class="feature"><div class="icon">&#9881;</div><h3>Tauri v2</h3><p>Rust backend + React frontend in WebView2. No Electron, no localhost server. Sub-5 MB backend binary.</p></div>
+      <div class="feature"><div class="icon">&#10687;</div><h3>Two Processes</h3><p>Tray-resident listener watches for PS triple-click. Fullscreen launcher opens on demand and fully unloads when closed.</p></div>
+      <div class="feature"><div class="icon">&#9716;</div><h3>Quick Menu</h3><p>Double-tap PS mid-game for a transparent overlay: volume, RGB, controller settings, Game Base, capture.</p></div>
+      <div class="feature"><div class="icon">&#9724;</div><h3>Power Menu</h3><p>Right-edge slide panel: minimize, close, lock, rest mode, shutdown. Confirmation required for destructive actions.</p></div>
+      <div class="feature"><div class="icon">&#9737;</div><h3>OpenRGB Control</h3><p>Cycle and set RGB scenes on DualSense lightbar and motherboard LEDs from the Quick Menu or Settings.</p></div>
+      <div class="feature"><div class="icon">&#9000;</div><h3>On-Screen Keyboard</h3><p>D-pad or touchpad swipe-to-type. Double-Share types into the foreground app via Windows text injection.</p></div>
+      <div class="feature"><div class="icon">&#9881;</div><h3>Settings Hub</h3><p>Appearance, Controller sensitivity, Audio mixer, Network, Bluetooth, Display modes, RGB, Performance toggles.</p></div>
+      <div class="feature"><div class="icon">&#128279;</div><h3>No DLL Injection</h3><p>Quick Menu uses transparent click-through windows. No hooks, no anti-cheat bypasses, no public ports.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="controls" class="alt">
+  <div class="container">
+    <div class="section-label">Controls</div>
+    <h2 class="section-heading">How you drive it.</h2>
+    <p class="section-sub">Every gesture maps to a console action. Learn these in your first session.</p>
+    <div class="controls-table">
+      <div><span class="gesture">Triple-tap PS (from Windows)</span><span class="action">Open the console entry screen</span></div>
+      <div><span class="gesture">Press PS (on entry screen)</span><span class="action">Enter the dashboard</span></div>
+      <div><span class="gesture">D-pad / Left stick</span><span class="action">Navigate tiles, menus, settings</span></div>
+      <div><span class="gesture">Cross (&#10005;)</span><span class="action">Select / Launch / Confirm</span></div>
+      <div><span class="gesture">Circle (&#9675;)</span><span class="action">Back / Cancel</span></div>
+      <div><span class="gesture">L1 / R1</span><span class="action">Switch tabs</span></div>
+      <div><span class="gesture">Square (&#9632;)</span><span class="action">Close running app (when tile focused)</span></div>
+      <div><span class="gesture">Double-tap PS (in-game)</span><span class="action">Toggle Quick Menu overlay</span></div>
+      <div><span class="gesture">Double-tap Share</span><span class="action">Open on-screen keyboard (types into foreground app)</span></div>
+      <div><span class="gesture">Touchpad click (hold 2s)</span><span class="action">Toggle trackpad-as-mouse mode</span></div>
+      <div><span class="gesture">Options (triple-click)</span><span class="action">Exit console (also PS + Options hold)</span></div>
+      <div><span class="gesture">Power menu</span><span class="action">Up/Down to choose, Cross to select, Circle to cancel</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="install">
+  <div class="container">
+    <div class="section-label">Get Started</div>
+    <h2 class="section-heading">Build &amp; run.</h2>
+    <div class="code-block">
+      <span class="comment"># Prerequisites: Windows 11, Node.js 18+, Rust (via rustup), WebView2 (included)</span><br>
+      <span class="cmd">cargo install tauri-cli --version "^2"</span><br><br>
+      <span class="comment"># Build the launcher</span><br>
+      <span class="cmd">cd launcher && npm ci && npx tauri build --no-bundle</span><br><br>
+      <span class="comment"># Outputs</span><br>
+      <span>  target/release/<span class="high">ps5-launcher.exe</span> &mdash; the fullscreen console</span><br>
+      <span>  listener/src-tauri/target/release/<span class="high">ps5-listener.exe</span> &mdash; the tray-resident trigger</span><br><br>
+      <span class="comment"># Dev mode</span><br>
+      <span class="cmd">cd launcher && npx tauri dev</span><br>
+      <span class="cmd">.\\rebuild.ps1 -Dev</span>
+    </div>
+  </div>
+</section>
+
+<section id="architecture" class="alt">
+  <div class="container">
+    <div class="section-label">Architecture</div>
+    <h2 class="section-heading">How it's built.</h2>
+    <div class="arch-diagram">
+      <span class="high">DesktopConsole/</span><br>
+      <span class="high">├── launcher/</span>                    <span class="accent">Fullscreen Tauri + React console</span><br>
+      &nbsp;&nbsp;<span class="high">│   ├── src/</span>                     <span>React frontend &mdash; components, hooks, appRegistry, settings, motion, theme</span><br>
+      &nbsp;&nbsp;<span class="high">│   └── src-tauri/src/</span>         <span>Rust backend &mdash; hid.rs, commands.rs, config.rs, app_launch.rs</span><br>
+      &nbsp;&nbsp;<span class="high">│       ├── hid.rs</span>              <span class="accent">DualSense HID parsing, input loop</span><br>
+      &nbsp;&nbsp;<span class="high">│       ├── openrgb.rs</span>         <span>OpenRGB SDK client</span><br>
+      &nbsp;&nbsp;<span class="high">│       ├── rumble.rs</span>          <span>Haptic feedback</span><br>
+      &nbsp;&nbsp;<span class="high">│       ├── mouse_inject.rs</span>    <span>Trackpad-as-cursor</span><br>
+      &nbsp;&nbsp;<span class="high">│       ├── display.rs</span>         <span>Resolution / refresh mode control</span><br>
+      &nbsp;&nbsp;<span class="high">│       ├── network.rs</span>         <span>Wi-Fi profile management</span><br>
+      &nbsp;&nbsp;<span class="high">│       ├── audio.rs</span>           <span>Master volume / mute</span><br>
+      &nbsp;&nbsp;<span class="high">│       ├── power.rs</span>           <span>Power plans / idle</span><br>
+      &nbsp;&nbsp;<span class="high">│       └── live_backdrop.rs</span>   <span>Running app window capture</span><br>
+      <span class="high">├── listener/</span>                    <span class="accent">Tray-resident PS-button watcher</span><br>
+      &nbsp;&nbsp;<span class="high">│   └── src-tauri/src/</span>         <span>hid.rs, cursor_mode.rs, triple_click.rs, launch.rs, tray.rs</span><br>
+      <span class="high">├── demo/</span>                        <span>Design mockups &mdash; open in browser</span><br>
+      <span class="high">├── docs/specs/</span>                  <span>Feature specification documents</span><br>
+      <span class="high">└── tools/</span>                       <span>Utility scripts</span>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <p>&copy; 2026 AJ Apau-Kese. MIT License.</p>
+    <div class="footer-links">
+      <a href="https://github.com/AlteredAJ/DesktopConsole">GitHub</a>
+      <a href="https://github.com/AlteredAJ/DesktopConsole/blob/main/demo/game-page-a1.html">Demo</a>
+      <a href="https://github.com/AlteredAJ">Profile</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
