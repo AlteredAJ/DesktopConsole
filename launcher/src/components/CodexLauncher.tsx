@@ -4,6 +4,7 @@ import { accentFor, GlyphCircle, GlyphCross, GlyphOptions, GlyphSquare, GlyphSwi
 import { heroArtFor } from "./heroArt";
 import { Clock } from "./Clock";
 import { Atmosphere } from "./Atmosphere";
+import { FluidAtmosphere, type FluidPreset } from "./FluidAtmosphere";
 import { useController } from "../hooks/useController";
 import { useEdges } from "../hooks/useEdges";
 import { duckAmbient, setAmbientHue } from "../ambient";
@@ -71,6 +72,8 @@ export function CodexLauncher({ onOpen, onReady, onRest, inputEnabled }: { onOpe
   const [expandedTile, setExpandedTile] = useState<Tile | null>(null); const [actionIndex, setActionIndex] = useState(0);
   const [powerOpen, setPowerOpen] = useState(false); const [powerIndex, setPowerIndex] = useState(0); const [powerConfirm, setPowerConfirm] = useState(false);
   const [keyboardOpen, setKeyboardOpen] = useState(false);
+  // Fluid background preset — default off (CSS-only). Toggle in Settings > Performance once wired.
+  const fluidPreset: FluidPreset = "midnight";
   // Tell the HID loop to suppress exit combos while the keyboard overlay is
   // visible — the user is trying to type, not kill the launcher.
   useEffect(() => {
@@ -356,7 +359,7 @@ export function CodexLauncher({ onOpen, onReady, onRest, inputEnabled }: { onOpe
   const showLiveBackdrop = Boolean(liveBackdrop && activeTile && liveBackdrop.tile_id === activeTile.id);
   const liveBackground = showLiveBackdrop && liveBackdrop ? `linear-gradient(90deg, rgba(5,8,14,.78) 0%, rgba(6,9,15,.37) 39%, rgba(6,9,15,.15) 100%), url("${liveBackdrop.data_url}")` : undefined;
   return <main className={`codex-launcher ${closing ? "app-exit" : ""}`} style={{ "--focus-bloom": accent, "--px": parallax, "--dir": switchDir } as CSSProperties}>
-    <style>{CSS}</style><Atmosphere variant="home" />
+    <style>{CSS}</style><Atmosphere variant="home" /><FluidAtmosphere preset={fluidPreset} />
     <div className="codex-backdrop" aria-hidden="true"><div className={`codex-live-backdrop ${showLiveBackdrop ? "is-ready" : ""}`} style={{ backgroundImage: liveBackground }} />{HeroArt && <div className={`codex-hero-art ${showLiveBackdrop ? "is-covered" : ""}`}><HeroArt /></div>}</div>
     {/* A1: combined nav bar � controller icon, tabs, utility, clock, battery */}
     <header className="codex-nav">
